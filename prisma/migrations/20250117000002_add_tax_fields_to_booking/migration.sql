@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE `booking` ADD COLUMN `baseAmount` DOUBLE NULL,
+    ADD COLUMN `gstAmount` DOUBLE NULL DEFAULT 0.0,
+    ADD COLUMN `serviceTaxAmount` DOUBLE NULL DEFAULT 0.0,
+    ADD COLUMN `otherTaxAmount` DOUBLE NULL DEFAULT 0.0,
+    ADD COLUMN `totalTaxAmount` DOUBLE NULL DEFAULT 0.0;
