@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE `room` ADD COLUMN `totalRooms` INTEGER NOT NULL DEFAULT 1;
