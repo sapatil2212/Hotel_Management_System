@@ -26,6 +26,48 @@ export function ImageUpload({
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
 
+  const uploadToCloudinary = async (file: File): Promise<string> => {
+    // Get Cloudinary signature
+    const signatureResponse = await fetch('/api/uploads/cloudinary-signature', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ folder: 'uploads' }),
+    })
+
+    if (!signatureResponse.ok) {
+      throw new Error('Failed to get upload signature')
+    }
+
+    const { timestamp, signature, apiKey, cloudName } = await signatureResponse.json()
+
+    // Create form data for Cloudinary
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('api_key', apiKey)
+    formData.append('timestamp', timestamp.toString())
+    formData.append('signature', signature)
+    formData.append('folder', 'uploads')
+
+    // Upload directly to Cloudinary
+    const uploadResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    )
+
+    if (!uploadResponse.ok) {
+      const errorData = await uploadResponse.text()
+      throw new Error(`Upload failed: ${errorData}`)
+    }
+
+    const result = await uploadResponse.json()
+    return result.secure_url
+  }
+
   const handleUpload = useCallback(async (files: FileList) => {
     if (disabled || files.length === 0) return
     
@@ -49,24 +91,9 @@ export function ImageUpload({
           continue
         }
         
-        // Upload to server
-        const uploadFormData = new FormData()
-        uploadFormData.append('file', file)
-        
         try {
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: uploadFormData
-          })
-          
-          if (!response.ok) {
-            const errorData = await response.json()
-            console.error('Upload failed:', errorData.error)
-            continue
-          }
-          
-          const data = await response.json()
-          newImages.push(data.url)
+          const imageUrl = await uploadToCloudinary(file)
+          newImages.push(imageUrl)
         } catch (error) {
           console.error('Upload failed:', error)
           // Fallback to preview URL for development
