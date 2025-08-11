@@ -41,12 +41,19 @@ export async function POST(req: Request) {
 
     const code = Math.floor(100000 + Math.random() * 900000).toString()
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
+    const now = new Date()
 
     // upsert OTP
     await prisma.emailotp.upsert({
       where: { email },
-      create: { email, code, expiresAt },
-      update: { code, expiresAt, attempts: 0 },
+      create: { 
+        id: `otp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        email, 
+        code, 
+        expiresAt,
+        updatedAt: now
+      },
+      update: { code, expiresAt, attempts: 0, updatedAt: now },
     })
 
     const html = `

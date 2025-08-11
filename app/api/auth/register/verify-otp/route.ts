@@ -43,7 +43,13 @@ export async function POST(req: Request) {
     }
 
     if (otp.code !== code) {
-      await prisma.emailotp.update({ where: { email }, data: { attempts: { increment: 1 } } })
+      await prisma.emailotp.update({ 
+        where: { email }, 
+        data: { 
+          attempts: { increment: 1 },
+          updatedAt: new Date()
+        } 
+      })
       return NextResponse.json({ error: "Invalid OTP" }, { status: 400 })
     }
 
