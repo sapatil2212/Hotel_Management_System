@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     }
     const { name, email, phone, role, password, code } = parsed.data
 
-    const otp = await prisma.emailOTP.findUnique({ where: { email } })
+    const otp = await prisma.emailotp.findUnique({ where: { email } })
     if (!otp) return NextResponse.json({ error: "No OTP requested" }, { status: 400 })
 
     if (otp.expiresAt.getTime() < Date.now()) {
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     }
 
     if (otp.code !== code) {
-      await prisma.emailOTP.update({ where: { email }, data: { attempts: { increment: 1 } } })
+      await prisma.emailotp.update({ where: { email }, data: { attempts: { increment: 1 } } })
       return NextResponse.json({ error: "Invalid OTP" }, { status: 400 })
     }
 
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       },
     })
 
-    await prisma.emailOTP.delete({ where: { email } })
+    await prisma.emailotp.delete({ where: { email } })
 
     return NextResponse.json({ ok: true })
   } catch (err: any) {

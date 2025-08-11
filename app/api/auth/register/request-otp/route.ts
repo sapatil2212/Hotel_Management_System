@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000)
 
     // upsert OTP
-    await prisma.emailOTP.upsert({
+    await prisma.emailotp.upsert({
       where: { email },
       create: { email, code, expiresAt },
       update: { code, expiresAt, attempts: 0 },

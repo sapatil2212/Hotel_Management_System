@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, CalendarCheck2, BarChart3, Settings, Building, Bed, Home, Tag } from "lucide-react"
+import { LayoutDashboard, Users, CalendarCheck2, BarChart3, Settings, Building, Bed, Home, Tag, Receipt } from "lucide-react"
 
 const menuItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -13,6 +13,7 @@ const menuItems = [
   { href: "/dashboard/promo-codes", label: "Promo/Offers", icon: Tag },
   { href: "/dashboard/hotel-info", label: "Hotel Info", icon: Building },
   { href: "/dashboard/guests", label: "Guests", icon: Users },
+  { href: "/dashboard/billing", label: "Billing/Invoices", icon: Receipt },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
