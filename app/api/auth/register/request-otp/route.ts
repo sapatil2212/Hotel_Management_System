@@ -50,6 +50,7 @@ export async function POST(req: Request) {
         id: `otp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         email, 
         code, 
+        purpose: "register",
         expiresAt,
         updatedAt: now
       },
