@@ -11,7 +11,7 @@ import { Mail, LockKeyhole, Facebook, Github, Home } from "lucide-react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { Loader } from "@/components/ui/loader"
+import { Loader, ButtonLoader } from "@/components/ui/loader"
 
 async function login(email: string, password: string) {
   const res = await signIn("credentials", { redirect: false, email, password })
@@ -30,8 +30,6 @@ export default function SignInPage() {
     e.preventDefault()
     setError(null)
     startTransition(async () => {
-      // show overlay loader while authenticating
-      
       const res = await login(email, password)
       if (res?.error) {
         setError("Invalid credentials")
@@ -45,7 +43,12 @@ export default function SignInPage() {
 
   return (
     <Card className="w-full max-w-5xl overflow-hidden shadow-xl border-0">
-      <Loader show={isPending} message="Signing you in..." />
+      <Loader 
+        show={isPending} 
+        message="Signing you in..."
+        variant="primary"
+        size="lg"
+      />
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* Left: Form */}
         <CardContent className="p-8 md:p-10">
@@ -73,7 +76,14 @@ export default function SignInPage() {
               <Link href="/auth/sign-up" className="text-amber-700 hover:underline">Register</Link>
               <Link href="#" className="text-muted-foreground hover:underline">Forgot Password?</Link>
             </div>
-            <Button type="submit" className="w-24" disabled={isPending}>{isPending ? "..." : "Sign In"}</Button>
+            <Button type="submit" className="w-24" disabled={isPending}>
+              <ButtonLoader 
+                show={isPending} 
+                loadingText="Signing in..."
+              >
+                Sign In
+              </ButtonLoader>
+            </Button>
           </form>
 
           <div className="mt-8">

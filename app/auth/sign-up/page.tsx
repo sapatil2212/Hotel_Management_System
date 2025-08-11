@@ -10,8 +10,8 @@ import { Mail, LockKeyhole, User, Home, Phone, KeySquare, ShieldCheck } from "lu
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Loader } from "@/components/ui/loader"
+import { Loader, ButtonLoader } from "@/components/ui/loader"
+import { SuccessModal } from "@/components/ui/success-modal"
 
 export default function SignUpPage() {
   const [step, setStep] = useState<"details" | "verify">("details")
@@ -43,6 +43,7 @@ export default function SignUpPage() {
       throw new Error(data?.error || "Failed to request OTP")
     }
   }
+  
   const verifyOtp = async () => {
     const res = await fetch("/api/auth/register/verify-otp", {
       method: "POST",
@@ -79,7 +80,7 @@ export default function SignUpPage() {
           await verifyOtp()
           setSuccessOpen(true)
           toast({ title: "Registration successful", description: "You can now sign in." })
-          setTimeout(() => router.push("/auth/sign-in"), 800)
+          setTimeout(() => router.push("/auth/sign-in"), 2000)
         } catch (err: any) {
           setError(err.message)
         }
@@ -89,7 +90,12 @@ export default function SignUpPage() {
 
   return (
     <Card className="w-full max-w-5xl overflow-hidden shadow-xl border-0">
-      <Loader show={isPending} message={step === "details" ? "Sending OTP..." : "Creating your account..."} />
+      <Loader 
+        show={isPending} 
+        message={step === "details" ? "Sending OTP to your email..." : "Creating your account..."}
+        variant="primary"
+        size="lg"
+      />
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* Left: Form */}
         <CardContent className="p-8 md:p-10">
@@ -154,22 +160,14 @@ export default function SignUpPage() {
               <Link href="/auth/sign-in" className="text-amber-700 hover:underline">Have an account? Sign In</Link>
             </div>
             <Button type="submit" className="w-28" disabled={isPending}>
-              {isPending ? "..." : step === "details" ? "Request OTP" : "Verify & Create"}
+              <ButtonLoader 
+                show={isPending} 
+                loadingText={step === "details" ? "Sending..." : "Verifying..."}
+              >
+                {step === "details" ? "Request OTP" : "Verify & Create"}
+              </ButtonLoader>
             </Button>
           </form>
-          <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Account created</DialogTitle>
-                <DialogDescription>
-                  Your account has been created successfully. Redirecting to sign-in...
-                </DialogDescription>
-              </DialogHeader>
-              <DialogFooter>
-                <Button onClick={() => router.push('/auth/sign-in')}>Go to Sign In</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </CardContent>
 
         {/* Right: Hero */}
@@ -178,6 +176,17 @@ export default function SignUpPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-transparent" />
         </div>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        open={successOpen}
+        onOpenChange={setSuccessOpen}
+        title="Account Created Successfully!"
+        description="Your account has been created successfully. You will be redirected to the sign-in page shortly."
+        onConfirm={() => router.push('/auth/sign-in')}
+        confirmText="Go to Sign In"
+        showIcon={true}
+      />
     </Card>
   )
 }

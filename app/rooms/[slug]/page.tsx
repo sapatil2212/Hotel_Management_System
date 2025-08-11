@@ -51,6 +51,8 @@ interface Room {
   maxGuests: number
   totalRooms: number
   available: boolean
+  availableRoomsCount?: number
+  isSoldOut?: boolean
   isPromoted: boolean
   discountPercent?: number | null
   images: string[]
@@ -437,6 +439,18 @@ export default function RoomDetailsPage() {
                           ⭐ Promoted
                         </Badge>
                       )}
+                      {room.isSoldOut ? (
+                        <Badge variant="destructive" className="bg-red-500 hover:bg-red-600">
+                          ✗ SOLD OUT
+                        </Badge>
+                      ) : (
+                        <Badge variant="default" className="bg-green-500 hover:bg-green-600">
+                          ✓ Available
+                          {room.availableRoomsCount && room.availableRoomsCount < room.totalRooms && (
+                            <span className="ml-1 text-xs">({room.availableRoomsCount}/{room.totalRooms})</span>
+                          )}
+                        </Badge>
+                      )}
                     </div>
                     {room.viewType && (
                       <p className="text-lg text-amber-600 font-medium">{room.viewType}</p>
@@ -667,16 +681,27 @@ export default function RoomDetailsPage() {
                   
                   {/* Booking buttons */}
                   <div className="space-y-3">
-                    <Button 
-                      className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700" 
-                      size="lg"
-                      asChild
-                    >
-                      <Link href={`/rooms/${room.slug}/book`}>
-                        Book Now
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
+                    {room.isSoldOut ? (
+                      <Button 
+                        className="w-full bg-red-500 hover:bg-red-600 cursor-not-allowed opacity-60" 
+                        size="lg"
+                        disabled
+                      >
+                        Sold Out
+                        <X className="ml-2 h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button 
+                        className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700" 
+                        size="lg"
+                        asChild
+                      >
+                        <Link href={`/rooms/${room.slug}/book`}>
+                          Book Now
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </Button>
+                    )}
                     
                     <Button asChild variant="outline" className="w-full" size="lg">
                       <a href={telHref}>

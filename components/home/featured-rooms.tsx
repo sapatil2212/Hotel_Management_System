@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Container } from "@/components/ui/container"
-import { Star, Bed, Square, ArrowRight, Eye } from "lucide-react"
+import { Star, Bed, Square, ArrowRight, Eye, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -21,6 +21,8 @@ interface Room {
   maxGuests: number
   totalRooms: number
   available: boolean
+  availableRoomsCount?: number
+  isSoldOut?: boolean
   isPromoted: boolean
   discountPercent?: number | null
   images: string[]
@@ -79,7 +81,9 @@ const FeaturedRooms = () => {
           bathroomCount: 2,
           maxGuests: 4,
           totalRooms: 2,
-          available: true,
+          available: false,
+          availableRoomsCount: 0,
+          isSoldOut: true,
           isPromoted: false,
           discountPercent: 20,
           images: ["https://images.pexels.com/photos/1457847/pexels-photo-1457847.jpeg"],
@@ -98,6 +102,8 @@ const FeaturedRooms = () => {
           maxGuests: 2,
           totalRooms: 8,
           available: true,
+          availableRoomsCount: 3,
+          isSoldOut: false,
           isPromoted: false,
           images: ["https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg"],
           shortDescription: "Spacious room designed for business travelers",
@@ -157,16 +163,24 @@ const FeaturedRooms = () => {
         
         {/* Availability with improved styling */}
         <div className="absolute top-4 right-4 z-20">
-          <Badge 
-            variant={room.available ? "default" : "secondary"} 
-            className={`${
-              room.available 
-                ? "bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white" 
-                : "bg-gradient-to-r from-gray-500 to-gray-600 text-white"
-            } border-0 shadow-lg backdrop-blur-sm font-semibold`}
-          >
-            {room.available ? "✓ Available" : "✗ Sold Out"}
-          </Badge>
+          {room.isSoldOut ? (
+            <Badge 
+              variant="destructive" 
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold text-sm px-3 py-1"
+            >
+              ✗ SOLD OUT
+            </Badge>
+          ) : (
+            <Badge 
+              variant="default" 
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold text-sm px-3 py-1"
+            >
+              ✓ Available
+              {room.availableRoomsCount && room.availableRoomsCount < room.totalRooms && (
+                <span className="ml-1 text-xs">({room.availableRoomsCount}/{room.totalRooms})</span>
+              )}
+            </Badge>
+          )}
         </div>
         
         {/* Enhanced price overlay */}
@@ -280,13 +294,25 @@ const FeaturedRooms = () => {
             </Link>
           </Button>
           <Button 
-            className="flex-1 h-10 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold text-sm" 
-            asChild
+            className={`flex-1 h-10 font-semibold text-sm transition-all duration-300 ${
+              room.isSoldOut 
+                ? "bg-gray-400 cursor-not-allowed opacity-60" 
+                : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-lg hover:shadow-xl"
+            }`}
+            disabled={room.isSoldOut}
+            asChild={!room.isSoldOut}
           >
-            <Link href={`/rooms/${room.slug}/book`}>
-              Book Now
-              <ArrowRight className="ml-2 h-3 w-3" />
-            </Link>
+            {room.isSoldOut ? (
+              <span className="flex items-center justify-center">
+                Sold Out
+                <X className="ml-2 h-3 w-3" />
+              </span>
+            ) : (
+              <Link href={`/rooms/${room.slug}/book`}>
+                Book Now
+                <ArrowRight className="ml-2 h-3 w-3" />
+              </Link>
+            )}
           </Button>
         </div>
       </CardFooter>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-// GET /api/rooms - Get all rooms
+// GET /api/rooms - Get all rooms with real availability calculation
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -9,10 +9,6 @@ export async function GET(request: NextRequest) {
     const categoryId = searchParams.get('categoryId')
     
     const where: any = {}
-    
-    if (available === 'true') {
-      where.available = true
-    }
     
     if (categoryId) {
       where.categoryId = categoryId
@@ -22,6 +18,12 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         category: true,
+        rooms: {
+          select: {
+            id: true,
+            status: true
+          }
+        },
         _count: {
           select: {
             rooms: true
@@ -33,15 +35,30 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Ensure amenities and features are arrays
-    const roomsWithDefaults = rooms.map(room => ({
-      ...room,
-      amenities: room.amenities || [],
-      features: room.features || [],
-      highlights: room.highlights || ""
-    }))
+    // Calculate real availability for each room type
+    const roomsWithRealAvailability = rooms.map(room => {
+      const availableRooms = room.rooms.filter(r => r.status === 'available').length
+      const totalRooms = room.totalRooms
+      const isAvailable = availableRooms > 0
+      
+      return {
+        ...room,
+        amenities: room.amenities || [],
+        features: room.features || [],
+        highlights: room.highlights || "",
+        available: isAvailable,
+        availableRoomsCount: availableRooms,
+        totalRooms: totalRooms,
+        isSoldOut: availableRooms === 0
+      }
+    })
 
-    return NextResponse.json(roomsWithDefaults)
+    // Filter by availability if requested
+    const filteredRooms = available === 'true' 
+      ? roomsWithRealAvailability.filter(room => room.available)
+      : roomsWithRealAvailability
+
+    return NextResponse.json(filteredRooms)
   } catch (error) {
     console.error('Error fetching rooms:', error)
     return NextResponse.json(
