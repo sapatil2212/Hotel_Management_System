@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 import { calculateTaxes } from "@/lib/tax-calculator"
-
-const prisma = new PrismaClient()
 
 // GET /api/bookings - Get all bookings
 export async function GET(request: NextRequest) {
@@ -137,7 +135,7 @@ export async function POST(request: NextRequest) {
     const bookingId = `BL-${Date.now()}`
     
     // Create booking in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Create the booking
       const booking = await tx.booking.create({
         data: {
@@ -162,6 +160,8 @@ export async function POST(request: NextRequest) {
           roomId: selectedRoom.id,
           promoCodeId: promoCodeId || null,
           status: 'confirmed',
+          paymentMethod: 'pay_at_hotel', // Default payment method
+          paymentStatus: 'pending',
           updatedAt: new Date()
         },
         include: {

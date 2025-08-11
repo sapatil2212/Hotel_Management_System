@@ -153,7 +153,8 @@ export async function POST(request: NextRequest) {
         validFrom: fromDate,
         validUntil: untilDate,
         applicableRooms,
-        isActive
+        isActive,
+        updatedAt: new Date()
       }
     })
 

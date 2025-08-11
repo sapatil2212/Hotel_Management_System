@@ -88,6 +88,22 @@ export default function BookingConfirmationPage() {
       if (response.ok) {
         const data = await response.json()
         setBookingDetails(data)
+        
+        // Automatically generate invoice if it doesn't exist
+        try {
+          const invoiceResponse = await fetch('/api/invoices', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bookingId })
+          })
+          
+          if (invoiceResponse.ok) {
+            const invoice = await invoiceResponse.json()
+            console.log('Invoice generated:', invoice.invoiceNumber)
+          }
+        } catch (error) {
+          console.error('Error generating invoice:', error)
+        }
       } else {
         toast({
           title: "Error",

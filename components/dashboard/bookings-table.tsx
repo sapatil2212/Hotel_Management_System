@@ -38,9 +38,11 @@ interface Booking {
   source: string
   createdAt: string
   room: {
+    id: string
     roomNumber: string
     floorNumber?: number
     roomType: {
+      id: string
       name: string
       size: string
       bedType: string
@@ -48,6 +50,7 @@ interface Booking {
       amenities: any[]
       features: any[]
       currency: string
+      price: number
     }
   }
   promoCode?: {
@@ -248,7 +251,7 @@ export default function BookingsTable() {
     
     // Calculate pricing preview if room type changed
     if (roomTypeId !== editingBooking.room.roomType.id) {
-      calculatePricingPreview(newRoomType.price, editingBooking.nights, editingBooking.originalAmount, editingBooking.discountAmount)
+      calculatePricingPreview(newRoomType.price, editingBooking.nights, editingBooking.originalAmount || null, editingBooking.discountAmount || null)
     } else {
       setPricingPreview(null)
     }
@@ -280,7 +283,7 @@ export default function BookingsTable() {
             totalTaxAmount: newTaxBreakdown.totalTaxAmount,
             totalAmount: newTaxBreakdown.totalAmount,
             taxes: newTaxBreakdown.taxes,
-            priceDifference: newTaxBreakdown.totalAmount - (editingBooking.totalAmount || 0)
+            priceDifference: newTaxBreakdown.totalAmount - (editingBooking?.totalAmount || 0)
           })
         } else {
           // Fallback without tax calculation
@@ -321,7 +324,7 @@ export default function BookingsTable() {
             totalTaxAmount: newTaxBreakdown.totalTaxAmount,
             totalAmount: newTaxBreakdown.totalAmount,
             taxes: newTaxBreakdown.taxes,
-            priceDifference: newTaxBreakdown.totalAmount - (editingBooking.totalAmount || 0)
+            priceDifference: newTaxBreakdown.totalAmount - (editingBooking?.totalAmount || 0)
           })
         } else {
           // Fallback without tax calculation
@@ -378,8 +381,8 @@ export default function BookingsTable() {
       calculatePricingPreview(
         selectedRoomType.price, 
         newFormData.nights, 
-        editingBooking.originalAmount, 
-        editingBooking.discountAmount
+                editingBooking?.originalAmount || null,
+        editingBooking?.discountAmount || null
       )
     }
   }

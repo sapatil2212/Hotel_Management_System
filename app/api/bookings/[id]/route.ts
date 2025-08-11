@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "@/lib/prisma"
 
 // GET /api/bookings/[id] - Get a specific booking
 export async function GET(
@@ -52,7 +50,13 @@ export async function PUT(
     // Check if booking exists
     const existingBooking = await prisma.booking.findUnique({
       where: { id: params.id },
-      include: { room: true }
+      include: { 
+        room: {
+          include: {
+            roomType: true
+          }
+        }
+      }
     })
     
     if (!existingBooking) {
@@ -132,7 +136,7 @@ export async function PUT(
     }
 
     // Update booking in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       // Handle room change if requested
       if (roomId && roomId !== existingBooking.roomId) {
         // Free up the old room (unless it's already cancelled)
@@ -233,7 +237,7 @@ export async function DELETE(
     }
 
     // Cancel booking in a transaction
-    await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx: any) => {
       // Update booking status to cancelled
       await tx.booking.update({
         where: { id: params.id },

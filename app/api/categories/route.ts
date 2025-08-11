@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "@/lib/prisma"
 
 // GET /api/categories - Get all categories
 export async function GET() {
   try {
     const categories = await prisma.category.findMany({
       include: {
-        rooms: {
+        room: {
           select: {
             id: true,
             name: true,

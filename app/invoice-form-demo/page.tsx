@@ -1,6 +1,7 @@
 'use client';
 
-import { InvoiceForm, InvoiceData } from '@/components/ui/invoice-form';
+import { InvoiceForm } from '@/components/ui/invoice-form';
+import { InvoiceData } from '@/components/ui/invoice';
 import { createSampleInvoice } from '@/lib/invoice-utils';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

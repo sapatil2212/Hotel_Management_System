@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
+import { prisma } from "@/lib/prisma"
 import { calculateTaxes } from "@/lib/tax-calculator"
-
-const prisma = new PrismaClient()
 
 // POST /api/calculate-taxes - Calculate tax breakdown for a given amount
 export async function POST(request: NextRequest) {

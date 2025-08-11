@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { PrismaClient } from "@prisma/client"
-
-const prisma = new PrismaClient()
+import { prisma } from "@/lib/prisma"
 
 // GET /api/rooms/[id] - Get a specific room
 export async function GET(
@@ -15,11 +13,15 @@ export async function GET(
       },
       include: {
         category: true,
-        booking: {
-          orderBy: {
-            createdAt: 'desc'
-          },
-          take: 10
+        rooms: {
+          include: {
+            bookings: {
+              orderBy: {
+                createdAt: 'desc'
+              },
+              take: 10
+            }
+          }
         }
       }
     })

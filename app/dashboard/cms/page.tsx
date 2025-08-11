@@ -83,8 +83,8 @@ export default function CMSPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingItem, setEditingItem] = useState<ContentItem | null>(null)
-  const [formData, setFormData] = useState({
-    type: 'text' as const,
+  const [formData, setFormData] = useState<Partial<ContentItem>>({
+    type: 'text',
     section: '',
     key: '',
     title: '',
@@ -214,7 +214,7 @@ export default function CMSPage() {
   const handleEditContent = (item: ContentItem) => {
     setEditingItem(item)
     setFormData({
-      type: item.type as 'text' | 'image' | 'button',
+      type: item.type,
       section: item.section,
       key: item.key,
       title: item.title,
@@ -248,7 +248,18 @@ export default function CMSPage() {
         // Add new content
         const newItem: ContentItem = {
           id: Date.now().toString(),
-          ...formData,
+          type: formData.type || 'text',
+          section: formData.section || '',
+          key: formData.key || '',
+          title: formData.title || '',
+          content: formData.content || '',
+          imageUrl: formData.imageUrl || '',
+          altText: formData.altText || '',
+          buttonText: formData.buttonText || '',
+          buttonLink: formData.buttonLink || '',
+          buttonStyle: formData.buttonStyle || 'primary',
+          isActive: formData.isActive ?? true,
+          order: formData.order || 0,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         }

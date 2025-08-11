@@ -4,7 +4,7 @@ const prisma = new PrismaClient()
 
 async function main() {
   // Create basic hotel info
-  const hotelInfo = await prisma.hotelInfo.upsert({
+  const hotelInfo = await prisma.hotelinfo.upsert({
     where: { id: "default-hotel" },
     update: {},
     create: {
@@ -55,7 +55,8 @@ async function main() {
       propertyAmenities: ["Free WiFi", "Swimming Pool", "Spa", "Restaurant", "Gym", "Parking"],
       businessFacilities: ["Conference Room", "Business Center", "Meeting Rooms"],
       safetyFeatures: ["24/7 Security", "CCTV", "Fire Safety", "First Aid"],
-      services: ["Room Service", "Laundry", "Airport Transfer", "Concierge"]
+      services: ["Room Service", "Laundry", "Airport Transfer", "Concierge"],
+      updatedAt: new Date()
     }
   })
 
@@ -65,6 +66,7 @@ async function main() {
       where: { slug: "deluxe-rooms" },
       update: {},
       create: {
+        id: "deluxe-category",
         name: "Deluxe Rooms",
         slug: "deluxe-rooms",
         aboutTitle: "Luxury Deluxe Rooms",
@@ -73,13 +75,15 @@ async function main() {
         contactPhone: "+91-9876543210",
         contactEmail: "deluxe@grandhotel.com",
         contactAddress: "Grand Hotel & Resort, 123 Luxury Street, Downtown",
-        propertyFeatures: ["King Bed", "City View", "Balcony", "Premium Amenities"]
+        propertyFeatures: ["King Bed", "City View", "Balcony", "Premium Amenities"],
+        updatedAt: new Date()
       }
     }),
     prisma.category.upsert({
       where: { slug: "suite-rooms" },
       update: {},
       create: {
+        id: "suite-category",
         name: "Suite Rooms",
         slug: "suite-rooms",
         aboutTitle: "Executive Suites",
@@ -88,7 +92,8 @@ async function main() {
         contactPhone: "+91-9876543210",
         contactEmail: "suites@grandhotel.com",
         contactAddress: "Grand Hotel & Resort, 123 Luxury Street, Downtown",
-        propertyFeatures: ["Separate Living Room", "Premium View", "Butler Service", "Exclusive Amenities"]
+        propertyFeatures: ["Separate Living Room", "Premium View", "Butler Service", "Exclusive Amenities"],
+        updatedAt: new Date()
       }
     })
   ])
@@ -99,6 +104,7 @@ async function main() {
       where: { slug: "deluxe-king" },
       update: {},
       create: {
+        id: "deluxe-king-room",
         name: "Deluxe King Room",
         slug: "deluxe-king",
         price: 5000,
@@ -114,13 +120,15 @@ async function main() {
         available: true,
         features: ["Air Conditioning", "TV", "Safe", "Work Desk"],
         totalRooms: 10,
-        categoryId: categories[0].id
+        categoryId: categories[0].id,
+        updatedAt: new Date()
       }
     }),
     prisma.room.upsert({
       where: { slug: "executive-suite" },
       update: {},
       create: {
+        id: "executive-suite-room",
         name: "Executive Suite",
         slug: "executive-suite",
         price: 12000,
@@ -136,7 +144,8 @@ async function main() {
         available: true,
         features: ["Air Conditioning", "TV", "Safe", "Work Desk", "Dining Area"],
         totalRooms: 5,
-        categoryId: categories[1].id
+        categoryId: categories[1].id,
+        updatedAt: new Date()
       }
     })
   ])

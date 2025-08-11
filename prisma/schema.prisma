@@ -30,13 +30,73 @@ model booking {
   serviceTaxAmount Float?    @default(0.0)
   otherTaxAmount  Float?     @default(0.0)
   totalTaxAmount  Float?     @default(0.0)
+  paymentMethod   String?    @default("pay_at_hotel") // pay_at_hotel, online_payment, cash, card, etc.
+  paymentStatus   String?    @default("pending") // pending, paid, partially_paid, refunded
   createdAt       DateTime   @default(now())
   updatedAt       DateTime
   room            rooms      @relation(fields: [roomId], references: [id], map: "Booking_roomId_fkey")
   promoCode       promocode? @relation(fields: [promoCodeId], references: [id], map: "Booking_promoCodeId_fkey")
+  invoices        invoice[]
+  payments        payment[]
 
   @@index([roomId], map: "Booking_roomId_fkey")
   @@index([promoCodeId], map: "Booking_promoCodeId_fkey")
+}
+
+model invoice {
+  id              String   @id @default(cuid())
+  invoiceNumber   String   @unique
+  bookingId       String
+  guestName       String
+  guestEmail      String
+  guestPhone      String
+  checkIn         DateTime
+  checkOut        DateTime
+  nights          Int
+  adults          Int
+  children        Int
+  roomTypeName    String
+  roomNumber      String
+  baseAmount      Float
+  discountAmount  Float
+  gstAmount       Float
+  serviceTaxAmount Float
+  otherTaxAmount  Float
+  totalTaxAmount  Float
+  totalAmount     Float
+  status          String   @default("pending") // pending, paid, partially_paid, overdue, cancelled
+  dueDate         DateTime
+  issuedDate      DateTime @default(now())
+  paidDate        DateTime?
+  notes           String?  @db.Text
+  terms           String?  @default("Payment due upon receipt")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  booking         booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payments        payment[]
+
+  @@index([bookingId])
+  @@index([invoiceNumber])
+}
+
+model payment {
+  id              String   @id @default(cuid())
+  bookingId       String
+  invoiceId       String?
+  amount          Float
+  paymentMethod   String   // cash, card, online, bank_transfer, etc.
+  paymentReference String? // transaction ID, receipt number, etc.
+  paymentDate     DateTime @default(now())
+  receivedBy      String?  // admin/receptionist name
+  notes           String?  @db.Text
+  status          String   @default("completed") // pending, completed, failed, refunded
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  booking         booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  invoice         invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([bookingId])
+  @@index([invoiceId])
 }
 
 model category {
