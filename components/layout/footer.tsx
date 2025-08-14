@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Container } from "@/components/ui/container"
 import { Facebook, Instagram, Twitter, Linkedin, MapPin, Phone, Mail } from "lucide-react"
 import { useHotel } from "@/contexts/hotel-context"
+import { usePolicyModal } from "@/components/ui/policy-modal"
 
 const Footer = () => {
   const { hotelInfo } = useHotel()
+  const { openPrivacy, openTerms, PrivacyModal, TermsModal } = usePolicyModal()
   return (
     <footer className="bg-gradient-to-br from-gray-50 to-amber-50 dark:from-gray-900 dark:to-gray-800 border-t">
       <Container className="py-12">
@@ -15,15 +17,13 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-bold">
-                GL
-              </div>
-              <div>
-                <span className="text-xl font-bold bg-gradient-to-r from-amber-600 to-blue-600 bg-clip-text text-transparent">
-                  {hotelInfo.name || "Grand Luxe"}
-                </span>
-                <div className="text-sm text-muted-foreground">Hotel</div>
-              </div>
+              {hotelInfo.logo ? (
+                <img 
+                  src={hotelInfo.logo} 
+                  alt={hotelInfo.name || "Hotel Logo"} 
+                  className="h-10 w-auto object-contain"
+                />
+              ) : null}
             </Link>
             <p className="text-sm text-muted-foreground">
               {hotelInfo.tagline || "Experience unparalleled luxury and comfort at Grand Luxe Hotel. Where every detail is crafted for your perfect stay."}
@@ -139,15 +139,25 @@ const Footer = () => {
             </Link>
           </div>
           <div className="flex gap-6">
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button 
+              onClick={openPrivacy}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               Privacy Policy
-            </Link>
-            <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            </button>
+            <button 
+              onClick={openTerms}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
               Terms of Service
-            </Link>
+            </button>
           </div>
         </div>
       </Container>
+      
+      {/* Policy Modals */}
+      <PrivacyModal />
+      <TermsModal />
     </footer>
   )
 }

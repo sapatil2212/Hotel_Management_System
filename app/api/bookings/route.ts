@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
+    const include = searchParams.get('include')
     
     const where: any = {}
     
@@ -14,16 +15,39 @@ export async function GET(request: NextRequest) {
       where.status = status
     }
 
+    const includeOptions: any = {
+      room: {
+        include: {
+          roomType: true
+        }
+      },
+      promoCode: true
+    }
+
+    // Include bill items if requested
+    if (include && include.includes('billItems')) {
+      includeOptions.billItems = {
+        include: {
+          service: true
+        },
+        orderBy: {
+          addedAt: 'desc'
+        }
+      }
+    }
+
+    // Include invoices if requested
+    if (include && include.includes('invoices')) {
+      includeOptions.invoices = {
+        orderBy: {
+          createdAt: 'desc'
+        }
+      }
+    }
+
     const bookings = await prisma.booking.findMany({
       where,
-      include: {
-        room: {
-          include: {
-            roomType: true
-          }
-        },
-        promoCode: true
-      },
+      include: includeOptions,
       orderBy: {
         createdAt: 'desc'
       }
@@ -174,11 +198,12 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      // Update room status to occupied
+      // Update room status to reserved (not occupied until check-in) and make it not available for booking
       await tx.rooms.update({
         where: { id: selectedRoom.id },
         data: {
-          status: 'occupied',
+          status: 'reserved',
+          availableForBooking: false,
           updatedAt: new Date()
         }
       })

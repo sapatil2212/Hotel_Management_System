@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client"
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -26,6 +27,9 @@ async function main() {
       cancellationPolicy: "Free cancellation up to 24 hours before check-in",
       petPolicy: "Pets are welcome with prior approval",
       smokingPolicy: "Designated smoking areas available",
+      guestPolicies: "We strive to provide a comfortable and safe environment for all our guests. Please respect other guests and hotel property during your stay.",
+      privacyPolicy: "Your privacy is important to us. We collect and use your personal information only for the purposes of providing our services and improving your experience. We do not share your information with third parties without your consent.",
+      termsOfService: "By using our services, you agree to these terms and conditions. We reserve the right to modify these terms at any time. Please review them regularly.",
       faqs: [
         {
           question: "What time is check-in and check-out?",
@@ -98,8 +102,8 @@ async function main() {
     })
   ])
 
-  // Create sample rooms
-  const rooms = await Promise.all([
+  // Create sample room types
+  const roomTypes = await Promise.all([
     prisma.room.upsert({
       where: { slug: "deluxe-king" },
       update: {},
@@ -150,10 +154,156 @@ async function main() {
     })
   ])
 
+  // Create individual rooms for each room type
+  const individualRooms = []
+  
+  // Create 5 deluxe king rooms
+  for (let i = 1; i <= 5; i++) {
+    const room = await prisma.rooms.upsert({
+      where: { roomNumber: `D${i.toString().padStart(3, '0')}` },
+      update: {},
+      create: {
+        id: `deluxe-room-${i}`,
+        roomNumber: `D${i.toString().padStart(3, '0')}`,
+        roomTypeId: roomTypes[0].id,
+        status: 'available',
+        floorNumber: Math.ceil(i / 2) + 1, // Spread across floors 2-4
+        availableForBooking: true,
+        updatedAt: new Date()
+      }
+    })
+    individualRooms.push(room)
+  }
+
+  // Create 3 executive suite rooms
+  for (let i = 1; i <= 3; i++) {
+    const room = await prisma.rooms.upsert({
+      where: { roomNumber: `S${i.toString().padStart(3, '0')}` },
+      update: {},
+      create: {
+        id: `suite-room-${i}`,
+        roomNumber: `S${i.toString().padStart(3, '0')}`,
+        roomTypeId: roomTypes[1].id,
+        status: 'available',
+        floorNumber: 5, // All suites on top floor
+        availableForBooking: true,
+        updatedAt: new Date()
+      }
+    })
+    individualRooms.push(room)
+  }
+
+  // Create sample services for billing
+  const services = []
+  
+  // Check if services already exist to avoid duplicates
+  const existingServiceCount = await prisma.service.count()
+  
+  if (existingServiceCount === 0) {
+    const serviceData = [
+      {
+        name: "Laundry Service",
+        description: "Professional laundry and dry cleaning",
+        category: "laundry",
+        price: 500,
+        taxable: true,
+        isActive: true
+      },
+      {
+        name: "Room Service - Breakfast",
+        description: "Continental breakfast served in room",
+        category: "food_beverage",
+        price: 800,
+        taxable: true,
+        isActive: true
+      },
+      {
+        name: "Spa Massage",
+        description: "Relaxing full body massage",
+        category: "spa",
+        price: 2000,
+        taxable: true,
+        isActive: true
+      },
+      {
+        name: "Airport Transfer",
+        description: "One-way airport transportation",
+        category: "transport",
+        price: 1500,
+        taxable: true,
+        isActive: true
+      },
+      {
+        name: "Minibar Refreshments",
+        description: "Snacks and beverages from minibar",
+        category: "minibar",
+        price: 300,
+        taxable: true,
+        isActive: true
+      }
+    ]
+
+    for (const serviceInfo of serviceData) {
+      const service = await prisma.service.create({
+        data: serviceInfo
+      })
+      services.push(service)
+    }
+  }
+
+  // Create sample users for billing management
+  const users = await Promise.all([
+    prisma.user.upsert({
+      where: { email: "admin@grandhotel.com" },
+      update: {},
+      create: {
+        id: "admin-user",
+        name: "Admin User",
+        email: "admin@grandhotel.com",
+        phone: "+91-9876543210",
+        role: "ADMIN",
+        passwordHash: await bcrypt.hash("admin123", 10),
+        emailVerifiedAt: new Date(),
+        updatedAt: new Date()
+      }
+    }),
+    prisma.user.upsert({
+      where: { email: "reception@grandhotel.com" },
+      update: {},
+      create: {
+        id: "reception-user",
+        name: "Reception Staff",
+        email: "reception@grandhotel.com",
+        phone: "+91-9876543211",
+        role: "RECEPTION",
+        passwordHash: await bcrypt.hash("reception123", 10),
+        emailVerifiedAt: new Date(),
+        updatedAt: new Date()
+      }
+    }),
+    prisma.user.upsert({
+      where: { email: "manager@grandhotel.com" },
+      update: {},
+      create: {
+        id: "manager-user",
+        name: "Hotel Manager",
+        email: "manager@grandhotel.com",
+        phone: "+91-9876543212",
+        role: "OWNER",
+        passwordHash: await bcrypt.hash("manager123", 10),
+        emailVerifiedAt: new Date(),
+        updatedAt: new Date()
+      }
+    })
+  ])
+
   console.log("Seeding completed successfully!")
   console.log(`Created hotel info: ${hotelInfo.name}`)
   console.log(`Created ${categories.length} categories`)
-  console.log(`Created ${rooms.length} rooms`)
+  console.log(`Created ${roomTypes.length} room types`)
+  console.log(`Created ${individualRooms.length} individual rooms`)
+  console.log(`Created ${services.length} services`)
+  console.log(`Created ${users.length} users`)
 }
 
 main()

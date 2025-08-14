@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
+import { EnhancedAccountService } from "@/lib/enhanced-account-service"
 
 const verifySchema = z.object({
   name: z.string().min(2),
@@ -55,10 +56,11 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(password, 10)
     const now = new Date()
+    const userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
-        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: userId,
         name,
         email,
         phone,
@@ -68,6 +70,9 @@ export async function POST(req: Request) {
         updatedAt: now,
       },
     })
+
+    // Note: Using single main hotel account for all transactions
+    // Individual user accounts are not created anymore
 
     await prisma.emailotp.delete({ where: { email } })
 

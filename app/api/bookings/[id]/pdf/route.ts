@@ -110,13 +110,34 @@ function generateInvoiceHTML(booking: any, hotelInfo: any) {
                 padding: 30px;
                 text-align: center;
                 margin-bottom: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 20px;
             }
-            .header h1 {
+            .header-logo {
+                height: 60px;
+                width: auto;
+                object-fit: contain;
+            }
+            .header-fallback {
+                width: 60px;
+                height: 60px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                font-size: 20px;
+                color: white;
+            }
+            .header-text h1 {
                 margin: 0;
                 font-size: 28px;
                 font-weight: bold;
             }
-            .header p {
+            .header-text p {
                 margin: 5px 0 0 0;
                 opacity: 0.9;
             }
@@ -221,8 +242,14 @@ function generateInvoiceHTML(booking: any, hotelInfo: any) {
     <body>
         <div class="container">
             <div class="header">
-                <h1>${hotelInfo?.name || 'Hotel Management System'}</h1>
-                <p>Booking Confirmation & Invoice</p>
+                ${hotelInfo?.logo 
+                  ? `<img src="${hotelInfo.logo}" alt="${hotelInfo.name || 'Hotel Logo'}" class="header-logo" />`
+                  : `<div class="header-fallback">${(hotelInfo?.name || 'H').substring(0, 1).toUpperCase()}</div>`
+                }
+                <div class="header-text">
+                    <h1>${hotelInfo?.name || 'Hotel Management System'}</h1>
+                    <p>Booking Confirmation & Invoice</p>
+                </div>
             </div>
 
             <div class="invoice-details">

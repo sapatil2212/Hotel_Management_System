@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -16,7 +16,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
-import { CalendarIcon, Plus, Edit, Trash2, Search, Filter, Eye, Copy } from 'lucide-react'
+import { CalendarIcon, Plus, Edit, Trash2, Search, Filter, Copy, Loader } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface PromoCode {
@@ -46,213 +46,44 @@ interface RoomType {
   slug: string
 }
 
-export default function PromoCodesPage() {
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
-  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
-  const [loading, setLoading] = useState(true)
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [editingPromo, setEditingPromo] = useState<PromoCode | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
+type DiscountType = 'percentage' | 'fixed'
 
-  // Form states
-  const [formData, setFormData] = useState({
-    code: '',
-    title: '',
-    description: '',
-    discountType: 'percentage' as 'percentage' | 'fixed',
-    discountValue: '',
-    minOrderAmount: '',
-    maxDiscountAmount: '',
-    usageLimit: '',
-    isActive: true,
-    validFrom: new Date(),
-    validUntil: new Date(),
-    applicableRooms: [] as string[]
-  })
+interface PromoFormData {
+  code: string
+  title: string
+  description: string
+  discountType: DiscountType
+  discountValue: string
+  minOrderAmount: string
+  maxDiscountAmount: string
+  usageLimit: string
+  isActive: boolean
+  validFrom: Date
+  validUntil: Date
+  applicableRooms: string[]
+}
 
-  const fetchPromoCodes = async () => {
-    try {
-      const params = new URLSearchParams()
-      if (searchTerm) params.append('search', searchTerm)
-      if (statusFilter !== 'all') params.append('status', statusFilter)
-      
-      const response = await fetch(`/api/promo-codes?${params.toString()}`)
-      const data = await response.json()
-      
-      if (data.success) {
-        setPromoCodes(data.data)
-      } else {
-        toast.error('Failed to fetch promo codes')
-      }
-    } catch (error) {
-      toast.error('Error fetching promo codes')
-    } finally {
-      setLoading(false)
-    }
-  }
+interface PromoFormProps {
+  formData: PromoFormData
+  setFormData: React.Dispatch<React.SetStateAction<PromoFormData>>
+  roomTypes: RoomType[]
+  isEdit?: boolean
+  onSubmit: (e: React.FormEvent) => void
+  onCancel: () => void
+  submitting?: boolean
+}
 
-  const fetchRoomTypes = async () => {
-    try {
-      const response = await fetch('/api/room-types')
-      const data = await response.json()
-      
-      if (data.success) {
-        setRoomTypes(data.data)
-      }
-    } catch (error) {
-      console.error('Error fetching room types:', error)
-    }
-  }
-
-  useEffect(() => {
-    fetchPromoCodes()
-    fetchRoomTypes()
-  }, [searchTerm, statusFilter])
-
-  const resetForm = () => {
-    setFormData({
-      code: '',
-      title: '',
-      description: '',
-      discountType: 'percentage',
-      discountValue: '',
-      minOrderAmount: '',
-      maxDiscountAmount: '',
-      usageLimit: '',
-      isActive: true,
-      validFrom: new Date(),
-      validUntil: new Date(),
-      applicableRooms: []
-    })
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const payload = {
-      ...formData,
-      discountValue: parseFloat(formData.discountValue),
-      minOrderAmount: formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : null,
-      maxDiscountAmount: formData.maxDiscountAmount ? parseFloat(formData.maxDiscountAmount) : null,
-      usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : null,
-      applicableRooms: formData.applicableRooms.length > 0 ? formData.applicableRooms : null
-    }
-
-    try {
-      const url = editingPromo ? `/api/promo-codes/${editingPromo.id}` : '/api/promo-codes'
-      const method = editingPromo ? 'PUT' : 'POST'
-      
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        toast.success(data.message)
-        fetchPromoCodes()
-        setCreateDialogOpen(false)
-        setEditDialogOpen(false)
-        resetForm()
-        setEditingPromo(null)
-      } else {
-        toast.error(data.error)
-      }
-    } catch (error) {
-      toast.error('Error saving promo code')
-    }
-  }
-
-  const handleEdit = (promo: PromoCode) => {
-    setEditingPromo(promo)
-    setFormData({
-      code: promo.code,
-      title: promo.title,
-      description: promo.description || '',
-      discountType: promo.discountType,
-      discountValue: promo.discountValue.toString(),
-      minOrderAmount: promo.minOrderAmount?.toString() || '',
-      maxDiscountAmount: promo.maxDiscountAmount?.toString() || '',
-      usageLimit: promo.usageLimit?.toString() || '',
-      isActive: promo.isActive,
-      validFrom: new Date(promo.validFrom),
-      validUntil: new Date(promo.validUntil),
-      applicableRooms: promo.applicableRooms || []
-    })
-    setEditDialogOpen(true)
-  }
-
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`/api/promo-codes/${id}`, {
-        method: 'DELETE'
-      })
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        toast.success(data.message)
-        fetchPromoCodes()
-      } else {
-        toast.error(data.error)
-      }
-    } catch (error) {
-      toast.error('Error deleting promo code')
-    }
-  }
-
-  const toggleStatus = async (promo: PromoCode) => {
-    try {
-      const response = await fetch(`/api/promo-codes/${promo.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive: !promo.isActive })
-      })
-      
-      const data = await response.json()
-      
-      if (data.success) {
-        toast.success(`Promo code ${promo.isActive ? 'deactivated' : 'activated'}`)
-        fetchPromoCodes()
-      } else {
-        toast.error(data.error)
-      }
-    } catch (error) {
-      toast.error('Error updating promo code status')
-    }
-  }
-
-  const copyToClipboard = (code: string) => {
-    navigator.clipboard.writeText(code)
-    toast.success('Promo code copied to clipboard')
-  }
-
-  const getStatusBadge = (promo: PromoCode) => {
-    if (!promo.isActive) {
-      return <Badge variant="secondary">Inactive</Badge>
-    }
-    
-    const now = new Date()
-    const validFrom = new Date(promo.validFrom)
-    const validUntil = new Date(promo.validUntil)
-    
-    if (now < validFrom) {
-      return <Badge variant="outline">Upcoming</Badge>
-    } else if (now > validUntil) {
-      return <Badge variant="destructive">Expired</Badge>
-    } else if (promo.usageLimit && promo.usedCount >= promo.usageLimit) {
-      return <Badge variant="destructive">Limit Reached</Badge>
-    } else {
-      return <Badge variant="default" className="bg-green-500">Active</Badge>
-    }
-  }
-
-  const PromoForm = ({ isEdit = false }: { isEdit?: boolean }) => (
-    <form onSubmit={handleSubmit} className="space-y-4">
+function PromoForm({
+  formData,
+  setFormData,
+  roomTypes,
+  isEdit = false,
+  onSubmit,
+  onCancel,
+  submitting = false,
+}: PromoFormProps) {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="code">Promo Code *</Label>
@@ -292,7 +123,7 @@ export default function PromoCodesPage() {
           <Label htmlFor="discountType">Discount Type *</Label>
           <Select
             value={formData.discountType}
-            onValueChange={(value) => setFormData(prev => ({ ...prev, discountType: value as 'percentage' | 'fixed' }))}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, discountType: value as DiscountType }))}
           >
             <SelectTrigger>
               <SelectValue />
@@ -366,12 +197,12 @@ export default function PromoCodesPage() {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !formData.validFrom && "text-muted-foreground"
+                  'w-full justify-start text-left font-normal',
+                  !formData.validFrom && 'text-muted-foreground'
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.validFrom ? format(formData.validFrom, "PPP") : "Pick a date"}
+                {formData.validFrom ? format(formData.validFrom, 'PPP') : 'Pick a date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -391,12 +222,12 @@ export default function PromoCodesPage() {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal",
-                  !formData.validUntil && "text-muted-foreground"
+                  'w-full justify-start text-left font-normal',
+                  !formData.validUntil && 'text-muted-foreground'
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.validUntil ? format(formData.validUntil, "PPP") : "Pick a date"}
+                {formData.validUntil ? format(formData.validUntil, 'PPP') : 'Pick a date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -428,13 +259,24 @@ export default function PromoCodesPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Room Types</SelectItem>
-            {roomTypes.map((room) => (
-              <SelectItem key={room.id} value={room.id}>
-                {room.name}
+            {roomTypes.length > 0 ? (
+              roomTypes.map((room) => (
+                <SelectItem key={room.id} value={room.id}>
+                  {room.name}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem value="" disabled>
+                No room types available
               </SelectItem>
-            ))}
+            )}
           </SelectContent>
         </Select>
+        {roomTypes.length === 0 && (
+          <p className="text-sm text-muted-foreground mt-1">
+            No room types found. Please create room types first.
+          </p>
+        )}
       </div>
 
       <div className="flex items-center space-x-2">
@@ -450,27 +292,301 @@ export default function PromoCodesPage() {
         <Button
           type="button"
           variant="outline"
-          onClick={() => {
-            if (isEdit) {
-              setEditDialogOpen(false)
-              setEditingPromo(null)
-            } else {
-              setCreateDialogOpen(false)
-            }
-            resetForm()
-          }}
+          onClick={onCancel}
         >
           Cancel
         </Button>
-        <Button type="submit">
-          {isEdit ? 'Update' : 'Create'} Promo Code
+        <Button type="submit" disabled={submitting}>
+          {submitting ? (
+            <>
+              <Loader className="h-4 w-4 animate-spin mr-2" />
+              {isEdit ? 'Updating...' : 'Creating...'}
+            </>
+          ) : (
+            `${isEdit ? 'Update' : 'Create'} Promo Code`
+          )}
         </Button>
       </div>
     </form>
   )
+}
+
+export default function PromoCodesPage() {
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>([])
+  const [roomTypes, setRoomTypes] = useState<RoomType[]>([])
+  const [loading, setLoading] = useState(true)
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingPromo, setEditingPromo] = useState<PromoCode | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [submitting, setSubmitting] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [toggling, setToggling] = useState<string | null>(null)
+
+  // Form states
+  const [formData, setFormData] = useState({
+    code: '',
+    title: '',
+    description: '',
+    discountType: 'percentage' as 'percentage' | 'fixed',
+    discountValue: '',
+    minOrderAmount: '',
+    maxDiscountAmount: '',
+    usageLimit: '',
+    isActive: true,
+    validFrom: new Date(),
+    validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    applicableRooms: [] as string[]
+  })
+
+  const fetchPromoCodes = useCallback(async (search?: string, filter?: string) => {
+    try {
+      const params = new URLSearchParams()
+      const searchValue = search !== undefined ? search : searchTerm
+      const filterValue = filter !== undefined ? filter : statusFilter
+      
+      if (searchValue) params.append('search', searchValue)
+      if (filterValue !== 'all') params.append('status', filterValue)
+      
+      const response = await fetch(`/api/promo-codes?${params.toString()}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setPromoCodes(data.data)
+      } else {
+        toast.error('Failed to fetch promo codes')
+      }
+    } catch (error) {
+      toast.error('Error fetching promo codes')
+    } finally {
+      setLoading(false)
+    }
+  }, []) // Remove dependencies to prevent recreation
+
+  const fetchRoomTypes = useCallback(async () => {
+    try {
+      const response = await fetch('/api/room-types')
+      const data = await response.json()
+      
+      if (data.success) {
+        setRoomTypes(data.data)
+      } else {
+        console.error('Failed to fetch room types:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching room types:', error)
+    }
+  }, [])
+
+  // Initial data fetch only
+  useEffect(() => {
+    fetchPromoCodes(searchTerm, statusFilter)
+    fetchRoomTypes()
+  }, [fetchPromoCodes, fetchRoomTypes]) // Add back dependencies since functions are now stable
+
+  // Separate effect for search and filter changes with debouncing
+  useEffect(() => {
+    if (!loading) {
+      const timeoutId = setTimeout(() => {
+        fetchPromoCodes(searchTerm, statusFilter)
+      }, 300) // Debounce search/filter changes
+
+      return () => clearTimeout(timeoutId)
+    }
+  }, [searchTerm, statusFilter, loading, fetchPromoCodes]) // Add fetchPromoCodes back but it's now stable
+
+  const resetForm = () => {
+    setFormData({
+      code: '',
+      title: '',
+      description: '',
+      discountType: 'percentage',
+      discountValue: '',
+      minOrderAmount: '',
+      maxDiscountAmount: '',
+      usageLimit: '',
+      isActive: true,
+      validFrom: new Date(),
+      validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      applicableRooms: []
+    })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    setSubmitting(true)
+    
+    // Client-side validation to avoid 400s
+    const cleanedCode = formData.code.trim().toUpperCase()
+    const cleanedTitle = formData.title.trim()
+    const numericDiscount = parseFloat(formData.discountValue)
+    const minAmount = formData.minOrderAmount ? parseFloat(formData.minOrderAmount) : null
+    const maxAmount = formData.maxDiscountAmount ? parseFloat(formData.maxDiscountAmount) : null
+    const limit = formData.usageLimit ? parseInt(formData.usageLimit) : null
+
+    if (!cleanedCode || !cleanedTitle) {
+      toast.error('Code and Title are required')
+      return
+    }
+    if (Number.isNaN(numericDiscount) || numericDiscount <= 0) {
+      toast.error('Enter a valid discount value')
+      return
+    }
+    if (formData.discountType === 'percentage' && (numericDiscount <= 0 || numericDiscount > 100)) {
+      toast.error('Percentage discount must be between 1 and 100')
+      return
+    }
+    if (!(formData.validFrom instanceof Date) || !(formData.validUntil instanceof Date)) {
+      toast.error('Please select valid dates')
+      return
+    }
+    if (formData.validFrom >= formData.validUntil) {
+      toast.error('Valid until must be after valid from')
+      return
+    }
+
+    const payload = {
+      ...formData,
+      code: cleanedCode,
+      title: cleanedTitle,
+      discountValue: numericDiscount,
+      minOrderAmount: minAmount,
+      maxDiscountAmount: maxAmount,
+      usageLimit: limit,
+      applicableRooms: formData.applicableRooms.length > 0 ? formData.applicableRooms : null
+    }
+
+    try {
+      const url = editingPromo ? `/api/promo-codes/${editingPromo.id}` : '/api/promo-codes'
+      const method = editingPromo ? 'PUT' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success(data.message)
+        fetchPromoCodes()
+        setCreateDialogOpen(false)
+        setEditDialogOpen(false)
+        resetForm()
+        setEditingPromo(null)
+      } else {
+        toast.error(data.error)
+      }
+    } catch (error) {
+      toast.error('Error saving promo code')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleEdit = (promo: PromoCode) => {
+    setEditingPromo(promo)
+    setFormData({
+      code: promo.code,
+      title: promo.title,
+      description: promo.description || '',
+      discountType: promo.discountType,
+      discountValue: promo.discountValue.toString(),
+      minOrderAmount: promo.minOrderAmount?.toString() || '',
+      maxDiscountAmount: promo.maxDiscountAmount?.toString() || '',
+      usageLimit: promo.usageLimit?.toString() || '',
+      isActive: promo.isActive,
+      validFrom: new Date(promo.validFrom),
+      validUntil: new Date(promo.validUntil),
+      applicableRooms: promo.applicableRooms || []
+    })
+    setEditDialogOpen(true)
+  }
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id)
+    try {
+      const response = await fetch(`/api/promo-codes/${id}`, {
+        method: 'DELETE'
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success(data.message)
+        fetchPromoCodes()
+      } else {
+        toast.error(data.error)
+      }
+    } catch (error) {
+      toast.error('Error deleting promo code')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const toggleStatus = async (promo: PromoCode) => {
+    setToggling(promo.id)
+    try {
+      const response = await fetch(`/api/promo-codes/${promo.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: !promo.isActive })
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        toast.success(`Promo code ${promo.isActive ? 'deactivated' : 'activated'}`)
+        fetchPromoCodes()
+      } else {
+        toast.error(data.error)
+      }
+    } catch (error) {
+      toast.error('Error updating promo code status')
+    } finally {
+      setToggling(null)
+    }
+  }
+
+  const copyToClipboard = (code: string) => {
+    navigator.clipboard.writeText(code)
+    toast.success('Promo code copied to clipboard')
+  }
+
+  const getStatusBadge = (promo: PromoCode) => {
+    if (!promo.isActive) {
+      return <Badge variant="secondary">Inactive</Badge>
+    }
+    
+    const now = new Date()
+    const validFrom = new Date(promo.validFrom)
+    const validUntil = new Date(promo.validUntil)
+    
+    if (now < validFrom) {
+      return <Badge variant="outline">Upcoming</Badge>
+    } else if (now > validUntil) {
+      return <Badge variant="destructive">Expired</Badge>
+    } else if (promo.usageLimit && promo.usedCount >= promo.usageLimit) {
+      return <Badge variant="destructive">Limit Reached</Badge>
+    } else {
+      return <Badge variant="default" className="bg-green-500">Active</Badge>
+    }
+  }
+
+  
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -494,7 +610,18 @@ export default function PromoCodesPage() {
                 Fill in the details to create a new promotional code.
               </DialogDescription>
             </DialogHeader>
-            <PromoForm />
+            <PromoForm
+              formData={formData}
+              setFormData={setFormData}
+              roomTypes={roomTypes}
+              isEdit={false}
+              onSubmit={handleSubmit}
+              onCancel={() => {
+                setCreateDialogOpen(false)
+                resetForm()
+              }}
+              submitting={submitting}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -547,7 +674,15 @@ export default function PromoCodesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {promoCodes.length === 0 ? (
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-12">
+                    <div className="flex items-center justify-center">
+                      <Loader className="h-8 w-8 animate-spin text-blue-600" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : promoCodes.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
                     No promo codes found
@@ -619,6 +754,7 @@ export default function PromoCodesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(promo)}
+                          disabled={toggling === promo.id || deleting === promo.id}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -626,14 +762,28 @@ export default function PromoCodesPage() {
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleStatus(promo)}
+                          disabled={toggling === promo.id || deleting === promo.id}
                           className={promo.isActive ? 'text-orange-600' : 'text-green-600'}
                         >
-                          {promo.isActive ? 'Deactivate' : 'Activate'}
+                          {toggling === promo.id ? (
+                            <Loader className="h-4 w-4 animate-spin" />
+                          ) : (
+                            promo.isActive ? 'Deactivate' : 'Activate'
+                          )}
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="text-red-600">
-                              <Trash2 className="h-4 w-4" />
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-600"
+                              disabled={toggling === promo.id || deleting === promo.id}
+                            >
+                              {deleting === promo.id ? (
+                                <Loader className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -674,7 +824,19 @@ export default function PromoCodesPage() {
               Update the details of the promotional code.
             </DialogDescription>
           </DialogHeader>
-          <PromoForm isEdit />
+          <PromoForm
+            formData={formData}
+            setFormData={setFormData}
+            roomTypes={roomTypes}
+            isEdit
+            onSubmit={handleSubmit}
+            onCancel={() => {
+              setEditDialogOpen(false)
+              setEditingPromo(null)
+              resetForm()
+            }}
+            submitting={submitting}
+          />
         </DialogContent>
       </Dialog>
     </div>

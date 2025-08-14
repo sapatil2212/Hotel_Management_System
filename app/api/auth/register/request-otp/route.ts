@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 import { sendEmail } from "@/lib/email"
+import { createOTPEmail } from "@/lib/email-templates"
 
 const requestSchema = z.object({
   name: z.string().min(2),
@@ -57,14 +58,7 @@ export async function POST(req: Request) {
       update: { code, expiresAt, attempts: 0, updatedAt: now },
     })
 
-    const html = `
-      <div style="font-family: sans-serif;">
-        <h2>Verify your email</h2>
-        <p>Hi ${name}, use the following OTP to complete your registration:</p>
-        <p style="font-size: 24px; font-weight: bold;">${code}</p>
-        <p>This code will expire in 10 minutes.</p>
-      </div>
-    `
+    const html = await createOTPEmail(name, code)
     await sendEmail({ to: email, subject: "Your HMS verification code", html })
 
     return NextResponse.json({ ok: true, message: "OTP sent to email" })

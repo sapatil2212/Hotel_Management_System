@@ -27,45 +27,69 @@ export function ImageUpload({
   const [dragOver, setDragOver] = useState(false)
 
   const uploadToCloudinary = async (file: File): Promise<string> => {
-    // Get Cloudinary signature
-    const signatureResponse = await fetch('/api/uploads/cloudinary-signature', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ folder: 'uploads' }),
-    })
+    try {
+      // Get Cloudinary signature
+      const signatureResponse = await fetch('/api/uploads/cloudinary-signature', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ folder: 'uploads' }),
+      })
 
-    if (!signatureResponse.ok) {
-      throw new Error('Failed to get upload signature')
+      if (!signatureResponse.ok) {
+        throw new Error('Failed to get upload signature')
+      }
+
+      const { timestamp, signature, apiKey, cloudName } = await signatureResponse.json()
+
+      // Create form data for Cloudinary
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('api_key', apiKey)
+      formData.append('timestamp', timestamp.toString())
+      formData.append('signature', signature)
+      formData.append('folder', 'uploads')
+
+      // Upload directly to Cloudinary
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.text()
+        throw new Error(`Cloudinary upload failed: ${errorData}`)
+      }
+
+      const result = await uploadResponse.json()
+      return result.secure_url
+    } catch (error) {
+      console.warn('Cloudinary upload failed, falling back to local upload:', error)
+      // Fallback to local upload
+      return await uploadToLocal(file)
     }
+  }
 
-    const { timestamp, signature, apiKey, cloudName } = await signatureResponse.json()
-
-    // Create form data for Cloudinary
+  const uploadToLocal = async (file: File): Promise<string> => {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('api_key', apiKey)
-    formData.append('timestamp', timestamp.toString())
-    formData.append('signature', signature)
-    formData.append('folder', 'uploads')
 
-    // Upload directly to Cloudinary
-    const uploadResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    )
+    const uploadResponse = await fetch('/api/uploads/local', {
+      method: 'POST',
+      body: formData,
+    })
 
     if (!uploadResponse.ok) {
       const errorData = await uploadResponse.text()
-      throw new Error(`Upload failed: ${errorData}`)
+      throw new Error(`Local upload failed: ${errorData}`)
     }
 
     const result = await uploadResponse.json()
-    return result.secure_url
+    return result.url
   }
 
   const handleUpload = useCallback(async (files: FileList) => {
@@ -96,9 +120,8 @@ export function ImageUpload({
           newImages.push(imageUrl)
         } catch (error) {
           console.error('Upload failed:', error)
-          // Fallback to preview URL for development
-          const imageUrl = URL.createObjectURL(file)
-          newImages.push(imageUrl)
+          // Skip this file if upload fails completely
+          continue
         }
       }
       
@@ -167,15 +190,15 @@ export function ImageUpload({
                   <Upload className="h-12 w-12 mx-auto text-muted-foreground" />
                 )}
               </div>
-              <div className="mb-4">
-                <h3 className="text-lg font-medium mb-2">Upload Images</h3>
-                <p className="text-sm text-muted-foreground">
-                  Drag and drop images here, or click to select files
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Supports: JPG, PNG, WebP (max 5MB each)
-                </p>
-              </div>
+                             <div className="mb-4">
+                 <h3 className="text-lg font-medium mb-2">Upload Images</h3>
+                 <p className="text-xs text-muted-foreground">
+                   Drag and drop images here, or click to select files
+                 </p>
+                 <p className="text-xs text-muted-foreground mt-1">
+                   Supports: JPG, PNG, WebP (max 5MB each)
+                 </p>
+               </div>
               
               <div className="flex items-center gap-4 justify-center">
                 <Button
@@ -256,14 +279,7 @@ export function ImageUpload({
         </div>
       )}
 
-      {/* Instructions */}
-      {value.length === 0 && (
-        <div className="text-center py-4">
-          <p className="text-sm text-muted-foreground">
-            No images uploaded yet. The first image will be used as the primary image.
-          </p>
-        </div>
-      )}
+
     </div>
   )
 }

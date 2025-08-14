@@ -1,268 +1,230 @@
-import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-options';
 
-// GET /api/bookings/[id] - Get a specific booking
+const prisma = new PrismaClient();
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const booking = await prisma.booking.findUnique({
-      where: {
-        id: params.id
-      },
-      include: {
-        room: {
-          include: {
-            roomType: true
-          }
-        },
-        promoCode: true
-      }
-    })
-
-    if (!booking) {
-      return NextResponse.json(
-        { error: 'Booking not found' },
-        { status: 404 }
-      )
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    return NextResponse.json(booking)
+    const booking = await prisma.booking.findUnique({
+      where: { id: params.id },
+      include: {
+        room: {
+          include: { roomType: true },
+        },
+        payments: true,
+        billItems: {
+          include: { service: true },
+        },
+        invoices: true,
+      },
+    });
+
+    if (!booking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(booking);
   } catch (error) {
-    console.error('Error fetching booking:', error)
+    console.error('Error fetching booking:', error);
     return NextResponse.json(
       { error: 'Failed to fetch booking' },
       { status: 500 }
-    )
+    );
   }
 }
 
-// PUT /api/bookings/[id] - Update a booking
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const data = await request.json()
-    const { status, roomId, recalculatePricing, checkIn, checkOut, nights, roomTypeId, ...updateData } = data
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
     
-    // Check if booking exists
-    const existingBooking = await prisma.booking.findUnique({
+    // Remove fields that shouldn't be updated directly
+    const { id, room, roomId, payments, billItems, invoices, createdAt, recalculatePricing, roomTypeId, ...updateData } = body;
+
+    // Get the original booking to compare changes
+    const originalBooking = await prisma.booking.findUnique({
       where: { id: params.id },
-      include: { 
+      include: {
         room: {
-          include: {
-            roomType: true
-          }
-        }
-      }
-    })
-    
-    if (!existingBooking) {
-      return NextResponse.json(
-        { error: 'Booking not found' },
-        { status: 404 }
-      )
-    }
-
-    let newRoomData = null
-    let pricingData = {}
-
-    // If room is being changed, validate the new room is available
-    if (roomId && roomId !== existingBooking.roomId) {
-      newRoomData = await prisma.rooms.findUnique({
-        where: { id: roomId },
-        include: {
-          roomType: true
-        }
-      })
-
-      if (!newRoomData) {
-        return NextResponse.json({ error: 'New room not found' }, { status: 404 })
-      }
-
-      if (newRoomData.status !== 'available') {
-        return NextResponse.json({ error: 'Selected room is not available' }, { status: 400 })
-      }
-
-      // If recalculatePricing is true, calculate new pricing (room type or dates changed)
-      if (recalculatePricing) {
-        const roomPrice = newRoomData.roomType.price
-        const bookingNights = nights || existingBooking.nights
-        const newTotalAmount = roomPrice * bookingNights
-
-        // Apply any existing discount if there was one
-        if (existingBooking.discountAmount && existingBooking.originalAmount) {
-          const discountPercentage = (existingBooking.discountAmount / existingBooking.originalAmount) * 100
-          const newDiscountAmount = (newTotalAmount * discountPercentage) / 100
-          
-          pricingData = {
-            originalAmount: newTotalAmount,
-            discountAmount: newDiscountAmount,
-            totalAmount: newTotalAmount - newDiscountAmount
-          }
-        } else {
-          pricingData = {
-            originalAmount: newTotalAmount,
-            totalAmount: newTotalAmount,
-            discountAmount: 0
-          }
-        }
-      }
-    } else if (recalculatePricing && (nights && nights !== existingBooking.nights)) {
-      // Handle date changes without room change
-      const roomPrice = existingBooking.room.roomType?.price || 0
-      const bookingNights = nights
-      const newTotalAmount = roomPrice * bookingNights
-
-      // Apply any existing discount if there was one
-      if (existingBooking.discountAmount && existingBooking.originalAmount) {
-        const discountPercentage = (existingBooking.discountAmount / existingBooking.originalAmount) * 100
-        const newDiscountAmount = (newTotalAmount * discountPercentage) / 100
-        
-        pricingData = {
-          originalAmount: newTotalAmount,
-          discountAmount: newDiscountAmount,
-          totalAmount: newTotalAmount - newDiscountAmount
-        }
-      } else {
-        pricingData = {
-          originalAmount: newTotalAmount,
-          totalAmount: newTotalAmount,
-          discountAmount: 0
-        }
-      }
-    }
-
-    // Update booking in a transaction
-    const result = await prisma.$transaction(async (tx: any) => {
-      // Handle room change if requested
-      if (roomId && roomId !== existingBooking.roomId) {
-        // Free up the old room (unless it's already cancelled)
-        if (existingBooking.status !== 'cancelled') {
-          await tx.rooms.update({
-            where: { id: existingBooking.roomId },
-            data: { status: 'available', updatedAt: new Date() }
-          })
-        }
-
-        // Occupy the new room
-        await tx.rooms.update({
-          where: { id: roomId },
-          data: { status: 'occupied', updatedAt: new Date() }
-        })
-      }
-
-      // Update the booking
-      const booking = await tx.booking.update({
-        where: { id: params.id },
-        data: {
-          ...updateData,
-          ...pricingData, // Include new pricing if calculated
-          status: status || existingBooking.status,
-          roomId: roomId || existingBooking.roomId,
-          checkIn: checkIn ? new Date(checkIn) : existingBooking.checkIn,
-          checkOut: checkOut ? new Date(checkOut) : existingBooking.checkOut,
-          nights: nights || existingBooking.nights,
-          updatedAt: new Date()
+          include: { roomType: true },
         },
-        include: {
-          room: {
-            include: {
-              roomType: true
-            }
-          },
-          promoCode: true
-        }
-      })
+      },
+    });
 
-      // Update current room status based on booking status (if room wasn't changed)
-      if (status && (!roomId || roomId === existingBooking.roomId)) {
-        let roomStatus = existingBooking.room.status
-        
-        switch (status) {
-          case 'confirmed':
-            roomStatus = 'occupied'
-            break
-          case 'cancelled':
-            roomStatus = 'available'
-            break
-          case 'checked_out':
-            roomStatus = 'cleaning'
-            break
-        }
+    if (!originalBooking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
 
-        if (roomStatus !== existingBooking.room.status) {
-          await tx.rooms.update({
-            where: { id: booking.roomId },
-            data: {
-              status: roomStatus as any,
-              updatedAt: new Date()
-            }
-          })
-        }
+    // Set actual checkout time if status is being changed to checked_out
+    if (updateData.status === 'checked_out' && !originalBooking.actualCheckoutTime) {
+      updateData.actualCheckoutTime = new Date();
+    }
+
+    // Check if pricing needs to be recalculated
+    const needsPricingRecalculation = recalculatePricing || 
+      updateData.nights !== originalBooking.nights ||
+      (body.roomTypeId && body.roomTypeId !== originalBooking.room.roomType.id);
+
+    let finalUpdateData = updateData;
+
+    // Handle room type change if needed
+    if (body.roomTypeId && body.roomTypeId !== originalBooking.room.roomType.id) {
+      // Find an available room of the new type
+      const newRoom = await prisma.rooms.findFirst({
+        where: {
+          roomTypeId: body.roomTypeId,
+          status: 'available',
+          availableForBooking: true,
+        },
+      });
+
+      if (!newRoom) {
+        return NextResponse.json(
+          { error: 'No available rooms of the selected type' },
+          { status: 400 }
+        );
       }
 
-      return booking
-    })
+      // Update the roomId to the new room
+      finalUpdateData.roomId = newRoom.id;
+    }
 
-    return NextResponse.json(result)
+    // Recalculate pricing if needed
+    if (needsPricingRecalculation) {
+      // Get the room type for pricing calculation
+      const roomTypeId = body.roomTypeId || originalBooking.room.roomType.id;
+      const roomType = await prisma.room.findUnique({
+        where: { id: roomTypeId },
+      });
+
+      if (roomType) {
+        const nights = updateData.nights || originalBooking.nights;
+        const baseAmount = roomType.price * nights;
+        
+        // Calculate taxes
+        const hotelInfo = await prisma.hotelinfo.findFirst();
+        const taxConfig = {
+          gstPercentage: hotelInfo?.gstPercentage || 0,
+          serviceTaxPercentage: hotelInfo?.serviceTaxPercentage || 0,
+          otherTaxes: hotelInfo?.otherTaxes ? JSON.parse(JSON.stringify(hotelInfo.otherTaxes)) : [],
+          taxEnabled: hotelInfo?.taxEnabled || false
+        };
+
+        // Import the tax calculator
+        const { calculateTaxes } = await import('@/lib/tax-calculator');
+        const taxBreakdown = calculateTaxes(baseAmount, taxConfig);
+
+        // Update pricing fields
+        finalUpdateData = {
+          ...updateData,
+          originalAmount: baseAmount,
+          baseAmount: taxBreakdown.baseAmount,
+          gstAmount: taxBreakdown.gstAmount,
+          serviceTaxAmount: taxBreakdown.serviceTaxAmount,
+          otherTaxAmount: taxBreakdown.otherTaxAmount,
+          totalTaxAmount: taxBreakdown.totalTaxAmount,
+          totalAmount: taxBreakdown.totalAmount,
+          // Preserve discount if it exists
+          discountAmount: originalBooking.discountAmount || 0
+        };
+      }
+    }
+
+    const updatedBooking = await prisma.booking.update({
+      where: { id: params.id },
+      data: finalUpdateData,
+      include: {
+        room: {
+          include: { roomType: true },
+        },
+      },
+    });
+
+    // If booking was cancelled, immediately free up the room
+    const newStatus = (updatedBooking.status || '').toLowerCase()
+    if (newStatus === 'cancelled' || newStatus === 'canceled') {
+      try {
+        await prisma.rooms.update({
+          where: { id: updatedBooking.roomId },
+          data: {
+            status: 'available',
+            availableForBooking: true,
+            updatedAt: new Date(),
+          },
+        })
+      } catch (roomErr) {
+        // Log but don't fail the booking update if room update has an issue
+        console.error('Failed to free up room on booking cancel:', roomErr)
+      }
+    }
+
+    return NextResponse.json(updatedBooking);
   } catch (error) {
-    console.error('Error updating booking:', error)
+    console.error('Error updating booking:', error);
     return NextResponse.json(
       { error: 'Failed to update booking' },
       { status: 500 }
-    )
+    );
   }
 }
 
-// DELETE /api/bookings/[id] - Cancel a booking
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check if booking exists
-    const existingBooking = await prisma.booking.findUnique({
-      where: { id: params.id },
-      include: { room: true }
-    })
-    
-    if (!existingBooking) {
-      return NextResponse.json(
-        { error: 'Booking not found' },
-        { status: 404 }
-      )
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Cancel booking in a transaction
-    await prisma.$transaction(async (tx: any) => {
-      // Update booking status to cancelled
-      await tx.booking.update({
-        where: { id: params.id },
-        data: {
-          status: 'cancelled',
-          updatedAt: new Date()
-        }
-      })
+    // Check if booking exists
+    const booking = await prisma.booking.findUnique({
+      where: { id: params.id },
+    });
 
-      // Free up the room
-      await tx.rooms.update({
-        where: { id: existingBooking.roomId },
+    if (!booking) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+    }
+
+    // Free up the room and delete the booking atomically
+    await prisma.$transaction([
+      prisma.rooms.update({
+        where: { id: booking.roomId },
         data: {
           status: 'available',
-          updatedAt: new Date()
-        }
-      })
-    })
+          availableForBooking: true,
+          updatedAt: new Date(),
+        },
+      }),
+      prisma.booking.delete({
+        where: { id: params.id },
+      }),
+    ])
 
-    return NextResponse.json({ message: 'Booking cancelled successfully' })
+    return NextResponse.json({ success: true, message: 'Booking deleted successfully and room made available' });
   } catch (error) {
-    console.error('Error cancelling booking:', error)
+    console.error('Error deleting booking:', error);
     return NextResponse.json(
-      { error: 'Failed to cancel booking' },
+      { error: 'Failed to delete booking' },
       { status: 500 }
-    )
+    );
   }
 }

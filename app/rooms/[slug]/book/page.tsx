@@ -41,6 +41,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { toast } from "sonner"
 import { useHotel } from "@/contexts/hotel-context"
+import { usePolicyModal } from "@/components/ui/policy-modal"
 
 interface Room {
   id: string
@@ -92,10 +93,22 @@ interface ValidatedPromo {
   savings: number
 }
 
+interface FeaturedPromo {
+  id: string
+  code: string
+  title: string
+  description?: string
+  discountType: 'percentage' | 'fixed'
+  discountValue: number
+  validUntil: string
+  isActive: boolean
+}
+
 export default function BookingPage() {
   const params = useParams()
   const router = useRouter()
   const { hotelInfo } = useHotel()
+  const { openPrivacy, openTerms, PrivacyModal, TermsModal } = usePolicyModal()
   const [room, setRoom] = useState<Room | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -103,6 +116,8 @@ export default function BookingPage() {
   const [validatedPromo, setValidatedPromo] = useState<ValidatedPromo | null>(null)
   const [promoValidating, setPromoValidating] = useState(false)
   const [taxBreakdown, setTaxBreakdown] = useState<any>(null)
+  const [featuredPromos, setFeaturedPromos] = useState<FeaturedPromo[]>([])
+  const [promosLoading, setPromosLoading] = useState<boolean>(true)
   
   const [bookingData, setBookingData] = useState<BookingData>({
     checkIn: undefined,
@@ -160,6 +175,24 @@ export default function BookingPage() {
       fetchRoom()
     }
   }, [params.slug])
+
+  // Fetch available promos to show under Price Breakdown
+  useEffect(() => {
+    const fetchPromos = async () => {
+      try {
+        const response = await fetch('/api/promo-codes/featured')
+        const data = await response.json()
+        if (data.success) {
+          setFeaturedPromos(data.data)
+        }
+      } catch (e) {
+        // ignore silently
+      } finally {
+        setPromosLoading(false)
+      }
+    }
+    fetchPromos()
+  }, [])
 
   // Effect to recalculate taxes when booking data changes
   useEffect(() => {
@@ -814,6 +847,41 @@ export default function BookingPage() {
                       </div>
                     )}
                     
+                      {/* Available Offers */}
+                      <div className="my-4">
+                        <div className="rounded-lg border bg-amber-50 border-amber-200 p-3">
+                          <div className="text-sm font-semibold text-amber-900 mb-2">Available Offers</div>
+                          {promosLoading ? (
+                            <div className="text-xs text-amber-800/80">Loading offers...</div>
+                          ) : featuredPromos.length > 0 ? (
+                            <div className="space-y-2">
+                              {featuredPromos.map((p) => (
+                                <div key={p.id} className="flex items-center justify-between text-xs py-1">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="secondary">{p.code}</Badge>
+                                    <span className="text-amber-900/90">- {p.title}</span>
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs"
+                                    onClick={() => {
+                                      updateBookingData('promoCode', p.code)
+                                      validatePromoCode(p.code)
+                                    }}
+                                  >
+                                    Apply
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-amber-800/80">No active offers</div>
+                          )}
+                        </div>
+                      </div>
+
                     {/* Promo Code Section */}
                      <div className="space-y-3">
                        <div className="flex items-center gap-2">
@@ -931,8 +999,8 @@ export default function BookingPage() {
                         </Label>
                         <p className="text-xs text-muted-foreground">
                           By checking this box, you agree to our{" "}
-                          <Link href="/terms" className="underline">terms of service</Link> and{" "}
-                          <Link href="/privacy" className="underline">privacy policy</Link>.
+                          <button onClick={openTerms} className="underline hover:text-blue-600">terms of service</button> and{" "}
+                          <button onClick={openPrivacy} className="underline hover:text-blue-600">privacy policy</button>.
                         </p>
                       </div>
                     </div>
@@ -1221,6 +1289,10 @@ export default function BookingPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Policy Modals */}
+      <PrivacyModal />
+      <TermsModal />
     </div>
   )
 }

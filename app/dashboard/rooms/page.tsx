@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Eye, Users, Bed, Bath, Square, IndianRupee } from "lucide-react"
+import { Plus, Edit, Trash2, Eye, Users, Bed, Bath, Square, IndianRupee, Building2, Loader } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +16,8 @@ import { Separator } from "@/components/ui/separator"
 import { ImageUpload } from "@/components/ui/image-upload"
 import Image from "next/image"
 import { toast } from "sonner"
+import { DeleteConfirmationModal } from "@/components/ui/delete-confirmation-modal"
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation"
 
 // Mock data - replace with actual API calls
 const mockRooms: Room[] = [
@@ -83,6 +85,11 @@ interface Room {
   highlights?: string
   amenities: string[]
   features: string[]
+  availableRoomsCount?: number
+  isSoldOut?: boolean
+  _count?: {
+    rooms: number
+  }
 }
 
 export default function RoomsPage() {
@@ -91,6 +98,7 @@ export default function RoomsPage() {
   const [submitting, setSubmitting] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingRoom, setEditingRoom] = useState<Room | null>(null)
+  const deleteConfirmation = useDeleteConfirmation()
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -113,6 +121,19 @@ export default function RoomsPage() {
 
   useEffect(() => {
     fetchRooms()
+    
+    // Listen for room updates from room management page
+    const handleRoomUpdates = (event: MessageEvent) => {
+      if (event.data?.type === 'ROOMS_UPDATED') {
+        fetchRooms()
+      }
+    }
+    
+    window.addEventListener('message', handleRoomUpdates)
+    
+    return () => {
+      window.removeEventListener('message', handleRoomUpdates)
+    }
   }, [])
 
   const fetchRooms = async () => {
@@ -240,25 +261,34 @@ export default function RoomsPage() {
   }
 
   const handleDelete = async (roomId: string) => {
-    if (confirm("Are you sure you want to delete this room?")) {
-      try {
-        const response = await fetch(`/api/rooms/${roomId}`, {
-          method: 'DELETE',
-        })
+    const room = rooms.find(r => r.id === roomId)
+    deleteConfirmation.showDeleteConfirmation(
+      async () => {
+        try {
+          const response = await fetch(`/api/rooms/${roomId}`, {
+            method: 'DELETE',
+          })
 
-        if (response.ok) {
-          // Refresh the rooms list
-          fetchRooms()
-          toast.success('Room deleted successfully!')
-        } else {
-          const errorData = await response.json()
-          toast.error(`Error: ${errorData.error}`)
+          if (response.ok) {
+            // Refresh the rooms list
+            fetchRooms()
+            toast.success('Room deleted successfully!')
+          } else {
+            const errorData = await response.json()
+            toast.error(`Error: ${errorData.error}`)
+          }
+        } catch (error) {
+          console.error('Error deleting room:', error)
+          toast.error('Failed to delete room. Please try again.')
         }
-      } catch (error) {
-        console.error('Error deleting room:', error)
-        toast.error('Failed to delete room. Please try again.')
+      },
+      {
+        title: 'Delete Room',
+        description: 'Are you sure you want to delete this room? This action cannot be undone.',
+        itemName: room?.name,
+        variant: 'danger'
       }
-    }
+    )
   }
 
   const formatPrice = (price: number) => {
@@ -269,12 +299,22 @@ export default function RoomsPage() {
     }).format(price)
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Room Management</h1>
-          <p className="text-muted-foreground">Manage your hotel room types and inventory</p>
+          <h1 className="text-3xl font-bold tracking-tight">Room Type Management</h1>
+          <p className="text-muted-foreground">Manage your hotel room types ahere</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -726,6 +766,11 @@ export default function RoomsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Room Types</CardTitle>
+          <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <strong>Status Explanation:</strong> Room types show as "Available" only when individual rooms exist and are in available status. 
+            If a room type shows "Unavailable", check if individual rooms have been created in the{" "}
+            <a href="/dashboard/room-manage" className="text-blue-600 hover:underline" target="_blank">Room Management</a> section.
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -822,6 +867,21 @@ export default function RoomsPage() {
                       <Badge variant={room.available ? "default" : "secondary"}>
                         {room.available ? "Available" : "Unavailable"}
                       </Badge>
+                      {!room.available && (
+                        <div className="text-xs text-muted-foreground">
+                          {room.availableRoomsCount === 0 && (room._count?.rooms || 0) > 0 
+                            ? "All rooms occupied/maintenance" 
+                            : (room._count?.rooms || 0) === 0 
+                              ? "No individual rooms created"
+                              : "No available rooms"
+                          }
+                        </div>
+                      )}
+                      {room.available && room.availableRoomsCount !== undefined && (
+                        <div className="text-xs text-muted-foreground">
+                          {room.availableRoomsCount}/{room.totalRooms} available
+                        </div>
+                      )}
                       {room.isPromoted && (
                         <Badge variant="outline" className="text-xs">
                           Promoted
@@ -836,6 +896,16 @@ export default function RoomsPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center gap-2 justify-end">
+                      {!room.available && (room._count?.rooms || 0) === 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open('/dashboard/room-manage', '_blank')}
+                          title="Create individual rooms for this room type"
+                        >
+                          <Building2 className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -859,6 +929,18 @@ export default function RoomsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteConfirmation.isOpen}
+        onClose={deleteConfirmation.onClose}
+        onConfirm={deleteConfirmation.onConfirm}
+        title={deleteConfirmation.title}
+        description={deleteConfirmation.description}
+        itemName={deleteConfirmation.itemName}
+        isLoading={deleteConfirmation.isLoading}
+        variant={deleteConfirmation.variant}
+      />
     </div>
   )
 }

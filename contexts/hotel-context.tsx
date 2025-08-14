@@ -7,6 +7,10 @@ interface HotelInfo {
   name: string
   tagline: string
   description: string
+  logo?: string | null
+  logoDisplayType?: string
+  brandText?: string
+  brandTextStyle?: string
   starRating: number
   overallRating: number
   reviewCount: number
@@ -27,6 +31,8 @@ interface HotelInfo {
   cancellationPolicy: string
   petPolicy: string
   smokingPolicy: string
+  privacyPolicy?: string
+  termsOfService?: string
   guestPolicies?: string
   bookingPartners: Array<{name: string, url: string, commission?: number}>
   partnerLogos: string[]
@@ -55,6 +61,10 @@ const defaultHotelInfo: HotelInfo = {
   name: "Grand Luxe Hotel",
   tagline: "Luxury redefined",
   description: "",
+  logo: null,
+  logoDisplayType: "image",
+  brandText: "",
+  brandTextStyle: "default",
   starRating: 5,
   overallRating: 4.5,
   reviewCount: 0,
@@ -75,6 +85,8 @@ const defaultHotelInfo: HotelInfo = {
   cancellationPolicy: "",
   petPolicy: "",
   smokingPolicy: "",
+  privacyPolicy: "",
+  termsOfService: "",
   guestPolicies: "",
   bookingPartners: [],
   partnerLogos: [],

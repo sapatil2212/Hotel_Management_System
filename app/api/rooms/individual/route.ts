@@ -20,7 +20,16 @@ export async function GET(request: NextRequest) {
 
     const rooms = await prisma.rooms.findMany({
       where,
-      include: {
+      select: {
+        id: true,
+        roomNumber: true,
+        roomTypeId: true,
+        status: true,
+        floorNumber: true,
+        notes: true,
+        availableForBooking: true,
+        createdAt: true,
+        updatedAt: true,
         roomType: {
           select: {
             id: true,
@@ -107,9 +116,19 @@ export async function POST(request: NextRequest) {
         roomTypeId,
         floorNumber: floorNumber || null,
         notes: notes || null,
+        availableForBooking: true, // Default to available for booking
         updatedAt: new Date()
       },
-      include: {
+      select: {
+        id: true,
+        roomNumber: true,
+        roomTypeId: true,
+        status: true,
+        floorNumber: true,
+        notes: true,
+        availableForBooking: true,
+        createdAt: true,
+        updatedAt: true,
         roomType: {
           select: {
             id: true,

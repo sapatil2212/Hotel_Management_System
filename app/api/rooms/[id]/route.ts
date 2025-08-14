@@ -106,27 +106,30 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Check if room has any bookings
-    const bookingCount = await prisma.booking.count({
-      where: {
-        roomId: params.id
-      }
-    })
-
-    if (bookingCount > 0) {
+    // Ensure the room type exists
+    const roomType = await prisma.room.findUnique({ where: { id: params.id } })
+    if (!roomType) {
       return NextResponse.json(
-        { error: 'Cannot delete room with existing bookings' },
+        { error: 'Room type not found' },
+        { status: 404 }
+      )
+    }
+
+    // Prevent deletion if there are individual rooms under this room type
+    const childRoomsCount = await prisma.rooms.count({
+      where: { roomTypeId: params.id }
+    })
+    if (childRoomsCount > 0) {
+      return NextResponse.json(
+        { error: 'Cannot delete room type with existing individual rooms. Please delete all individual rooms first.' },
         { status: 400 }
       )
     }
 
-    await prisma.room.delete({
-      where: {
-        id: params.id
-      }
-    })
+    // Delete room type
+    await prisma.room.delete({ where: { id: params.id } })
 
-    return NextResponse.json({ message: 'Room deleted successfully' })
+    return NextResponse.json({ message: 'Room type deleted successfully' })
   } catch (error) {
     console.error('Error deleting room:', error)
     return NextResponse.json(

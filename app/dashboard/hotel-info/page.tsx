@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { ImageUpload } from "@/components/ui/image-upload"
 import { 
   Breadcrumb,
   BreadcrumbItem,
@@ -45,6 +46,10 @@ interface HotelInfo {
   name: string
   tagline: string
   description: string
+  logo?: string | null
+  logoDisplayType?: string
+  brandText?: string
+  brandTextStyle?: string
   starRating: number
   overallRating: number
   reviewCount: number
@@ -65,6 +70,8 @@ interface HotelInfo {
   cancellationPolicy: string
   petPolicy: string
   smokingPolicy: string
+  privacyPolicy?: string
+  termsOfService?: string
   guestPolicies?: string
   bookingPartners: Array<{name: string, url: string, commission?: number}>
   partnerLogos: string[]
@@ -85,6 +92,8 @@ export default function HotelInfoPage() {
   const [loading, setLoading] = useState(false)
   const { hotelInfo, updateHotelInfo, refreshHotelInfo } = useHotel()
   const [newAttraction, setNewAttraction] = useState("")
+  const [newAmenity, setNewAmenity] = useState("")
+  const [newBusinessFacility, setNewBusinessFacility] = useState("")
   const [isDirty, setIsDirty] = useState(false)
 
   const handleSave = useCallback(async () => {
@@ -525,6 +534,56 @@ export default function HotelInfoPage() {
                       </div>
                     </CardContent>
                   </Card>
+
+                  {/* Logo Upload */}
+                  <Card className="border-slate-200">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-3 text-lg">
+                        <div className="p-2 bg-purple-50 rounded-md">
+                          <Building2 className="h-5 w-5 text-purple-600" />
+                        </div>
+                        Logo Upload
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                                            <div className="grid grid-cols-2 gap-6">
+                        {/* Logo Upload Section */}
+                        <div>
+                          <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                            Upload Logo Image
+                          </Label>
+                          <ImageUpload
+                            value={[]}
+                            onChange={(urls) => updateHotelField('logo', urls[0] || null)}
+                            maxImages={1}
+                            className="border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
+                          />
+                        </div>
+
+                        {/* Logo Preview Section */}
+                        <div>
+                          <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                            Preview
+                          </Label>
+                          {hotelInfo.logo ? (
+                            <div className="p-4 border rounded-lg bg-slate-50 h-full flex items-center justify-center">
+                              <img 
+                                src={hotelInfo.logo} 
+                                alt="Hotel Logo" 
+                                className="h-16 w-auto object-contain border rounded"
+                              />
+                            </div>
+                          ) : (
+                            <div className="p-4 border rounded-lg bg-slate-50 h-full flex items-center justify-center text-slate-400 text-sm">
+                              No logo uploaded
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+
+                    </CardContent>
+                  </Card>
                 </div>
               </TabsContent>
 
@@ -762,6 +821,84 @@ export default function HotelInfoPage() {
                         ))}
                       </div>
                     </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                        Safety Features
+                      </Label>
+                      <div className="flex gap-2 mb-3">
+                        <Input
+                          value={newAttraction}
+                          onChange={(e) => setNewAttraction(e.target.value)}
+                          placeholder="Add safety feature..."
+                          className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            if (newAttraction.trim()) {
+                              addItem('safetyFeatures', newAttraction.trim())
+                              setNewAttraction("")
+                            }
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {hotelInfo.safetyFeatures.map((feature, index) => (
+                          <Badge key={index} variant="secondary" className="bg-green-50 text-green-800 border-green-200 px-3 py-1 rounded-full">
+                            {feature}
+                            <button
+                              onClick={() => removeItem('safetyFeatures', index)}
+                              className="ml-2 text-green-600 hover:text-green-800"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                        Services
+                      </Label>
+                      <div className="flex gap-2 mb-3">
+                        <Input
+                          value={newAttraction}
+                          onChange={(e) => setNewAttraction(e.target.value)}
+                          placeholder="Add service..."
+                          className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            if (newAttraction.trim()) {
+                              addItem('services', newAttraction.trim())
+                              setNewAttraction("")
+                            }
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {hotelInfo.services.map((service, index) => (
+                          <Badge key={index} variant="secondary" className="bg-purple-50 text-purple-800 border-purple-200 px-3 py-1 rounded-full">
+                            {service}
+                            <button
+                              onClick={() => removeItem('services', index)}
+                              className="ml-2 text-purple-600 hover:text-purple-800"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -954,8 +1091,70 @@ export default function HotelInfoPage() {
                       />
                     </div>
                     
+                    <div>
+                      <Label htmlFor="privacyPolicy" className="text-sm font-medium text-slate-700 mb-2 block">
+                        Privacy Policy
+                      </Label>
+                      <Textarea
+                        id="privacyPolicy"
+                        rows={6}
+                        value={hotelInfo.privacyPolicy || ""}
+                        onChange={(e) => updateHotelField('privacyPolicy', e.target.value)}
+                        placeholder="Enter your privacy policy content..."
+                        className="border-slate-300 focus:border-rose-500 focus:ring-rose-500 rounded-lg resize-y"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">This policy explains how you collect, use, and protect guest information.</p>
+                    </div>
                     
-
+                    <div>
+                      <Label htmlFor="termsOfService" className="text-sm font-medium text-slate-700 mb-2 block">
+                        Terms of Service
+                      </Label>
+                      <Textarea
+                        id="termsOfService"
+                        rows={6}
+                        value={hotelInfo.termsOfService || ""}
+                        onChange={(e) => updateHotelField('termsOfService', e.target.value)}
+                        placeholder="Enter your terms of service content..."
+                        className="border-slate-300 focus:border-rose-500 focus:ring-rose-500 rounded-lg resize-y"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">These terms govern the use of your hotel services and website.</p>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <Label htmlFor="petPolicy" className="text-sm font-medium text-slate-700 mb-2 block">
+                          Pet Policy
+                        </Label>
+                        <Textarea
+                          id="petPolicy"
+                          rows={4}
+                          value={hotelInfo.petPolicy || ""}
+                          onChange={(e) => updateHotelField('petPolicy', e.target.value)}
+                          placeholder="Describe your pet policy..."
+                          className="border-slate-300 focus:border-rose-500 focus:ring-rose-500 rounded-lg resize-y"
+                        />
+                        <p className="mt-1 text-xs text-slate-500">Specify if pets are allowed and any restrictions.</p>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="smokingPolicy" className="text-sm font-medium text-slate-700 mb-2 block">
+                          Smoking Policy
+                        </Label>
+                        <Textarea
+                          id="smokingPolicy"
+                          rows={4}
+                          value={hotelInfo.smokingPolicy || ""}
+                          onChange={(e) => updateHotelField('smokingPolicy', e.target.value)}
+                          placeholder="Describe your smoking policy..."
+                          className="border-slate-300 focus:border-rose-500 focus:ring-rose-500 rounded-lg resize-y"
+                        />
+                        <p className="mt-1 text-xs text-slate-500">Specify smoking areas and restrictions.</p>
+                      </div>
+                                        </div>
+                    
+                    <Separator />
+                    
                     <div>
                       <Label htmlFor="guestPolicies" className="text-sm font-medium text-slate-700 mb-2 block">
                         Guest Policies Page Content
@@ -968,6 +1167,98 @@ export default function HotelInfoPage() {
                         placeholder="Paste or write your Guest Policies content here..."
                         className="border-slate-300 focus:border-rose-500 focus:ring-rose-500 rounded-lg resize-y"
                       />
+                      <p className="mt-1 text-xs text-slate-500">General policies and guidelines for guests staying at your hotel.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Amenities and Services */}
+                <Card className="border-slate-200">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center gap-3 text-lg">
+                      <div className="p-2 bg-blue-50 rounded-md">
+                        <Building2 className="h-5 w-5 text-blue-600" />
+                      </div>
+                      Amenities & Services
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div>
+                      <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                        Property Amenities
+                      </Label>
+                      <div className="flex gap-2 mb-3">
+                        <Input
+                          value={newAmenity}
+                          onChange={(e) => setNewAmenity(e.target.value)}
+                          placeholder="Add property amenity..."
+                          className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            if (newAmenity.trim()) {
+                              addItem('propertyAmenities', newAmenity.trim())
+                              setNewAmenity("")
+                            }
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {hotelInfo.propertyAmenities.map((amenity, index) => (
+                          <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-800 border-blue-200 px-3 py-1 rounded-full">
+                            {amenity}
+                            <button
+                              onClick={() => removeItem('propertyAmenities', index)}
+                              className="ml-2 text-blue-600 hover:text-blue-800"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-sm font-medium text-slate-700 mb-2 block">
+                        Business Facilities
+                      </Label>
+                      <div className="flex gap-2 mb-3">
+                        <Input
+                          value={newBusinessFacility}
+                          onChange={(e) => setNewBusinessFacility(e.target.value)}
+                          placeholder="Add business facility..."
+                          className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                        />
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            if (newBusinessFacility.trim()) {
+                              addItem('businessFacilities', newBusinessFacility.trim())
+                              setNewBusinessFacility("")
+                            }
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700 text-white px-5 rounded-lg"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {hotelInfo.businessFacilities.map((facility, index) => (
+                          <Badge key={index} variant="secondary" className="bg-blue-50 text-blue-800 border-blue-200 px-3 py-1 rounded-full">
+                            {facility}
+                            <button
+                              onClick={() => removeItem('businessFacilities', index)}
+                              className="ml-2 text-blue-600 hover:text-blue-800"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>

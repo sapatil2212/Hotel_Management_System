@@ -45,7 +45,8 @@ import {
   Upload,
   Eye,
   Copy,
-  Download
+  Download,
+  Loader
 } from "lucide-react"
 import { ImageUpload } from "@/components/ui/image-upload"
 import { toast } from "@/hooks/use-toast"
@@ -357,10 +358,9 @@ export default function CMSPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500 mx-auto mb-4"></div>
-          <p>Loading CMS content...</p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
         </div>
       </div>
     )

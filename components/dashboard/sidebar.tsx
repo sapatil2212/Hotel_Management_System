@@ -3,17 +3,21 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, CalendarCheck2, BarChart3, Settings, Building, Bed, Home, Tag, Receipt, Palette } from "lucide-react"
+import { LayoutDashboard, Users, CalendarCheck2, BarChart3, Settings, Building, Bed, Home, Tag, Receipt, Palette, TrendingUp, CreditCard, Banknote } from "lucide-react"
 
 const menuItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck2 },
   { href: "/dashboard/rooms", label: "Room Types", icon: Bed },
   { href: "/dashboard/room-manage", label: "Room Manage", icon: Home },
+  { href: "/dashboard/bookings", label: "Bookings", icon: CalendarCheck2 },
   { href: "/dashboard/promo-codes", label: "Promo/Offers", icon: Tag },
   { href: "/dashboard/hotel-info", label: "Hotel Info", icon: Building },
   { href: "/dashboard/guests", label: "Guests", icon: Users },
-  { href: "/dashboard/billing", label: "Billing/Invoices", icon: Receipt },
+  { href: "/dashboard/billing", label: "Billing & Invoice Management", icon: Receipt },
+  { href: "/dashboard/revenue", label: "Revenue", icon: TrendingUp },
+  { href: "/dashboard/revenue-tracking", label: "Revenue Tracking", icon: TrendingUp },
+  { href: "/dashboard/expenses", label: "Expenses", icon: CreditCard },
+  { href: "/dashboard/accounts", label: "Account Management", icon: Banknote },
   { href: "/dashboard/cms", label: "CMS(UI)", icon: Palette },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },

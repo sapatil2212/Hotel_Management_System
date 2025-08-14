@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { nanoid } from "nanoid"
 
 // GET /api/hotel-info - Get hotel information
 export async function GET() {
@@ -14,6 +15,10 @@ export async function GET() {
         name: "",
         tagline: "",
         description: "",
+        logo: null,
+        logoDisplayType: "image",
+        brandText: "",
+        brandTextStyle: "default",
         starRating: 5,
         overallRating: 4.5,
         reviewCount: 0,
@@ -34,6 +39,8 @@ export async function GET() {
         cancellationPolicy: "",
         petPolicy: "",
         smokingPolicy: "",
+        privacyPolicy: "",
+        termsOfService: "",
         guestPolicies: "",
         faqs: [],
         bookingPartners: [],
@@ -42,7 +49,6 @@ export async function GET() {
         businessFacilities: [],
         safetyFeatures: [],
         services: [],
-        gstNumber: "",
         gstPercentage: 18.0,
         serviceTaxPercentage: 0.0,
         otherTaxes: [],
@@ -68,6 +74,10 @@ export async function POST(request: NextRequest) {
       name,
       tagline,
       description,
+      logo,
+      logoDisplayType,
+      brandText,
+      brandTextStyle,
       starRating,
       overallRating,
       reviewCount,
@@ -88,6 +98,8 @@ export async function POST(request: NextRequest) {
       cancellationPolicy,
       petPolicy,
       smokingPolicy,
+      privacyPolicy,
+      termsOfService,
       guestPolicies,
       faqs,
       bookingPartners,
@@ -107,6 +119,10 @@ export async function POST(request: NextRequest) {
       name,
       tagline,
       description,
+      logo,
+      logoDisplayType,
+      brandText,
+      brandTextStyle,
       starRating,
       overallRating,
       reviewCount,
@@ -127,6 +143,8 @@ export async function POST(request: NextRequest) {
       cancellationPolicy,
       petPolicy,
       smokingPolicy,
+      privacyPolicy,
+      termsOfService,
       guestPolicies,
       faqs,
       bookingPartners,
@@ -159,9 +177,12 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      // Create new hotel info
+      // Create new hotel info with generated ID
       hotelInfo = await prisma.hotelinfo.create({
-        data: updateData
+        data: {
+          id: `hotel_${nanoid()}`, // Generate unique ID
+          ...updateData
+        }
       })
     }
 

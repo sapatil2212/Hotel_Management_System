@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Invoice } from '@/components/ui/invoice';
 import { InvoicePDF } from '@/components/ui/invoice-pdf';
 import { InvoiceService } from '@/lib/invoice-service';
-import { FileText, DollarSign, CreditCard, Download, Eye, Plus } from 'lucide-react';
+import { FileText, DollarSign, CreditCard, Download, Eye, Plus, Trash2, TrendingUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Booking {
@@ -53,16 +53,27 @@ interface PaymentData {
   status: string;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
 export default function BillingManagement() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [users, setUsers] = useState<User[]>([]);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
+  const [showDeleteInvoiceDialog, setShowDeleteInvoiceDialog] = useState(false);
+  const [selectedInvoiceForDeletion, setSelectedInvoiceForDeletion] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [generatingInvoice, setGeneratingInvoice] = useState(false);
   const [recordingPayment, setRecordingPayment] = useState(false);
+  const [deletingInvoice, setDeletingInvoice] = useState(false);
 
   // Payment form state
   const [paymentForm, setPaymentForm] = useState({
@@ -76,6 +87,7 @@ export default function BillingManagement() {
   useEffect(() => {
     fetchBookings();
     fetchInvoices();
+    fetchUsers();
   }, []);
 
   const fetchBookings = async () => {
@@ -111,6 +123,20 @@ export default function BillingManagement() {
     } catch (error) {
       console.error('Error fetching invoices:', error);
       setInvoices([]);
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users');
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      } else {
+        console.error('Failed to fetch users');
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
     }
   };
 
@@ -172,7 +198,7 @@ export default function BillingManagement() {
         const payment = await response.json();
         toast({
           title: 'Success',
-          description: `Payment of $${payment.amount} recorded successfully`,
+          description: `Payment of $${payment.amount} recorded successfully. Revenue automatically updated!`,
         });
         setShowPaymentDialog(false);
         setPaymentForm({
@@ -216,6 +242,54 @@ export default function BillingManagement() {
     }
   };
 
+  const handleDeleteInvoice = (invoice: any) => {
+    setSelectedInvoiceForDeletion(invoice);
+    setShowDeleteInvoiceDialog(true);
+  };
+
+  const confirmDeleteInvoice = async () => {
+    if (!selectedInvoiceForDeletion) return;
+
+    setDeletingInvoice(true);
+    try {
+      const response = await fetch(`/api/invoices/${selectedInvoiceForDeletion.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: 'Invoice cancellation',
+          processedBy: 'Admin'
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: 'Success',
+          description: `Invoice deleted successfully. Revenue automatically reversed!`,
+        });
+        setShowDeleteInvoiceDialog(false);
+        fetchInvoices();
+        fetchBookings(); // Refresh bookings to update payment status
+      } else {
+        const error = await response.json();
+        toast({
+          title: 'Error',
+          description: error.error || 'Failed to delete invoice',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete invoice',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingInvoice(false);
+    }
+  };
+
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
       case 'paid': return 'text-green-600 bg-green-100';
@@ -243,6 +317,15 @@ export default function BillingManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Billing Management</h2>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={() => window.open('/dashboard/revenue-tracking', '_blank')}
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Revenue Tracking
+          </Button>
+        </div>
       </div>
 
       {/* Bookings Section */}
@@ -331,16 +414,25 @@ export default function BillingManagement() {
                       <span className={`px-2 py-1 rounded text-xs font-medium ${getPaymentStatusColor(invoice.status)}`}>
                         {invoice.status}
                       </span>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => viewInvoice(invoice.id)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                      </div>
+                                             <div className="flex gap-2">
+                         <Button
+                           size="sm"
+                           variant="outline"
+                           onClick={() => viewInvoice(invoice.id)}
+                         >
+                           <Eye className="h-4 w-4 mr-1" />
+                           View
+                         </Button>
+                         <Button
+                           size="sm"
+                           variant="outline"
+                           className="text-red-500 hover:text-red-700"
+                           onClick={() => handleDeleteInvoice(invoice)}
+                         >
+                           <Trash2 className="h-4 w-4 mr-1" />
+                           Delete
+                         </Button>
+                       </div>
                     </div>
                   </div>
                 </div>
@@ -400,12 +492,24 @@ export default function BillingManagement() {
             </div>
             <div>
               <Label htmlFor="receivedBy">Received By</Label>
-              <Input
-                id="receivedBy"
+              <Select
                 value={paymentForm.receivedBy}
-                onChange={(e) => setPaymentForm(prev => ({ ...prev, receivedBy: e.target.value }))}
-                placeholder="Admin/Receptionist name"
-              />
+                onValueChange={(value) => setPaymentForm(prev => ({ ...prev, receivedBy: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select staff member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.name}>
+                      <div className="flex flex-col">
+                        <span>{user.name}</span>
+                        <span className="text-xs text-gray-500">{user.role}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="notes">Notes</Label>
@@ -447,8 +551,60 @@ export default function BillingManagement() {
               <Invoice data={InvoiceService.convertToInvoiceData(selectedInvoice)} />
             </InvoicePDF>
           )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+                 </DialogContent>
+       </Dialog>
+
+       {/* Delete Invoice Confirmation Dialog */}
+       <Dialog open={showDeleteInvoiceDialog} onOpenChange={setShowDeleteInvoiceDialog}>
+         <DialogContent className="sm:max-w-md">
+           <DialogHeader>
+             <DialogTitle>Delete Invoice</DialogTitle>
+           </DialogHeader>
+           <div className="space-y-4">
+             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+               <h4 className="font-semibold text-red-900 mb-2">⚠️ Warning</h4>
+               <p className="text-sm text-red-800">
+                 Are you sure you want to delete this invoice? This action will:
+               </p>
+               <ul className="text-sm text-red-800 mt-2 space-y-1">
+                 <li>• Remove the invoice from the system</li>
+                 <li>• Delete all associated payments</li>
+                 <li>• Automatically reverse the revenue</li>
+                 <li>• Update all revenue reports</li>
+                 <li>• Create an audit trail</li>
+               </ul>
+             </div>
+             <div className="bg-gray-50 p-3 rounded">
+               <p className="text-sm font-medium">Invoice Details:</p>
+               <p className="text-sm text-gray-600">
+                 Invoice: {selectedInvoiceForDeletion?.invoiceNumber}<br />
+                 Guest: {selectedInvoiceForDeletion?.guestName}<br />
+                 Amount: ₹{selectedInvoiceForDeletion?.totalAmount?.toLocaleString()}<br />
+                 Status: {selectedInvoiceForDeletion?.status}
+               </p>
+             </div>
+             <div className="flex gap-2">
+               <Button 
+                 onClick={confirmDeleteInvoice} 
+                 variant="destructive" 
+                 className="flex-1"
+                 disabled={deletingInvoice}
+               >
+                 <Trash2 className="h-4 w-4 mr-2" />
+                 {deletingInvoice ? 'Deleting...' : 'Delete Invoice'}
+               </Button>
+               <Button 
+                 variant="outline" 
+                 onClick={() => setShowDeleteInvoiceDialog(false)} 
+                 className="flex-1"
+                 disabled={deletingInvoice}
+               >
+                 Cancel
+               </Button>
+             </div>
+           </div>
+         </DialogContent>
+       </Dialog>
+     </div>
+   );
+ }

@@ -11,7 +11,16 @@ export async function GET(
       where: {
         id: params.id
       },
-      include: {
+      select: {
+        id: true,
+        roomNumber: true,
+        roomTypeId: true,
+        status: true,
+        floorNumber: true,
+        notes: true,
+        availableForBooking: true,
+        createdAt: true,
+        updatedAt: true,
         roomType: {
           select: {
             id: true,
@@ -60,7 +69,7 @@ export async function PUT(
 ) {
   try {
     const data = await request.json()
-    const { roomNumber, status, floorNumber, notes } = data
+    const { roomNumber, status, floorNumber, notes, availableForBooking } = data
     
     // Check if room exists
     const existingRoom = await prisma.rooms.findUnique({
@@ -96,6 +105,7 @@ export async function PUT(
     if (status) updateData.status = status
     if (floorNumber !== undefined) updateData.floorNumber = floorNumber
     if (notes !== undefined) updateData.notes = notes
+    if (availableForBooking !== undefined) updateData.availableForBooking = availableForBooking
 
     const room = await prisma.rooms.update({
       where: {

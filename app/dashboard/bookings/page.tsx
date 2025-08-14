@@ -4,7 +4,8 @@ import { useEffect, useState } from "react"
 import BookingsTable from "@/components/dashboard/bookings-table"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Calendar, Users, DollarSign, TrendingUp } from "lucide-react"
+import { Plus, Calendar, Users, DollarSign, TrendingUp, Loader } from "lucide-react"
+import NewBookingModal from "@/components/dashboard/new-booking-modal"
 
 interface BookingStats {
   totalBookings: number
@@ -25,6 +26,7 @@ export default function DashboardBookingsPage() {
     todayCheckOuts: 0
   })
   const [loading, setLoading] = useState(true)
+  const [isNewBookingModalOpen, setIsNewBookingModalOpen] = useState(false)
 
   useEffect(() => {
     fetchBookingStats()
@@ -60,6 +62,16 @@ export default function DashboardBookingsPage() {
     return `₹${amount.toLocaleString('en-IN')}`
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -69,7 +81,10 @@ export default function DashboardBookingsPage() {
             Manage hotel bookings, view guest information, and track reservations
           </p>
         </div>
-        <Button className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700">
+        <Button 
+          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+          onClick={() => setIsNewBookingModalOpen(true)}
+        >
           <Plus className="h-4 w-4 mr-2" />
           New Booking
         </Button>
@@ -105,7 +120,7 @@ export default function DashboardBookingsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Check-ins</CardTitle>
+            <CardTitle className="text-sm font-medium">Today&apos;s Check-ins</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -118,7 +133,7 @@ export default function DashboardBookingsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Check-outs</CardTitle>
+            <CardTitle className="text-sm font-medium">Today&apos;s Check-outs</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -132,6 +147,17 @@ export default function DashboardBookingsPage() {
 
       {/* Bookings Table */}
       <BookingsTable />
+
+      {/* New Booking Modal */}
+      <NewBookingModal 
+        open={isNewBookingModalOpen} 
+        onOpenChange={setIsNewBookingModalOpen}
+        onBookingCreated={() => {
+          fetchBookingStats()
+          // Refresh the bookings table
+          window.location.reload()
+        }}
+      />
     </div>
   )
 }

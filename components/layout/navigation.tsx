@@ -18,11 +18,14 @@ import {
 } from "@/components/ui/navigation-menu"
 import { Menu, Moon, Sun, Phone, Mail } from "lucide-react"
 import { useTheme } from "next-themes"
+import { QuickBanner } from "./quick-banner"
+import { useHotel } from "@/contexts/hotel-context"
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = React.useState(false)
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
+  const { hotelInfo } = useHotel()
   
   const navItems = [
     { href: "/", label: "Home" },
@@ -41,26 +44,8 @@ const Navigation = () => {
 
   return (
     <>
-      {/* Top Bar */}
-      <div className="bg-gradient-to-r from-amber-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 border-b border-amber-200 dark:border-gray-700">
-        <Container className="py-2">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <Phone className="h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
-              </div>
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
-                <Mail className="h-4 w-4" />
-                <span>reservations@grandluxe.com</span>
-              </div>
-            </div>
-            <Badge variant="secondary" className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-              Special Offer: Save 20% on Weekend Stays
-            </Badge>
-          </div>
-        </Container>
-      </div>
+      {/* Quick Banner with Contact Info and Promo Offers */}
+      <QuickBanner />
 
       {/* Main Navigation */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
@@ -68,15 +53,13 @@ const Navigation = () => {
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-white font-bold text-sm">
-                GL
-              </div>
-              <div className="hidden font-bold sm:block">
-                <span className="text-xl bg-gradient-to-r from-amber-600 to-blue-600 bg-clip-text text-transparent">
-                  Grand Luxe
-                </span>
-                <div className="text-xs text-muted-foreground">Hotel</div>
-              </div>
+              {hotelInfo.logo ? (
+                <img 
+                  src={hotelInfo.logo} 
+                  alt={hotelInfo.name || "Hotel Logo"} 
+                  className="h-8 w-auto object-contain"
+                />
+              ) : null}
             </Link>
 
             {/* Desktop Navigation */}

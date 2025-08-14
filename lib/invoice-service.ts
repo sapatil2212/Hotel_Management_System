@@ -343,21 +343,41 @@ export class InvoiceService {
   /**
    * Convert invoice to InvoiceData format for the UI component
    */
-  static convertToInvoiceData(invoice: any) {
-    const hotelInfo = {
-      name: 'Your Hotel Name', // This should come from hotel info
+  static async convertToInvoiceData(invoice: any) {
+    // Fetch hotel info for the logo and details
+    let hotelInfo = {
+      name: 'Your Hotel Name',
       address: [
         'Hotel Address Line 1',
-        'Hotel Address Line 2',
+        'Hotel Address Line 2', 
         'City, State ZIP',
         'Country'
-      ]
+      ],
+      logo: undefined as string | undefined
     };
+
+    try {
+      const hotelInfoData = await prisma.hotelinfo.findFirst();
+      if (hotelInfoData) {
+        hotelInfo = {
+          name: hotelInfoData.name || 'Your Hotel Name',
+          address: hotelInfoData.address ? hotelInfoData.address.split('\n') : [
+            'Hotel Address Line 1',
+            'Hotel Address Line 2',
+            'City, State ZIP',
+            'Country'
+          ],
+          logo: hotelInfoData.logo || undefined
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching hotel info for invoice:', error);
+    }
 
     return {
       invoiceNumber: invoice.invoiceNumber,
-      invoiceDate: invoice.issuedDate.toISOString().split('T')[0],
-      dueDate: invoice.dueDate.toISOString().split('T')[0],
+      invoiceDate: new Date(invoice.issuedDate).toISOString().split('T')[0],
+      dueDate: new Date(invoice.dueDate).toISOString().split('T')[0],
       terms: invoice.terms,
       company: hotelInfo,
       billTo: {
@@ -365,8 +385,8 @@ export class InvoiceService {
         address: [
           `Email: ${invoice.guestEmail}`,
           `Phone: ${invoice.guestPhone}`,
-          `Check-in: ${invoice.checkIn.toLocaleDateString()}`,
-          `Check-out: ${invoice.checkOut.toLocaleDateString()}`
+          `Check-in: ${new Date(invoice.checkIn).toLocaleDateString()}`,
+          `Check-out: ${new Date(invoice.checkOut).toLocaleDateString()}`
         ]
       },
       shipTo: {
@@ -381,7 +401,7 @@ export class InvoiceService {
         {
           id: 1,
           name: `${invoice.roomTypeName} - ${invoice.roomNumber}`,
-          description: `${invoice.nights} nights stay (${invoice.checkIn.toLocaleDateString()} - ${invoice.checkOut.toLocaleDateString()})`,
+          description: `${invoice.nights} nights stay (${new Date(invoice.checkIn).toLocaleDateString()} - ${new Date(invoice.checkOut).toLocaleDateString()})`,
           quantity: invoice.nights,
           unit: 'nights',
           rate: (invoice.baseAmount / invoice.nights),
