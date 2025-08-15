@@ -363,13 +363,18 @@ export class RevenueHooks {
     try {
       console.log(`🗑️ Deleting revenue entries for booking ${bookingId}`);
       
+<<<<<<< HEAD
       // Get the booking to determine service categories and invoices
+=======
+      // Get the booking to determine service categories
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       const booking = await prisma.booking.findUnique({
         where: { id: bookingId },
         include: {
           billItems: {
             include: { service: true },
           },
+<<<<<<< HEAD
           invoices: {
             select: {
               id: true,
@@ -384,6 +389,8 @@ export class RevenueHooks {
               paymentDate: true,
             },
           },
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
         },
       });
 
@@ -395,6 +402,7 @@ export class RevenueHooks {
       console.log(`📊 Deleting revenue for ${booking.guestName}`);
 
       // Calculate total amount to delete from each category
+<<<<<<< HEAD
       // Use invoice amounts if available, otherwise fall back to bill items
       let totalAmount = 0;
       if (booking.invoices.length > 0) {
@@ -447,6 +455,22 @@ export class RevenueHooks {
 
       // Also delete from any revenue tracking records
       await this.deleteRevenueTrackingRecords(bookingId);
+=======
+      const totalAmount = booking.billItems.reduce((sum, item) => sum + item.amount, 0);
+      const categoryAmounts = this.calculateCategoryAmounts(booking, totalAmount);
+
+      // Delete from daily revenue reports
+      console.log(`📅 Deleting from daily revenue reports`);
+      await this.deleteFromRevenueReport(booking.checkIn, 'daily', categoryAmounts);
+      
+      // Delete from monthly revenue reports
+      console.log(`📅 Deleting from monthly revenue reports`);
+      await this.deleteFromRevenueReport(booking.checkIn, 'monthly', categoryAmounts);
+      
+      // Delete from yearly revenue reports
+      console.log(`📅 Deleting from yearly revenue reports`);
+      await this.deleteFromRevenueReport(booking.checkIn, 'yearly', categoryAmounts);
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
       console.log(`✅ Revenue entries deleted successfully for booking ${bookingId}`);
       
@@ -464,6 +488,7 @@ export class RevenueHooks {
   }
 
   /**
+<<<<<<< HEAD
    * Delete revenue tracking records for a specific booking
    */
   private static async deleteRevenueTrackingRecords(bookingId: string) {
@@ -493,6 +518,8 @@ export class RevenueHooks {
   }
 
   /**
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
    * Delete revenue from specific report periods
    */
   private static async deleteFromRevenueReport(

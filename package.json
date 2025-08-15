@@ -56,7 +56,10 @@
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",
+<<<<<<< HEAD
     "framer-motion": "^12.23.12",
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     "html2canvas": "^1.4.1",
     "input-otp": "^1.2.4",
     "jspdf": "^3.0.1",

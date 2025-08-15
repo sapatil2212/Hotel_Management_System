@@ -94,11 +94,15 @@ interface Booking {
   guestPhone: string
   checkIn: string
   checkOut: string
+<<<<<<< HEAD
   actualCheckoutTime?: string
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   nights: number
   adults: number
   children: number
   totalAmount: number
+<<<<<<< HEAD
   originalAmount?: number
   discountAmount?: number
   baseAmount?: number
@@ -109,10 +113,14 @@ interface Booking {
   specialRequests?: string
   status: string
   source?: string
+=======
+  status: string
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   createdAt: string
   room: {
     id: string
     roomNumber: string
+<<<<<<< HEAD
     floorNumber?: number
     roomType: {
       id: string
@@ -130,6 +138,14 @@ interface Booking {
     code: string
     title: string
   }
+=======
+    roomType: {
+      id: string
+      name: string
+      price: number
+    }
+  }
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   invoices?: Invoice[]
   billItems?: {
     id: string
@@ -161,8 +177,11 @@ interface BillGenerationData {
     item: string
     amount: number
     description: string
+<<<<<<< HEAD
     gstApplicable: boolean
     gstPercentage: number
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   }>
 }
 
@@ -233,7 +252,11 @@ const getInvoiceDisplayText = (invoice: Invoice): string => {
 };
 
 export default function BillingTable() {
+<<<<<<< HEAD
   const { hotelInfo, hotelInfoLoading } = useHotel()
+=======
+  const { hotelInfo } = useHotel()
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   const deleteConfirmation = useDeleteConfirmation()
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
@@ -277,7 +300,11 @@ export default function BillingTable() {
   const [selectedTaxInvoiceBooking, setSelectedTaxInvoiceBooking] = useState<Booking | null>(null)
   const [invoiceFormData, setInvoiceFormData] = useState({
     extraCharges: [
+<<<<<<< HEAD
       { item: '', amount: 0, description: '', gstApplicable: false, gstPercentage: 18 }
+=======
+      { item: '', amount: 0, description: '' }
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     ],
     paymentMode: 'cash',
     referenceId: '',
@@ -297,11 +324,14 @@ export default function BillingTable() {
     totalAmount: number
     taxes: Array<{ name: string; percentage: number; amount: number }>
   } | null>(null)
+<<<<<<< HEAD
   
   // Booking selection modal states
   const [isBookingSelectionModalOpen, setIsBookingSelectionModalOpen] = useState(false)
 
 
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
   // Multi-step bill generation modal states
   const [isMultiStepModalOpen, setIsMultiStepModalOpen] = useState(false)
@@ -514,8 +544,11 @@ export default function BillingTable() {
       totalAmount: invoice.baseAmount,
       status: invoice.status === 'paid' ? 'CHECKED_OUT' : 'CONFIRMED',
       createdAt: invoice.issuedDate,
+<<<<<<< HEAD
       specialRequests: '',
       source: 'invoice',
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       room: {
         id: invoice.id,
         roomNumber: invoice.roomNumber,
@@ -705,7 +738,11 @@ export default function BillingTable() {
     setSelectedInvoiceBooking(booking)
     setInvoiceFormData({
       extraCharges: [
+<<<<<<< HEAD
         { item: '', amount: 0, description: '', gstApplicable: false, gstPercentage: 18 }
+=======
+        { item: '', amount: 0, description: '' }
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       ],
       paymentMode: 'cash',
       referenceId: '',
@@ -739,9 +776,13 @@ export default function BillingTable() {
     const existingExtraCharges = booking.billItems?.map(item => ({
       item: item.itemName,
       amount: item.finalAmount,
+<<<<<<< HEAD
       description: item.description || '',
       gstApplicable: true, // Default to true for existing items
       gstPercentage: hotelInfo.gstPercentage || 18 // Use hotel GST percentage
+=======
+      description: item.description || ''
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     })) || []
     
     setSelectedBooking(booking)
@@ -776,13 +817,27 @@ export default function BillingTable() {
     setIsViewBookingModalOpen(true)
   }
 
+<<<<<<< HEAD
 
+=======
+  // Handle edit booking
+  const handleEditBooking = (booking: Booking) => {
+    toast({
+      title: "Info",
+      description: "Edit booking functionality will be implemented soon",
+    })
+  }
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
   // Handle add extra charge item
   const handleAddExtraCharge = () => {
     setInvoiceFormData({
       ...invoiceFormData,
+<<<<<<< HEAD
       extraCharges: [...invoiceFormData.extraCharges, { item: '', amount: 0, description: '', gstApplicable: false, gstPercentage: 18 }]
+=======
+      extraCharges: [...invoiceFormData.extraCharges, { item: '', amount: 0, description: '' }]
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     })
   }
 
@@ -882,6 +937,7 @@ export default function BillingTable() {
   const handleAddBillExtraCharge = () => {
     setBillGenerationData({
       ...billGenerationData,
+<<<<<<< HEAD
       extraCharges: [...billGenerationData.extraCharges, { 
         item: '', 
         amount: 0, 
@@ -889,6 +945,9 @@ export default function BillingTable() {
         gstApplicable: true, // Default to true for new charges
         gstPercentage: hotelInfo.gstPercentage || 18 // Use hotel GST percentage
       }]
+=======
+      extraCharges: [...billGenerationData.extraCharges, { item: '', amount: 0, description: '' }]
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     })
   }
 
@@ -900,7 +959,11 @@ export default function BillingTable() {
     })
   }
 
+<<<<<<< HEAD
   const handleUpdateBillExtraCharge = (index: number, field: string, value: string | number | boolean) => {
+=======
+  const handleUpdateBillExtraCharge = (index: number, field: string, value: string | number) => {
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     const newExtraCharges = [...billGenerationData.extraCharges]
     newExtraCharges[index] = { ...newExtraCharges[index], [field]: value }
     setBillGenerationData({
@@ -911,6 +974,7 @@ export default function BillingTable() {
 
   const calculateBillTotal = () => {
     if (!selectedBooking) return 0
+<<<<<<< HEAD
     
     // Base room amount (without taxes)
     const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
@@ -962,6 +1026,15 @@ export default function BillingTable() {
       extraChargesGSTAmount,
       total 
     }
+=======
+    // Use baseAmount if available, otherwise calculate from room price
+    // selectedBooking.totalAmount already includes taxes, so we need to use the pre-tax amount
+    const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+    const extraChargesTotal = billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0)
+    const subtotal = roomBaseAmount + extraChargesTotal
+    const taxAmount = subtotal * 0.18 // 18% GST
+    return subtotal + taxAmount
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   }
 
   const generateBillOrInvoice = async () => {
@@ -970,6 +1043,7 @@ export default function BillingTable() {
     try {
       setGeneratingEnhancedInvoice(true)
       
+<<<<<<< HEAD
       // Base room amount (without taxes)
       const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
       
@@ -996,6 +1070,14 @@ export default function BillingTable() {
         }
         return sum
       }, 0)
+=======
+      const extraChargesTotal = billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0)
+      // Use baseAmount if available, otherwise calculate from room price
+      const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+      const baseAmount = roomBaseAmount + extraChargesTotal
+      const taxAmount = baseAmount * 0.18 // 18% GST
+      const totalAmount = baseAmount + taxAmount
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       
       const status = billGenerationData.type === 'bill' ? 'paid' : 'pending'
       
@@ -1018,6 +1100,7 @@ export default function BillingTable() {
           roomNumber: selectedBooking.room.roomNumber,
           baseAmount: roomBaseAmount, // Room stay amount only
           discountAmount: 0,
+<<<<<<< HEAD
           gstAmount: totalGSTAmount, // Total GST (room + extra charges)
           serviceTaxAmount: 0,
           otherTaxAmount: 0,
@@ -1027,6 +1110,17 @@ export default function BillingTable() {
           dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           terms: billGenerationData.notes || 'Payment due upon receipt',
           notes: `Extra Charges: ${formatCurrency(billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0))}\nPayment Mode: ${billGenerationData.paymentMethod}\nCollected By: ${billGenerationData.collectedBy}${billGenerationData.referenceId ? `\nReference ID: ${billGenerationData.referenceId}` : ''}\n\nExtra Charge Details:\n${billGenerationData.extraCharges.map(charge => `${charge.item}: ${formatCurrency(charge.amount)}${charge.gstApplicable ? ` + GST ${charge.gstPercentage}%` : ''} - ${charge.description}`).join('\n')}`
+=======
+          gstAmount: taxAmount,
+          serviceTaxAmount: 0,
+          otherTaxAmount: 0,
+          totalTaxAmount: taxAmount,
+          totalAmount: totalAmount,
+          status: status,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          terms: billGenerationData.notes || 'Payment due upon receipt',
+          notes: `Extra Charges: ${formatCurrency(extraChargesTotal)}\nPayment Mode: ${billGenerationData.paymentMethod}\nCollected By: ${billGenerationData.collectedBy}${billGenerationData.referenceId ? `\nReference ID: ${billGenerationData.referenceId}` : ''}\n\nExtra Charge Details:\n${billGenerationData.extraCharges.map(charge => `${charge.item}: ${formatCurrency(charge.amount)} - ${charge.description}`).join('\n')}`
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
         }),
       })
 
@@ -1291,10 +1385,13 @@ export default function BillingTable() {
   const bookingsWithInvoices = filteredBookings.filter(booking => booking.invoices && booking.invoices.length > 0).length
   const bookingsWithoutInvoices = totalBookings - bookingsWithInvoices
 
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1303,10 +1400,14 @@ export default function BillingTable() {
           <h1 className="text-2xl font-bold text-gray-900">Billing & Invoice Management</h1>
           <p className="text-sm text-gray-600">Professional billing system with streamlined invoice generation and payment processing. Manage bookings, add extra charges, and generate bills all in one place.</p>
         </div>
+<<<<<<< HEAD
         <Button 
           className="bg-blue-600 hover:bg-blue-700"
           onClick={() => setIsBookingSelectionModalOpen(true)}
         >
+=======
+        <Button className="bg-blue-600 hover:bg-blue-700">
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
           <Receipt className="h-4 w-4 mr-2" />
           Generate Invoice
         </Button>
@@ -2794,6 +2895,7 @@ export default function BillingTable() {
          </DialogContent>
        </Dialog>
 
+<<<<<<< HEAD
        {/* Booking Selection Modal */}
        <Dialog open={isBookingSelectionModalOpen} onOpenChange={setIsBookingSelectionModalOpen}>
          <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
@@ -2926,6 +3028,38 @@ export default function BillingTable() {
                      {step < 3 && (
                        <div className={`w-6 h-0.5 mx-2 rounded-full transition-all duration-300 ${
                          step < currentStep ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-slate-200'
+=======
+       {/* Multi-Step Bill Generation Modal */}
+       <Dialog open={isMultiStepModalOpen} onOpenChange={setIsMultiStepModalOpen}>
+         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-t-lg">
+             <DialogHeader className="text-white">
+               <DialogTitle className="text-2xl font-bold">
+                 Generate {billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'}
+               </DialogTitle>
+               <DialogDescription className="text-blue-100">
+                 Step {currentStep} of 3
+               </DialogDescription>
+             </DialogHeader>
+           </div>
+
+           {selectedBooking && (
+             <div className="p-6 space-y-6">
+               {/* Step Indicator */}
+               <div className="flex items-center justify-center space-x-4 mb-6">
+                 {[1, 2, 3].map((step) => (
+                   <div key={step} className="flex items-center">
+                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+                       step <= currentStep 
+                         ? 'bg-blue-600 text-white' 
+                         : 'bg-gray-200 text-gray-600'
+                     }`}>
+                       {step < currentStep ? <Check className="w-4 h-4" /> : step}
+                     </div>
+                     {step < 3 && (
+                       <div className={`w-12 h-1 mx-2 ${
+                         step < currentStep ? 'bg-blue-600' : 'bg-gray-200'
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        }`} />
                      )}
                    </div>
@@ -2936,20 +3070,33 @@ export default function BillingTable() {
                {currentStep === 1 && (
                  <div className="space-y-6">
                    <div className="text-center">
+<<<<<<< HEAD
                      <h3 className="text-xl font-bold text-slate-800 mb-2">Select Document Type</h3>
                      <p className="text-slate-600 text-base">Choose whether to generate a bill (after payment) or invoice (before payment)</p>
+=======
+                     <h3 className="text-xl font-bold text-gray-900 mb-2">Select Document Type</h3>
+                     <p className="text-gray-600">Choose whether to generate a bill (after payment) or invoice (before payment)</p>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                    </div>
 
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <Card 
+<<<<<<< HEAD
                        className={`cursor-pointer transition-all duration-300 transform hover:scale-102 ${
                          billGenerationData.type === 'bill' 
                            ? 'ring-2 ring-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' 
                            : 'hover:bg-slate-50'
+=======
+                       className={`cursor-pointer transition-all duration-200 ${
+                         billGenerationData.type === 'bill' 
+                           ? 'ring-2 ring-blue-500 bg-blue-50' 
+                           : 'hover:shadow-lg'
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        }`}
                        onClick={() => handleTypeSelection('bill')}
                      >
                        <CardContent className="p-6 text-center">
+<<<<<<< HEAD
                          <div className={`w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center ${
                            billGenerationData.type === 'bill' 
                              ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
@@ -2961,18 +3108,31 @@ export default function BillingTable() {
                          </div>
                          <h4 className="text-lg font-bold text-slate-800 mb-2">Generate Bill</h4>
                          <p className="text-slate-600 text-sm leading-relaxed">For completed payments. Includes payment details and shows as paid.</p>
+=======
+                         <Receipt className="w-12 h-12 mx-auto mb-4 text-blue-600" />
+                         <h4 className="text-lg font-bold text-gray-900 mb-2">Generate Bill</h4>
+                         <p className="text-gray-600">For completed payments. Includes payment details and shows as paid.</p>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        </CardContent>
                      </Card>
 
                      <Card 
+<<<<<<< HEAD
                        className={`cursor-pointer transition-all duration-300 transform hover:scale-102 ${
                          billGenerationData.type === 'invoice' 
                            ? 'ring-2 ring-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50' 
                            : 'hover:bg-slate-50'
+=======
+                       className={`cursor-pointer transition-all duration-200 ${
+                         billGenerationData.type === 'invoice' 
+                           ? 'ring-2 ring-blue-500 bg-blue-50' 
+                           : 'hover:shadow-lg'
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        }`}
                        onClick={() => handleTypeSelection('invoice')}
                      >
                        <CardContent className="p-6 text-center">
+<<<<<<< HEAD
                          <div className={`w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center ${
                            billGenerationData.type === 'invoice' 
                              ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
@@ -2984,15 +3144,28 @@ export default function BillingTable() {
                          </div>
                          <h4 className="text-lg font-bold text-slate-800 mb-2">Generate Invoice</h4>
                          <p className="text-slate-600 text-sm leading-relaxed">For pending payments. Shows amount due and payment terms.</p>
+=======
+                         <FileText className="w-12 h-12 mx-auto mb-4 text-green-600" />
+                         <h4 className="text-lg font-bold text-gray-900 mb-2">Generate Invoice</h4>
+                         <p className="text-gray-600">For pending payments. Shows amount due and payment terms.</p>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        </CardContent>
                      </Card>
                    </div>
 
+<<<<<<< HEAD
                    <div className="flex justify-end pt-2">
                      <Button 
                        onClick={handleNextStep}
                        disabled={!billGenerationData.type}
                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2 text-base font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+=======
+                   <div className="flex justify-end">
+                     <Button 
+                       onClick={handleNextStep}
+                       disabled={!billGenerationData.type}
+                       className="bg-blue-600 hover:bg-blue-700"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                      >
                        Next Step
                        <ArrowRight className="w-4 h-4 ml-2" />
@@ -3005,16 +3178,24 @@ export default function BillingTable() {
                {currentStep === 2 && (
                  <div className="space-y-6">
                    <div className="text-center">
+<<<<<<< HEAD
                      <h3 className="text-xl font-bold text-slate-800 mb-2">
                        {billGenerationData.type === 'bill' ? 'Payment Details' : 'Invoice Details'}
                      </h3>
                      <p className="text-slate-600 text-base">
+=======
+                     <h3 className="text-xl font-bold text-gray-900 mb-2">
+                       {billGenerationData.type === 'bill' ? 'Payment Details' : 'Invoice Details'}
+                     </h3>
+                     <p className="text-gray-600">
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        {billGenerationData.type === 'bill' 
                          ? 'Enter payment information and any additional charges' 
                          : 'Review booking details and add any extra charges'}
                      </p>
                    </div>
 
+<<<<<<< HEAD
                    {/* Enhanced Booking Summary */}
                    <Card className="border border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50">
                      <CardHeader className="pb-3">
@@ -3172,11 +3353,47 @@ export default function BillingTable() {
                                {hotelInfo.checkOutTime || '11:00 AM'}
                              </span>
                            </div>
+=======
+                   {/* Booking Summary */}
+                   <Card>
+                     <CardHeader>
+                       <CardTitle className="flex items-center">
+                         <Calendar className="w-5 h-5 mr-2" />
+                         Booking Information
+                       </CardTitle>
+                     </CardHeader>
+                     <CardContent className="space-y-4">
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div>
+                           <Label className="text-sm font-medium text-gray-600">Guest Name</Label>
+                           <p className="text-lg font-semibold text-gray-900">{selectedBooking.guestName}</p>
+                         </div>
+                         <div>
+                           <Label className="text-sm font-medium text-gray-600">Room Number</Label>
+                           <p className="text-lg font-semibold text-gray-900">{selectedBooking.room.roomNumber}</p>
+                         </div>
+                         <div>
+                           <Label className="text-sm font-medium text-gray-600">Check In</Label>
+                           <p className="text-lg font-semibold text-gray-900">{formatDate(selectedBooking.checkIn)}</p>
+                         </div>
+                         <div>
+                           <Label className="text-sm font-medium text-gray-600">Check Out</Label>
+                           <p className="text-lg font-semibold text-gray-900">{formatDate(selectedBooking.checkOut)}</p>
+                         </div>
+                         <div>
+                           <Label className="text-sm font-medium text-gray-600">Nights</Label>
+                           <p className="text-lg font-semibold text-gray-900">{selectedBooking.nights}</p>
+                         </div>
+                         <div>
+                           <Label className="text-sm font-medium text-gray-600">Base Amount</Label>
+                           <p className="text-lg font-semibold text-gray-900">{formatCurrency(selectedBooking.totalAmount)}</p>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                          </div>
                        </div>
                      </CardContent>
                    </Card>
 
+<<<<<<< HEAD
                    {/* Enhanced Extra Charges */}
                    <Card className="border border-slate-200 bg-gradient-to-br from-slate-50 to-emerald-50">
                      <CardHeader className="pb-3">
@@ -3185,21 +3402,35 @@ export default function BillingTable() {
                            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mr-3">
                              <Plus className="w-4 h-4 text-white" />
                            </div>
+=======
+                   {/* Extra Charges */}
+                   <Card>
+                     <CardHeader>
+                       <CardTitle className="flex items-center justify-between">
+                         <span className="flex items-center">
+                           <Plus className="w-5 h-5 mr-2" />
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                            Extra Charges
                          </span>
                          <Button 
                            variant="outline" 
                            size="sm" 
                            onClick={handleAddBillExtraCharge}
+<<<<<<< HEAD
                            className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 text-xs px-3 py-1 h-8"
                          >
                            <Plus className="w-3 h-3 mr-1" />
+=======
+                         >
+                           <Plus className="w-4 h-4 mr-1" />
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                            Add Charge
                          </Button>
                        </CardTitle>
                      </CardHeader>
                      <CardContent>
                        {billGenerationData.extraCharges.length === 0 ? (
+<<<<<<< HEAD
                          <div className="text-center py-8">
                            <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
                              <Plus className="w-6 h-6 text-slate-400" />
@@ -3213,29 +3444,53 @@ export default function BillingTable() {
                              <div key={index} className="grid grid-cols-12 gap-3 items-end bg-white p-3 rounded-md border border-slate-200">
                                <div className="col-span-3">
                                  <Label className="text-xs font-medium text-slate-600 mb-1 block">Item</Label>
+=======
+                         <p className="text-gray-500 text-center py-4">No extra charges added</p>
+                       ) : (
+                         <div className="space-y-3">
+                           {billGenerationData.extraCharges.map((charge, index) => (
+                             <div key={index} className="grid grid-cols-12 gap-3 items-end">
+                               <div className="col-span-4">
+                                 <Label>Item</Label>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                                  <Input
                                    value={charge.item}
                                    onChange={(e) => handleUpdateBillExtraCharge(index, 'item', e.target.value)}
                                    placeholder="e.g., Room Service"
+<<<<<<< HEAD
                                    className="border-slate-200 focus:border-emerald-400 focus:ring-emerald-400 h-8 text-sm"
                                  />
                                </div>
                                <div className="col-span-2">
                                  <Label className="text-xs font-medium text-slate-600 mb-1 block">Amount</Label>
+=======
+                                 />
+                               </div>
+                               <div className="col-span-3">
+                                 <Label>Amount</Label>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                                  <Input
                                    type="number"
                                    value={charge.amount}
                                    onChange={(e) => handleUpdateBillExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)}
                                    placeholder="0"
+<<<<<<< HEAD
                                    className="border-slate-200 focus:border-emerald-400 focus:ring-emerald-400 h-8 text-sm"
                                  />
                                </div>
                                <div className="col-span-3">
                                  <Label className="text-xs font-medium text-slate-600 mb-1 block">Description</Label>
+=======
+                                 />
+                               </div>
+                               <div className="col-span-4">
+                                 <Label>Description</Label>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                                  <Input
                                    value={charge.description}
                                    onChange={(e) => handleUpdateBillExtraCharge(index, 'description', e.target.value)}
                                    placeholder="Optional description"
+<<<<<<< HEAD
                                    className="border-slate-200 focus:border-emerald-400 focus:ring-emerald-400 h-8 text-sm"
                                  />
                                </div>
@@ -3253,14 +3508,24 @@ export default function BillingTable() {
                                    </Label>
                                  </div>
                                </div>
+=======
+                                 />
+                               </div>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                                <div className="col-span-1">
                                  <Button
                                    variant="outline"
                                    size="sm"
                                    onClick={() => handleRemoveBillExtraCharge(index)}
+<<<<<<< HEAD
                                    className="text-red-500 hover:text-red-600 border-red-200 hover:border-red-300 hover:bg-red-50 h-8 w-8 p-0"
                                  >
                                    <X className="w-3 h-3" />
+=======
+                                   className="text-red-600 hover:text-red-700"
+                                 >
+                                   <X className="w-4 h-4" />
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                                  </Button>
                                </div>
                              </div>
@@ -3270,6 +3535,7 @@ export default function BillingTable() {
                      </CardContent>
                    </Card>
 
+<<<<<<< HEAD
                    {/* Enhanced Payment Details (only for bills) */}
                    {billGenerationData.type === 'bill' && (
                      <Card className="border border-slate-200 bg-gradient-to-br from-slate-50 to-purple-50">
@@ -3278,18 +3544,36 @@ export default function BillingTable() {
                            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
                              <CreditCard className="w-4 h-4 text-white" />
                            </div>
+=======
+                   {/* Payment Details (only for bills) */}
+                   {billGenerationData.type === 'bill' && (
+                     <Card>
+                       <CardHeader>
+                         <CardTitle className="flex items-center">
+                           <CreditCard className="w-5 h-5 mr-2" />
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                            Payment Information
                          </CardTitle>
                        </CardHeader>
                        <CardContent className="space-y-4">
+<<<<<<< HEAD
                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                            <div className="space-y-1">
                              <Label className="text-xs font-medium text-slate-600">Payment Method</Label>
+=======
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div>
+                             <Label>Payment Method</Label>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                              <Select 
                                value={billGenerationData.paymentMethod} 
                                onValueChange={handlePaymentMethodChange}
                              >
+<<<<<<< HEAD
                                <SelectTrigger className="border-slate-200 focus:border-purple-400 focus:ring-purple-400 h-8 text-sm">
+=======
+                               <SelectTrigger>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                                  <SelectValue />
                                </SelectTrigger>
                                <SelectContent>
@@ -3301,8 +3585,27 @@ export default function BillingTable() {
                              </Select>
                            </div>
                            
+<<<<<<< HEAD
                            <div className="space-y-1">
                              <Label className="text-xs font-medium text-slate-600">Collected By</Label>
+=======
+                           {billGenerationData.paymentMethod !== 'cash' && (
+                             <div>
+                               <Label>Reference ID / Transaction ID</Label>
+                               <Input
+                                 value={billGenerationData.referenceId}
+                                 onChange={(e) => setBillGenerationData({
+                                   ...billGenerationData,
+                                   referenceId: e.target.value
+                                 })}
+                                 placeholder="Enter reference ID"
+                               />
+                             </div>
+                           )}
+
+                           <div>
+                             <Label>Collected By</Label>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                              <Select 
                                value={billGenerationData.collectedBy} 
                                onValueChange={(value) => setBillGenerationData({
@@ -3310,7 +3613,11 @@ export default function BillingTable() {
                                  collectedBy: value
                                })}
                              >
+<<<<<<< HEAD
                                <SelectTrigger className="border-slate-200 focus:border-purple-400 focus:ring-purple-400 h-8 text-sm">
+=======
+                               <SelectTrigger>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                                  <SelectValue placeholder="Select staff member" />
                                </SelectTrigger>
                                <SelectContent>
@@ -3322,6 +3629,7 @@ export default function BillingTable() {
                                </SelectContent>
                              </Select>
                            </div>
+<<<<<<< HEAD
 
                                                         <div className="space-y-1">
                                <Label className="text-xs font-medium text-slate-600">Notes (Optional)</Label>
@@ -3352,10 +3660,27 @@ export default function BillingTable() {
                              />
                            </div>
                          )}
+=======
+                         </div>
+
+                         <div>
+                           <Label>Notes</Label>
+                           <Textarea
+                             value={billGenerationData.notes}
+                             onChange={(e) => setBillGenerationData({
+                               ...billGenerationData,
+                               notes: e.target.value
+                             })}
+                             placeholder="Additional notes..."
+                             rows={3}
+                           />
+                         </div>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        </CardContent>
                      </Card>
                    )}
 
+<<<<<<< HEAD
                    {/* Enhanced Total Summary */}
                    <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
                      <CardContent className="p-6">
@@ -3416,16 +3741,38 @@ export default function BillingTable() {
                              );
                            })()}
                          </div>
+=======
+                   {/* Total Summary */}
+                   <Card className="bg-gradient-to-r from-gray-50 to-blue-50">
+                     <CardContent className="p-6">
+                       <div className="flex justify-between items-center">
+                         <div>
+                           <h4 className="text-lg font-bold text-gray-900">Total Amount</h4>
+                           <p className="text-sm text-gray-600">Including 18% GST</p>
+                         </div>
+                         <div className="text-right">
+                           <p className="text-2xl font-bold text-green-600">
+                             {formatCurrency(calculateBillTotal())}
+                           </p>
+                         </div>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        </div>
                      </CardContent>
                    </Card>
 
+<<<<<<< HEAD
                    {/* Enhanced Navigation */}
                    <div className="flex justify-between pt-4">
                      <Button 
                        variant="outline" 
                        onClick={handlePrevStep}
                        className="border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-4 py-2 text-sm font-medium h-9"
+=======
+                   <div className="flex justify-between">
+                     <Button 
+                       variant="outline" 
+                       onClick={handlePrevStep}
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                      >
                        <ArrowLeft className="w-4 h-4 mr-2" />
                        Previous
@@ -3434,7 +3781,11 @@ export default function BillingTable() {
                      <Button 
                        onClick={generateBillOrInvoice}
                        disabled={generatingEnhancedInvoice || (billGenerationData.type === 'bill' && !billGenerationData.collectedBy)}
+<<<<<<< HEAD
                        className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6 py-2 text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed h-9"
+=======
+                       className="bg-green-600 hover:bg-green-700"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                      >
                        {generatingEnhancedInvoice ? (
                          <>
@@ -3456,6 +3807,7 @@ export default function BillingTable() {
                {currentStep === 3 && generatedBill && selectedBooking && (
                  <div className="space-y-6">
                    <div className="text-center">
+<<<<<<< HEAD
                      <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
                        <CheckCircle className="w-8 h-8 text-white" />
                      </div>
@@ -3463,6 +3815,12 @@ export default function BillingTable() {
                        {billGenerationData.type === 'bill' ? 'Bill Generated Successfully!' : 'Invoice Generated Successfully!'}
                      </h3>
                      <p className="text-slate-600 text-base">
+=======
+                     <h3 className="text-xl font-bold text-gray-900 mb-2">
+                       {billGenerationData.type === 'bill' ? 'Bill Generated Successfully!' : 'Invoice Generated Successfully!'}
+                     </h3>
+                     <p className="text-gray-600">
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        {billGenerationData.type === 'bill' 
                          ? 'Your bill has been generated and saved. Payment has been recorded.' 
                          : 'Your invoice has been generated and is ready for payment.'}
@@ -3521,6 +3879,7 @@ export default function BillingTable() {
                            quantity: 1,
                            unit: 'pcs',
                            rate: charge.amount,
+<<<<<<< HEAD
                            amount: charge.gstApplicable 
                              ? charge.amount + ((charge.amount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)
                              : charge.amount
@@ -3532,6 +3891,12 @@ export default function BillingTable() {
                          }
                          return sum + charge.amount
                        }, 0),
+=======
+                           amount: charge.amount
+                         }))
+                       ],
+                       subtotal: ((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0) + billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0),
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        taxRate: 18, // 18% GST
                        total: generatedBill.totalAmount,
                        currency: 'INR',
@@ -3594,6 +3959,7 @@ export default function BillingTable() {
                            quantity: 1,
                            unit: 'pcs',
                            rate: charge.amount,
+<<<<<<< HEAD
                            amount: charge.gstApplicable 
                              ? charge.amount + ((charge.amount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)
                              : charge.amount
@@ -3605,6 +3971,12 @@ export default function BillingTable() {
                          }
                          return sum + charge.amount
                        }, 0),
+=======
+                           amount: charge.amount
+                         }))
+                       ],
+                       subtotal: ((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0) + billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0),
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                        taxRate: 18, // 18% GST
                        total: generatedBill.totalAmount,
                        currency: 'INR',
@@ -3617,6 +3989,7 @@ export default function BillingTable() {
                      }} />
                    </InvoicePDF>
 
+<<<<<<< HEAD
                    {/* Enhanced Payment Details Summary (for bills) */}
                    {billGenerationData.type === 'bill' && (
                      <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
@@ -3645,17 +4018,52 @@ export default function BillingTable() {
                            <div className="space-y-1">
                              <Label className="text-xs font-medium text-emerald-700">Status</Label>
                              <p className="text-base font-medium text-emerald-600 bg-white px-3 py-2 rounded-md border border-emerald-200">PAID</p>
+=======
+                   {/* Payment Details Summary (for bills) */}
+                   {billGenerationData.type === 'bill' && (
+                     <Card className="bg-green-50 border border-green-200">
+                       <CardContent className="p-6">
+                         <h4 className="text-lg font-bold text-green-900 mb-4 flex items-center">
+                           <CheckCircle className="w-5 h-5 mr-2" />
+                           Payment Details
+                         </h4>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div>
+                             <Label className="text-sm font-medium text-gray-600">Payment Method</Label>
+                             <p className="text-lg font-semibold text-gray-900">{billGenerationData.paymentMethod.toUpperCase()}</p>
+                           </div>
+                           {billGenerationData.referenceId && (
+                             <div>
+                               <Label className="text-sm font-medium text-gray-600">Reference ID</Label>
+                               <p className="text-lg font-semibold text-gray-900">{billGenerationData.referenceId}</p>
+                             </div>
+                           )}
+                           <div>
+                             <Label className="text-sm font-medium text-gray-600">Collected By</Label>
+                             <p className="text-lg font-semibold text-gray-900">{billGenerationData.collectedBy}</p>
+                           </div>
+                           <div>
+                             <Label className="text-sm font-medium text-gray-600">Status</Label>
+                             <p className="text-lg font-semibold text-green-600">PAID</p>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                            </div>
                          </div>
                        </CardContent>
                      </Card>
                    )}
 
+<<<<<<< HEAD
                    <div className="flex justify-center pt-4">
                      <Button 
                        variant="outline" 
                        onClick={handleCloseModal}
                        className="border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-6 py-2 text-sm font-medium h-9"
+=======
+                   <div className="flex justify-center space-x-4">
+                     <Button 
+                       variant="outline" 
+                       onClick={handleCloseModal}
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                      >
                        Close
                      </Button>
@@ -3832,9 +4240,12 @@ export default function BillingTable() {
          </DialogContent>
        </Dialog>
 
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
        {/* Delete Confirmation Modal */}
        <DeleteConfirmationModal
          isOpen={deleteConfirmation.isOpen}
@@ -3846,6 +4257,7 @@ export default function BillingTable() {
          isLoading={deleteConfirmation.isLoading}
          variant={deleteConfirmation.variant}
        />
+<<<<<<< HEAD
 
        {/* Hotel Info Loading State */}
        {hotelInfoLoading && (
@@ -3873,6 +4285,8 @@ export default function BillingTable() {
            </div>
          </div>
        </div>
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
      </div>
    )
  }

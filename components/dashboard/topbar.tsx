@@ -46,7 +46,12 @@ export default function Topbar() {
             </Sheet>
           </div>
           <div>
+<<<<<<< HEAD
             {/* Dashboard text and Bookings Management badge removed */}
+=======
+            <div className="text-xl font-bold">Dashboard</div>
+            <Badge variant="secondary" className="hidden sm:inline-flex">Bookings Management</Badge>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
           </div>
         </div>
 

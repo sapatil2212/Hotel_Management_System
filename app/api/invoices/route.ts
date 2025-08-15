@@ -3,7 +3,10 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { generateUniqueInvoiceNumber, generateQRCode } from '@/lib/qr-generator';
+<<<<<<< HEAD
 import { EnhancedAccountService } from '@/lib/enhanced-account-service';
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
 const prisma = new PrismaClient();
 
@@ -138,6 +141,7 @@ export async function POST(request: NextRequest) {
         });
       }
 
+<<<<<<< HEAD
       // Create payment record if this is a bill (paid invoice) and no payment exists yet
       if (body.status === 'paid' && paymentInfo) {
         // Check if a payment already exists for this booking to avoid duplicates
@@ -163,11 +167,27 @@ export async function POST(request: NextRequest) {
             }
           });
         }
+=======
+      // Create payment record if this is a bill (paid invoice)
+      if (body.status === 'paid' && paymentInfo) {
+        await tx.payment.create({
+          data: {
+            bookingId: body.bookingId,
+            invoiceId: createdInvoice.id,
+            amount: body.totalAmount,
+            paymentMethod: paymentInfo.method as any,
+            paymentReference: paymentInfo.referenceId,
+            receivedBy: paymentInfo.collectedBy,
+            status: 'completed'
+          }
+        });
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       }
 
       return createdInvoice;
     });
     
+<<<<<<< HEAD
     // If invoice is paid, automatically add revenue to Hotel account
     if (body.status === 'paid') {
       try {
@@ -198,6 +218,8 @@ export async function POST(request: NextRequest) {
       }
     }
     
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     // Fetch the complete invoice with all relations
     const completeInvoice = await prisma.invoice.findUnique({
       where: { id: invoice.id },

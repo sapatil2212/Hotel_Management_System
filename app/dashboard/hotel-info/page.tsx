@@ -90,7 +90,11 @@ interface HotelInfo {
 
 export default function HotelInfoPage() {
   const [loading, setLoading] = useState(false)
+<<<<<<< HEAD
   const { hotelInfo, updateHotelInfo, refreshHotelInfo, isLoading } = useHotel()
+=======
+  const { hotelInfo, updateHotelInfo, refreshHotelInfo } = useHotel()
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   const [newAttraction, setNewAttraction] = useState("")
   const [newAmenity, setNewAmenity] = useState("")
   const [newBusinessFacility, setNewBusinessFacility] = useState("")
@@ -317,6 +321,7 @@ export default function HotelInfoPage() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
+<<<<<<< HEAD
         {/* Loading State */}
         {isLoading && (
           <Card className="border-blue-200 bg-blue-50">
@@ -334,6 +339,8 @@ export default function HotelInfoPage() {
           </Card>
         )}
 
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="border-slate-200">
@@ -342,9 +349,13 @@ export default function HotelInfoPage() {
                 <Star className="h-4 w-4" />
                 <span className="text-sm font-medium">Star rating</span>
               </div>
+<<<<<<< HEAD
               <div className="text-2xl font-semibold text-slate-900">
                 {hotelInfo.starRating ? `${hotelInfo.starRating} Star` : 'Not set'}
               </div>
+=======
+              <div className="text-2xl font-semibold text-slate-900">{hotelInfo.starRating} Star</div>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
             </CardContent>
           </Card>
           <Card className="border-slate-200">
@@ -353,9 +364,13 @@ export default function HotelInfoPage() {
                 <CheckCircle2 className="h-4 w-4" />
                 <span className="text-sm font-medium">Overall rating</span>
               </div>
+<<<<<<< HEAD
               <div className="text-2xl font-semibold text-slate-900">
                 {hotelInfo.overallRating ? `${hotelInfo.overallRating}/5.0` : 'Not set'}
               </div>
+=======
+              <div className="text-2xl font-semibold text-slate-900">{hotelInfo.overallRating}/5.0</div>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
             </CardContent>
           </Card>
           <Card className="border-slate-200">
@@ -364,9 +379,13 @@ export default function HotelInfoPage() {
                 <Users className="h-4 w-4" />
                 <span className="text-sm font-medium">Reviews</span>
               </div>
+<<<<<<< HEAD
               <div className="text-2xl font-semibold text-slate-900">
                 {hotelInfo.reviewCount || '0'}
               </div>
+=======
+              <div className="text-2xl font-semibold text-slate-900">{hotelInfo.reviewCount}</div>
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
             </CardContent>
           </Card>
         </div>
@@ -461,7 +480,11 @@ export default function HotelInfoPage() {
                             aria-invalid={!hotelInfo.name}
                             value={hotelInfo.name}
                             onChange={(e) => updateHotelField('name', e.target.value)}
+<<<<<<< HEAD
                             placeholder="Enter hotel name"
+=======
+                            placeholder="Grand Luxe Hotel"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                             className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                           />
                           <p className="mt-1 text-xs text-slate-500">Displayed across guest-facing pages and emails.</p>
@@ -475,7 +498,11 @@ export default function HotelInfoPage() {
                             id="tagline"
                             value={hotelInfo.tagline}
                             onChange={(e) => updateHotelField('tagline', e.target.value)}
+<<<<<<< HEAD
                             placeholder="Enter hotel tagline (optional)"
+=======
+                            placeholder="Luxury redefined"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                             className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                           />
                         </div>
@@ -647,7 +674,11 @@ export default function HotelInfoPage() {
                           id="primaryPhone"
                           value={hotelInfo.primaryPhone}
                           onChange={(e) => updateHotelField('primaryPhone', e.target.value)}
+<<<<<<< HEAD
                           placeholder="Enter primary phone number"
+=======
+                          placeholder="+91 98765 43210"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                         <p className="mt-1 text-xs text-slate-500">Shown on booking confirmations and contact pages.</p>
@@ -661,7 +692,11 @@ export default function HotelInfoPage() {
                           id="whatsappPhone"
                           value={hotelInfo.whatsappPhone}
                           onChange={(e) => updateHotelField('whatsappPhone', e.target.value)}
+<<<<<<< HEAD
                           placeholder="Enter WhatsApp number (optional)"
+=======
+                          placeholder="+91 98765 43210"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>
@@ -675,7 +710,11 @@ export default function HotelInfoPage() {
                           type="email"
                           value={hotelInfo.primaryEmail}
                           onChange={(e) => updateHotelField('primaryEmail', e.target.value)}
+<<<<<<< HEAD
                           placeholder="Enter primary email address"
+=======
+                          placeholder="info@grandluxe.com"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>
@@ -689,7 +728,11 @@ export default function HotelInfoPage() {
                           type="email"
                           value={hotelInfo.reservationEmail}
                           onChange={(e) => updateHotelField('reservationEmail', e.target.value)}
+<<<<<<< HEAD
                           placeholder="Enter reservation email (optional)"
+=======
+                          placeholder="reservations@grandluxe.com"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>
@@ -702,7 +745,11 @@ export default function HotelInfoPage() {
                           id="emergencyContact"
                           value={hotelInfo.emergencyContact}
                           onChange={(e) => updateHotelField('emergencyContact', e.target.value)}
+<<<<<<< HEAD
                           placeholder="Enter emergency contact (optional)"
+=======
+                          placeholder="+91 98765 43210"
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>

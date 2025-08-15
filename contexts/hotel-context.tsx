@@ -58,8 +58,13 @@ interface HotelContextType {
 }
 
 const defaultHotelInfo: HotelInfo = {
+<<<<<<< HEAD
   name: "",
   tagline: "",
+=======
+  name: "Grand Luxe Hotel",
+  tagline: "Luxury redefined",
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   description: "",
   logo: null,
   logoDisplayType: "image",
@@ -68,11 +73,19 @@ const defaultHotelInfo: HotelInfo = {
   starRating: 5,
   overallRating: 4.5,
   reviewCount: 0,
+<<<<<<< HEAD
   primaryPhone: "",
   whatsappPhone: "",
   primaryEmail: "",
   reservationEmail: "",
   address: "",
+=======
+  primaryPhone: "+1 (555) 123-4567",
+  whatsappPhone: "",
+  primaryEmail: "info@grandluxe.com",
+  reservationEmail: "reservations@grandluxe.com",
+  address: "123 Luxury Avenue, Downtown District, New York, NY 10001",
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   emergencyContact: "",
   googleMapsEmbedCode: "",
   latitude: null,
@@ -117,7 +130,10 @@ export function HotelProvider({ children }: { children: ReactNode }) {
         const updatedInfo = {
           ...defaultHotelInfo,
           ...data,
+<<<<<<< HEAD
           // Only use default values for arrays and numbers, not for text fields
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
           nearbyAttractions: data.nearbyAttractions || [],
           distanceFromKeyPlaces: data.distanceFromKeyPlaces || [],
           bookingPartners: data.bookingPartners || [],
@@ -127,6 +143,7 @@ export function HotelProvider({ children }: { children: ReactNode }) {
           safetyFeatures: data.safetyFeatures || [],
           services: data.services || [],
           faqs: data.faqs || [],
+<<<<<<< HEAD
           otherTaxes: data.otherTaxes || [],
           // Ensure text fields are empty strings if not provided, not dummy data
           name: data.name || "",
@@ -139,6 +156,9 @@ export function HotelProvider({ children }: { children: ReactNode }) {
           address: data.address || "",
           emergencyContact: data.emergencyContact || "",
           gstNumber: data.gstNumber || ""
+=======
+          otherTaxes: data.otherTaxes || []
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
         }
         setHotelInfo(updatedInfo)
       } else {

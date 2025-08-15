@@ -116,7 +116,10 @@ model payment {
   @@index([invoiceId])
   @@index([paymentMethod])
   @@index([paymentDate])
+<<<<<<< HEAD
   @@unique([bookingId, amount, paymentMethod, paymentDate], map: "unique_booking_payment")
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 }
 
 model category {

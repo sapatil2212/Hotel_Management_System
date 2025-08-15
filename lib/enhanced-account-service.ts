@@ -550,6 +550,7 @@ export class EnhancedAccountService {
   }
 
   /**
+<<<<<<< HEAD
    * Add revenue directly to main hotel account (for invoice creation)
    */
   static async addRevenueToMainAccount(
@@ -614,6 +615,8 @@ export class EnhancedAccountService {
   }
 
   /**
+=======
+>>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
    * Get transaction history with user filtering
    */
   static async getTransactionHistory(
