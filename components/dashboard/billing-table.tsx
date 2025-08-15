@@ -1,0 +1,3878 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Search, Filter, Loader, Phone, Mail, MapPin, Calendar, Users, Bed, Eye, Edit, Trash2, Save, X, Clock, AlertTriangle, CheckCircle, Download, Send, DollarSign, Receipt, CreditCard, FileText, Plus, ArrowRight, ArrowLeft, Check } from "lucide-react"
+import { Invoice } from "@/components/ui/invoice"
+import { InvoicePDF } from "@/components/ui/invoice-pdf"
+import { toast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useHotel } from "@/contexts/hotel-context"
+import { TaxCalculator } from "@/lib/tax-calculator"
+import { DeleteConfirmationModal } from "@/components/ui/delete-confirmation-modal"
+import { useDeleteConfirmation } from "@/hooks/use-delete-confirmation"
+
+type InvoiceStatus = "pending" | "sent" | "partially_paid" | "paid" | "overdue" | "cancelled" | "refunded"
+
+interface Invoice {
+  id: string
+  invoiceNumber: string
+  bookingId: string
+  guestName: string
+  guestEmail: string
+  guestPhone: string
+  checkIn: string
+  checkOut: string
+  nights: number
+  adults: number
+  children: number
+  roomTypeName: string
+  roomNumber: string
+  baseAmount: number
+  discountAmount: number
+  gstAmount: number
+  serviceTaxAmount: number
+  otherTaxAmount: number
+  totalTaxAmount: number
+  totalAmount: number
+  status: string
+  dueDate: string
+  issuedDate: string
+  paidDate?: string
+  notes?: string
+  terms: string
+  qrCode?: string
+  emailSent: boolean
+  whatsappSent: boolean
+  downloadCount: number
+  createdAt: string
+  updatedAt: string
+  booking: {
+    id: string
+    status: string
+    room: {
+      roomNumber: string
+      roomType: {
+        name: string
+      }
+    }
+  }
+  payments: {
+    id: string
+    amount: number
+    paymentMethod: string
+    paymentDate: string
+    status: string
+    paymentReference?: string
+    receivedBy?: string
+  }[]
+  invoiceItems: {
+    id: string
+    itemName: string
+    description?: string
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+    discount: number
+    taxRate: number
+    taxAmount: number
+    finalAmount: number
+  }[]
+}
+
+interface Booking {
+  id: string
+  guestName: string
+  guestEmail: string
+  guestPhone: string
+  checkIn: string
+  checkOut: string
+  actualCheckoutTime?: string
+  nights: number
+  adults: number
+  children: number
+  totalAmount: number
+  originalAmount?: number
+  discountAmount?: number
+  baseAmount?: number
+  gstAmount?: number
+  serviceTaxAmount?: number
+  otherTaxAmount?: number
+  totalTaxAmount?: number
+  specialRequests?: string
+  status: string
+  source?: string
+  createdAt: string
+  room: {
+    id: string
+    roomNumber: string
+    floorNumber?: number
+    roomType: {
+      id: string
+      name: string
+      size?: string
+      bedType?: string
+      maxGuests?: number
+      amenities?: any[]
+      features?: any[]
+      currency?: string
+      price: number
+    }
+  }
+  promoCode?: {
+    code: string
+    title: string
+  }
+  invoices?: Invoice[]
+  billItems?: {
+    id: string
+    itemName: string
+    description?: string
+    quantity: number
+    unitPrice: number
+    totalPrice: number
+    discount: number
+    taxAmount: number
+    finalAmount: number
+  }[]
+}
+
+interface User {
+  id: string
+  name: string
+  email: string
+  role: string
+}
+
+interface BillGenerationData {
+  type: 'bill' | 'invoice'
+  paymentMethod: string
+  referenceId: string
+  collectedBy: string
+  notes: string
+  extraCharges: Array<{
+    item: string
+    amount: number
+    description: string
+    gstApplicable: boolean
+    gstPercentage: number
+  }>
+}
+
+const statusColors: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  sent: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  partially_paid: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  paid: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  overdue: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  cancelled: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
+  refunded: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+}
+
+// Function to check if invoice is overdue
+const isOverdue = (invoice: Invoice): boolean => {
+  if (invoice.status === 'paid' || invoice.status === 'cancelled' || invoice.status === 'refunded') {
+    return false;
+  }
+  
+  const dueDate = new Date(invoice.dueDate);
+  const now = new Date();
+  
+  return dueDate < now;
+};
+
+// Function to get display status
+const getDisplayStatus = (invoice: Invoice): string => {
+  if (invoice.status !== 'paid' && invoice.status !== 'cancelled' && invoice.status !== 'refunded' && isOverdue(invoice)) {
+    return 'overdue';
+  }
+  return invoice.status;
+};
+
+// Function to format currency
+const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+// Function to format date
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+};
+
+// Function to calculate days overdue
+const getDaysOverdue = (invoice: Invoice): number => {
+  if (!isOverdue(invoice)) return 0;
+  
+  const dueDate = new Date(invoice.dueDate);
+  const now = new Date();
+  const diffTime = now.getTime() - dueDate.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  return diffDays;
+};
+
+// Function to get invoice/bill display text
+const getInvoiceDisplayText = (invoice: Invoice): string => {
+  return invoice.status === 'paid' ? 'Bill' : 'Invoice';
+};
+
+export default function BillingTable() {
+  const { hotelInfo, hotelInfoLoading } = useHotel()
+  const deleteConfirmation = useDeleteConfirmation()
+  const [query, setQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [invoices, setInvoices] = useState<Invoice[]>([])
+  const [bookings, setBookings] = useState<Booking[]>([])
+  const [loading, setLoading] = useState(true)
+  const [bookingsLoading, setBookingsLoading] = useState(true)
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
+  const [editFormData, setEditFormData] = useState({
+    status: 'pending',
+    notes: '',
+    terms: 'Payment due upon receipt'
+  })
+  const [updating, setUpdating] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const [generatingInvoiceFromBooking, setGeneratingInvoiceFromBooking] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<'invoices' | 'bookings'>('bookings')
+  
+  // Bill generation modal states
+  const [isBillModalOpen, setIsBillModalOpen] = useState(false)
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [billFormData, setBillFormData] = useState({
+    extraServiceCharge: 0,
+    paymentMode: 'cash',
+    collectedBy: '',
+    notes: ''
+  })
+  const [generatingBill, setGeneratingBill] = useState(false)
+  
+  // View bill modal states
+  const [isViewBillModalOpen, setIsViewBillModalOpen] = useState(false)
+  const [selectedBillInvoice, setSelectedBillInvoice] = useState<Invoice | null>(null)
+  
+  // Enhanced billing states
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false)
+  const [isTaxInvoiceModalOpen, setIsTaxInvoiceModalOpen] = useState(false)
+  const [selectedInvoiceBooking, setSelectedInvoiceBooking] = useState<Booking | null>(null)
+  const [selectedTaxInvoiceBooking, setSelectedTaxInvoiceBooking] = useState<Booking | null>(null)
+  const [invoiceFormData, setInvoiceFormData] = useState({
+    extraCharges: [
+      { item: '', amount: 0, description: '', gstApplicable: false, gstPercentage: 18 }
+    ],
+    paymentMode: 'cash',
+    referenceId: '',
+    collectedBy: '',
+    notes: '',
+    emailIds: ['']
+  })
+  const [generatingEnhancedInvoice, setGeneratingEnhancedInvoice] = useState(false)
+  const [sendingInvoice, setSendingInvoice] = useState(false)
+  const [users, setUsers] = useState<User[]>([])
+  const [taxBreakdown, setTaxBreakdown] = useState<{
+    baseAmount: number
+    gst: number
+    serviceTax: number
+    otherTax: number
+    totalTax: number
+    totalAmount: number
+    taxes: Array<{ name: string; percentage: number; amount: number }>
+  } | null>(null)
+  
+  // Booking selection modal states
+  const [isBookingSelectionModalOpen, setIsBookingSelectionModalOpen] = useState(false)
+
+
+
+  // Multi-step bill generation modal states
+  const [isMultiStepModalOpen, setIsMultiStepModalOpen] = useState(false)
+  const [currentStep, setCurrentStep] = useState(1)
+  const [billGenerationData, setBillGenerationData] = useState<BillGenerationData>({
+    type: 'bill',
+    paymentMethod: 'cash',
+    referenceId: '',
+    collectedBy: '',
+    notes: '',
+    extraCharges: []
+  })
+  const [generatedBill, setGeneratedBill] = useState<Invoice | null>(null)
+
+  // View booking bill/invoice modal states
+  const [isViewBookingModalOpen, setIsViewBookingModalOpen] = useState(false)
+  const [viewBookingData, setViewBookingData] = useState<Booking | null>(null)
+
+  // Fetch invoices and bookings
+  useEffect(() => {
+    fetchInvoices()
+    fetchBookings()
+    fetchUsers()
+  }, [])
+
+  // Recalculate taxes when invoice modal opens or extra charges change
+  useEffect(() => {
+    if (isInvoiceModalOpen && selectedInvoiceBooking) {
+      calculateInvoiceTaxes()
+    }
+  }, [isInvoiceModalOpen, selectedInvoiceBooking, invoiceFormData.extraCharges])
+
+  const fetchInvoices = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/invoices')
+      if (response.ok) {
+        const data = await response.json()
+        setInvoices(data)
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch invoices",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching invoices:', error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch invoices",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchBookings = async () => {
+    try {
+      setBookingsLoading(true)
+      const response = await fetch('/api/bookings?include=billItems,invoices')
+      if (response.ok) {
+        const data = await response.json()
+        setBookings(data)
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to fetch bookings",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching bookings:', error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch bookings",
+        variant: "destructive",
+      })
+    } finally {
+      setBookingsLoading(false)
+    }
+  }
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('/api/users')
+      if (response.ok) {
+        const data = await response.json()
+        setUsers(data)
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
+  }
+
+  // Calculate taxes for invoice
+  const calculateInvoiceTaxes = async () => {
+    if (!selectedInvoiceBooking) return
+    
+    try {
+      const baseAmount = ((selectedInvoiceBooking as any).baseAmount || (selectedInvoiceBooking.room.roomType.price * selectedInvoiceBooking.nights) || 0) + calculateTotalExtraCharges()
+      const breakdown = await TaxCalculator.calculateTaxes(baseAmount)
+      setTaxBreakdown(breakdown)
+    } catch (error) {
+      console.error('Error calculating taxes:', error)
+      // Set default breakdown without taxes
+      const baseAmount = ((selectedInvoiceBooking as any).baseAmount || (selectedInvoiceBooking.room.roomType.price * selectedInvoiceBooking.nights) || 0) + calculateTotalExtraCharges()
+      setTaxBreakdown({
+        baseAmount,
+        gst: 0,
+        serviceTax: 0,
+        otherTax: 0,
+        totalTax: 0,
+        totalAmount: baseAmount,
+        taxes: []
+      })
+    }
+  }
+
+  // Handle add extra charges
+  const handleAddExtraCharges = async (booking: Booking) => {
+    setSelectedBooking(booking)
+    setIsBillModalOpen(true)
+  }
+
+  // Handle generate invoice from booking
+  const handleGenerateInvoice = async (booking: Booking) => {
+    try {
+      setGeneratingInvoiceFromBooking(booking.id)
+      
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookingId: booking.id,
+          guestName: booking.guestName,
+          guestEmail: booking.guestEmail,
+          guestPhone: booking.guestPhone,
+          checkIn: booking.checkIn,
+          checkOut: booking.checkOut,
+          nights: booking.nights,
+          adults: booking.adults,
+          children: booking.children,
+          roomTypeName: booking.room.roomType.name,
+          roomNumber: booking.room.roomNumber,
+          baseAmount: booking.totalAmount,
+          discountAmount: 0,
+          gstAmount: 0,
+          serviceTaxAmount: 0,
+          otherTaxAmount: 0,
+          totalTaxAmount: 0,
+          totalAmount: booking.totalAmount,
+          status: 'pending',
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          terms: 'Payment due upon receipt'
+        }),
+      })
+
+      if (response.ok) {
+        const newInvoice = await response.json()
+        setInvoices([newInvoice, ...invoices])
+        toast({
+          title: "Success",
+          description: `Invoice generated successfully for booking ${booking.id}`,
+        })
+        // Refresh bookings to update invoice status
+        fetchBookings()
+      } else {
+        const error = await response.json()
+        toast({
+          title: "Error",
+          description: error.error || "Failed to generate invoice",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error generating invoice:', error)
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice",
+        variant: "destructive",
+      })
+    } finally {
+      setGeneratingInvoiceFromBooking(null)
+    }
+  }
+
+  // Handle view invoice details
+  const handleViewInvoice = (invoice: Invoice) => {
+    setSelectedInvoice(invoice)
+    setIsDetailModalOpen(true)
+  }
+
+  // Handle view invoice in bill/invoice format (same as booking view)
+  const handleViewInvoiceAsBill = (invoice: Invoice) => {
+    // Convert invoice to booking format for the view modal
+    const bookingFromInvoice: Booking = {
+      id: invoice.bookingId || invoice.id,
+      guestName: invoice.guestName,
+      guestEmail: invoice.guestEmail,
+      guestPhone: invoice.guestPhone,
+      checkIn: invoice.checkIn,
+      checkOut: invoice.checkOut,
+      nights: invoice.nights,
+      adults: invoice.adults || 1,
+      children: invoice.children || 0,
+      totalAmount: invoice.baseAmount,
+      status: invoice.status === 'paid' ? 'CHECKED_OUT' : 'CONFIRMED',
+      createdAt: invoice.issuedDate,
+      specialRequests: '',
+      source: 'invoice',
+      room: {
+        id: invoice.id,
+        roomNumber: invoice.roomNumber,
+        roomType: {
+          id: invoice.id,
+          name: invoice.roomTypeName,
+          price: invoice.baseAmount / invoice.nights
+        }
+      },
+      billItems: invoice.invoiceItems?.filter(item => !item.itemName.includes('Room Stay')).map(item => ({
+        id: item.id,
+        itemName: item.itemName,
+        description: item.description || '',
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        totalPrice: item.totalPrice,
+        discount: item.discount,
+        taxAmount: item.taxAmount,
+        finalAmount: item.finalAmount
+      })) || [], // Populate from invoice items (excluding room stay)
+      invoices: [invoice] // Include the original invoice
+    }
+    
+    setViewBookingData(bookingFromInvoice)
+    setIsViewBookingModalOpen(true)
+  }
+
+  // Handle edit invoice
+  const handleEditInvoice = (invoice: Invoice) => {
+    setEditingInvoice(invoice)
+    setEditFormData({
+      status: invoice.status,
+      notes: invoice.notes || '',
+      terms: invoice.terms
+    })
+    setIsEditModalOpen(true)
+  }
+
+  // Handle update invoice
+  const handleUpdateInvoice = async () => {
+    if (!editingInvoice) return
+
+    try {
+      setUpdating(true)
+      const response = await fetch(`/api/invoices/${editingInvoice.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editFormData),
+      })
+
+      if (response.ok) {
+        const updatedInvoice = await response.json()
+        setInvoices(invoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv))
+        setIsEditModalOpen(false)
+        setEditingInvoice(null)
+        toast({
+          title: "Success",
+          description: "Invoice updated successfully",
+        })
+      } else {
+        const error = await response.json()
+        toast({
+          title: "Error",
+          description: error.error || "Failed to update invoice",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error updating invoice:', error)
+      toast({
+        title: "Error",
+        description: "Failed to update invoice",
+        variant: "destructive",
+      })
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  // Handle delete invoice
+  const handleDeleteInvoice = async (invoiceId: string) => {
+    const invoice = invoices.find(inv => inv.id === invoiceId)
+    deleteConfirmation.showDeleteConfirmation(
+      async () => {
+        try {
+          setDeleting(invoiceId)
+          const response = await fetch(`/api/invoices/${invoiceId}`, {
+            method: 'DELETE',
+          })
+
+          if (response.ok) {
+            setInvoices(invoices.filter(inv => inv.id !== invoiceId))
+            toast({
+              title: "Success",
+              description: "Invoice deleted successfully",
+            })
+          } else {
+            const error = await response.json()
+            toast({
+              title: "Error",
+              description: error.error || "Failed to delete invoice",
+              variant: "destructive",
+            })
+          }
+        } catch (error) {
+          console.error('Error deleting invoice:', error)
+          toast({
+            title: "Error",
+            description: "Failed to delete invoice",
+            variant: "destructive",
+          })
+        } finally {
+          setDeleting(null)
+        }
+      },
+      {
+        title: 'Delete Invoice',
+        description: 'Are you sure you want to delete this invoice? This action cannot be undone.',
+        itemName: invoice ? `Invoice #${invoice.invoiceNumber}` : undefined,
+        variant: 'danger'
+      }
+    )
+  }
+
+  // Handle send invoice
+  const handleSendInvoice = async (invoice: Invoice) => {
+    toast({
+      title: "Info",
+      description: "Send invoice functionality will be implemented soon",
+    })
+  }
+
+  // Handle download invoice
+  const handleDownloadInvoice = async (invoice: Invoice) => {
+    toast({
+      title: "Info",
+      description: "Download invoice functionality will be implemented soon",
+    })
+  }
+
+  // Handle view bill
+  const handleViewBill = (invoice: Invoice) => {
+    setSelectedBillInvoice(invoice)
+    setIsViewBillModalOpen(true)
+  }
+
+  // Handle generate bill from booking
+  const handleGenerateBill = (booking: Booking) => {
+    // Check if bill already exists for this booking
+    const existingBill = invoices.find(invoice => invoice.bookingId === booking.id && invoice.status === 'paid')
+    
+    if (existingBill) {
+      toast({
+        title: "Bill Already Exists",
+        description: `A bill has already been generated for booking ${booking.id}. Use the View/Edit buttons to manage the existing bill.`,
+        variant: "destructive",
+      })
+      return
+    }
+    
+    setSelectedBooking(booking)
+    setBillFormData({
+      extraServiceCharge: 0,
+      paymentMode: 'cash',
+      collectedBy: '',
+      notes: ''
+    })
+    setIsBillModalOpen(true)
+  }
+
+  // Handle generate invoice (before payment)
+  const handleGenerateInvoiceEnhanced = async (booking: Booking) => {
+    // Check if invoice already exists for this booking
+    const existingInvoice = invoices.find(invoice => invoice.bookingId === booking.id)
+    
+    if (existingInvoice) {
+      toast({
+        title: "Invoice Already Exists",
+        description: `An invoice has already been generated for booking ${booking.id}. Use the View/Edit buttons to manage the existing invoice.`,
+        variant: "destructive",
+      })
+      return
+    }
+    
+    setSelectedInvoiceBooking(booking)
+    setInvoiceFormData({
+      extraCharges: [
+        { item: '', amount: 0, description: '', gstApplicable: false, gstPercentage: 18 }
+      ],
+      paymentMode: 'cash',
+      referenceId: '',
+      collectedBy: '',
+      notes: '',
+      emailIds: ['']
+    })
+    setIsInvoiceModalOpen(true)
+    
+    // Calculate taxes after modal opens
+    setTimeout(() => {
+      calculateInvoiceTaxes()
+    }, 100)
+  }
+
+  // Handle generate bill/invoice (combined function)
+  const handleGenerateBillInvoice = (booking: Booking) => {
+    // Check if invoice already exists for this booking
+    const existingInvoice = invoices.find(invoice => invoice.bookingId === booking.id)
+    
+    if (existingInvoice) {
+      toast({
+        title: "Invoice Already Exists",
+        description: `An invoice has already been generated for booking ${booking.id}. Use the View/Edit buttons to manage the existing invoice.`,
+        variant: "destructive",
+      })
+      return
+    }
+    
+    // Auto-fetch existing extra charges from booking's billItems
+    const existingExtraCharges = booking.billItems?.map(item => ({
+      item: item.itemName,
+      amount: item.finalAmount,
+      description: item.description || '',
+      gstApplicable: true, // Default to true for existing items
+      gstPercentage: hotelInfo.gstPercentage || 18 // Use hotel GST percentage
+    })) || []
+    
+    setSelectedBooking(booking)
+    setCurrentStep(1)
+    setBillGenerationData({
+      type: 'bill',
+      paymentMethod: 'cash',
+      referenceId: '',
+      collectedBy: '',
+      notes: '',
+      extraCharges: existingExtraCharges
+    })
+    setGeneratedBill(null)
+    setIsMultiStepModalOpen(true)
+  }
+
+  // Handle view booking details - show bill/invoice format
+  const handleViewBooking = (booking: Booking) => {
+    // Check if booking has any invoices
+    const hasInvoice = booking.invoices && booking.invoices.length > 0;
+    
+    if (!hasInvoice) {
+      toast({
+        title: "No Bill/Invoice Generated",
+        description: "Bill/Invoice not generated yet for this booking. Please generate a bill or invoice first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setViewBookingData(booking)
+    setIsViewBookingModalOpen(true)
+  }
+
+
+
+  // Handle add extra charge item
+  const handleAddExtraCharge = () => {
+    setInvoiceFormData({
+      ...invoiceFormData,
+      extraCharges: [...invoiceFormData.extraCharges, { item: '', amount: 0, description: '', gstApplicable: false, gstPercentage: 18 }]
+    })
+  }
+
+  // Handle remove extra charge item
+  const handleRemoveExtraCharge = (index: number) => {
+    const newExtraCharges = invoiceFormData.extraCharges.filter((_, i) => i !== index)
+    setInvoiceFormData({
+      ...invoiceFormData,
+      extraCharges: newExtraCharges
+    })
+  }
+
+  // Handle update extra charge
+  const handleUpdateExtraCharge = async (index: number, field: string, value: string | number) => {
+    const newExtraCharges = [...invoiceFormData.extraCharges]
+    newExtraCharges[index] = { ...newExtraCharges[index], [field]: value }
+    setInvoiceFormData({
+      ...invoiceFormData,
+      extraCharges: newExtraCharges
+    })
+    
+    // Recalculate taxes when amount changes
+    if (field === 'amount') {
+      setTimeout(() => {
+        calculateInvoiceTaxes()
+      }, 100)
+    }
+  }
+
+  // Handle add email
+  const handleAddEmail = () => {
+    setInvoiceFormData({
+      ...invoiceFormData,
+      emailIds: [...invoiceFormData.emailIds, '']
+    })
+  }
+
+  // Handle remove email
+  const handleRemoveEmail = (index: number) => {
+    const newEmailIds = invoiceFormData.emailIds.filter((_, i) => i !== index)
+    setInvoiceFormData({
+      ...invoiceFormData,
+      emailIds: newEmailIds
+    })
+  }
+
+  // Handle update email
+  const handleUpdateEmail = (index: number, value: string) => {
+    const newEmailIds = [...invoiceFormData.emailIds]
+    newEmailIds[index] = value
+    setInvoiceFormData({
+      ...invoiceFormData,
+      emailIds: newEmailIds
+    })
+  }
+
+  // Calculate total extra charges
+  const calculateTotalExtraCharges = () => {
+    return invoiceFormData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0)
+  }
+
+  // Multi-step modal helper functions
+  const handleNextStep = () => {
+    if (currentStep < 3) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const handleCloseModal = () => {
+    setIsMultiStepModalOpen(false)
+    setCurrentStep(1)
+    setSelectedBooking(null)
+    setGeneratedBill(null)
+  }
+
+  const handleTypeSelection = (type: 'bill' | 'invoice') => {
+    setBillGenerationData({
+      ...billGenerationData,
+      type
+    })
+  }
+
+  const handlePaymentMethodChange = (method: string) => {
+    setBillGenerationData({
+      ...billGenerationData,
+      paymentMethod: method,
+      referenceId: method === 'cash' ? '' : billGenerationData.referenceId
+    })
+  }
+
+  const handleAddBillExtraCharge = () => {
+    setBillGenerationData({
+      ...billGenerationData,
+      extraCharges: [...billGenerationData.extraCharges, { 
+        item: '', 
+        amount: 0, 
+        description: '', 
+        gstApplicable: true, // Default to true for new charges
+        gstPercentage: hotelInfo.gstPercentage || 18 // Use hotel GST percentage
+      }]
+    })
+  }
+
+  const handleRemoveBillExtraCharge = (index: number) => {
+    const newExtraCharges = billGenerationData.extraCharges.filter((_, i) => i !== index)
+    setBillGenerationData({
+      ...billGenerationData,
+      extraCharges: newExtraCharges
+    })
+  }
+
+  const handleUpdateBillExtraCharge = (index: number, field: string, value: string | number | boolean) => {
+    const newExtraCharges = [...billGenerationData.extraCharges]
+    newExtraCharges[index] = { ...newExtraCharges[index], [field]: value }
+    setBillGenerationData({
+      ...billGenerationData,
+      extraCharges: newExtraCharges
+    })
+  }
+
+  const calculateBillTotal = () => {
+    if (!selectedBooking) return 0
+    
+    // Base room amount (without taxes)
+    const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+    
+    // GST on room base amount (always applicable)
+    const roomGSTAmount = (roomBaseAmount * (hotelInfo.gstPercentage || 18)) / 100
+    
+    // Calculate extra charges with GST
+    const extraChargesWithGST = billGenerationData.extraCharges.reduce((sum, charge) => {
+      const chargeAmount = charge.amount || 0
+      if (charge.gstApplicable) {
+        const gstAmount = (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+        return sum + chargeAmount + gstAmount
+      }
+      return sum + chargeAmount
+    }, 0)
+    
+    // Total = Base Amount + GST on Base + Extra Charges (with GST if applicable)
+    const total = roomBaseAmount + roomGSTAmount + extraChargesWithGST
+    return total
+  }
+
+  // Helper function to calculate GST breakdown
+  const calculateGSTBreakdown = () => {
+    if (!selectedBooking) return { subtotal: 0, gstAmount: 0, total: 0 }
+    
+    const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+    const extraChargesSubtotal = billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0)
+    
+    // Calculate GST on room base amount (always applicable)
+    const roomGSTAmount = (roomBaseAmount * (hotelInfo.gstPercentage || 18)) / 100
+    
+    // Calculate GST on applicable extra charges
+    const extraChargesGSTAmount = billGenerationData.extraCharges.reduce((sum, charge) => {
+      if (charge.gstApplicable) {
+        return sum + ((charge.amount || 0) * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+      }
+      return sum
+    }, 0)
+    
+    const totalGSTAmount = roomGSTAmount + extraChargesGSTAmount
+    const subtotal = roomBaseAmount + extraChargesSubtotal
+    const total = subtotal + totalGSTAmount
+    
+    return { 
+      subtotal, 
+      gstAmount: totalGSTAmount, 
+      roomGSTAmount,
+      extraChargesGSTAmount,
+      total 
+    }
+  }
+
+  const generateBillOrInvoice = async () => {
+    if (!selectedBooking) return
+
+    try {
+      setGeneratingEnhancedInvoice(true)
+      
+      // Base room amount (without taxes)
+      const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+      
+      // GST on room base amount (always applicable)
+      const roomGSTAmount = (roomBaseAmount * (hotelInfo.gstPercentage || 18)) / 100
+      
+      // Calculate extra charges with GST
+      const extraChargesWithGST = billGenerationData.extraCharges.reduce((sum, charge) => {
+        const chargeAmount = charge.amount || 0
+        if (charge.gstApplicable) {
+          const gstAmount = (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+          return sum + chargeAmount + gstAmount
+        }
+        return sum + chargeAmount
+      }, 0)
+      
+      // Total amount = Base Amount + GST on Base + Extra Charges (with GST if applicable)
+      const totalAmount = roomBaseAmount + roomGSTAmount + extraChargesWithGST
+      
+      // Total GST amount (room GST + extra charges GST)
+      const totalGSTAmount = roomGSTAmount + billGenerationData.extraCharges.reduce((sum, charge) => {
+        if (charge.gstApplicable) {
+          return sum + ((charge.amount || 0) * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+        }
+        return sum
+      }, 0)
+      
+      const status = billGenerationData.type === 'bill' ? 'paid' : 'pending'
+      
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookingId: selectedBooking.id,
+          guestName: selectedBooking.guestName,
+          guestEmail: selectedBooking.guestEmail,
+          guestPhone: selectedBooking.guestPhone,
+          checkIn: selectedBooking.checkIn,
+          checkOut: selectedBooking.checkOut,
+          nights: selectedBooking.nights,
+          adults: selectedBooking.adults,
+          children: selectedBooking.children,
+          roomTypeName: selectedBooking.room.roomType.name,
+          roomNumber: selectedBooking.room.roomNumber,
+          baseAmount: roomBaseAmount, // Room stay amount only
+          discountAmount: 0,
+          gstAmount: totalGSTAmount, // Total GST (room + extra charges)
+          serviceTaxAmount: 0,
+          otherTaxAmount: 0,
+          totalTaxAmount: totalGSTAmount,
+          totalAmount: totalAmount, // Base + Extra Charges (with GST if applicable)
+          status: status,
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          terms: billGenerationData.notes || 'Payment due upon receipt',
+          notes: `Extra Charges: ${formatCurrency(billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0))}\nPayment Mode: ${billGenerationData.paymentMethod}\nCollected By: ${billGenerationData.collectedBy}${billGenerationData.referenceId ? `\nReference ID: ${billGenerationData.referenceId}` : ''}\n\nExtra Charge Details:\n${billGenerationData.extraCharges.map(charge => `${charge.item}: ${formatCurrency(charge.amount)}${charge.gstApplicable ? ` + GST ${charge.gstPercentage}%` : ''} - ${charge.description}`).join('\n')}`
+        }),
+      })
+
+      if (response.ok) {
+        const newInvoice = await response.json()
+        setGeneratedBill(newInvoice)
+        setInvoices([newInvoice, ...invoices])
+        setCurrentStep(3)
+        toast({
+          title: "Success",
+          description: `${billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'} generated successfully!`,
+        })
+      } else {
+        throw new Error('Failed to generate bill/invoice')
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate bill/invoice",
+        variant: "destructive",
+      })
+    } finally {
+      setGeneratingEnhancedInvoice(false)
+    }
+  }
+
+  // Handle enhanced invoice generation
+  const handleEnhancedInvoiceGeneration = async () => {
+    if (!selectedInvoiceBooking) return
+
+    try {
+      setGeneratingEnhancedInvoice(true)
+      
+      const totalExtraCharges = calculateTotalExtraCharges()
+      const baseAmount = ((selectedInvoiceBooking as any).baseAmount || (selectedInvoiceBooking.room.roomType.price * selectedInvoiceBooking.nights) || 0) + totalExtraCharges
+      
+      // Use tax breakdown if available, otherwise calculate without taxes
+      const finalTaxBreakdown = taxBreakdown || {
+        baseAmount,
+        gst: 0,
+        serviceTax: 0,
+        otherTax: 0,
+        totalTax: 0,
+        totalAmount: baseAmount,
+        taxes: []
+      }
+      
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookingId: selectedInvoiceBooking.id,
+          guestName: selectedInvoiceBooking.guestName,
+          guestEmail: selectedInvoiceBooking.guestEmail,
+          guestPhone: selectedInvoiceBooking.guestPhone,
+          checkIn: selectedInvoiceBooking.checkIn,
+          checkOut: selectedInvoiceBooking.checkOut,
+          nights: selectedInvoiceBooking.nights,
+          adults: selectedInvoiceBooking.adults,
+          children: selectedInvoiceBooking.children,
+          roomTypeName: selectedInvoiceBooking.room.roomType.name,
+          roomNumber: selectedInvoiceBooking.room.roomNumber,
+          baseAmount: finalTaxBreakdown.baseAmount,
+          discountAmount: 0,
+          gstAmount: finalTaxBreakdown.gst,
+          serviceTaxAmount: finalTaxBreakdown.serviceTax,
+          otherTaxAmount: finalTaxBreakdown.otherTax,
+          totalTaxAmount: finalTaxBreakdown.totalTax,
+          totalAmount: finalTaxBreakdown.totalAmount,
+          status: 'pending',
+          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+          terms: invoiceFormData.notes || 'Payment due upon receipt',
+          notes: `Extra Charges: ${formatCurrency(totalExtraCharges)}\nPayment Mode: ${invoiceFormData.paymentMode}\nCollected By: ${invoiceFormData.collectedBy}${invoiceFormData.referenceId ? `\nReference ID: ${invoiceFormData.referenceId}` : ''}\n\nExtra Charge Details:\n${invoiceFormData.extraCharges.map(charge => `${charge.item}: ${formatCurrency(charge.amount)} - ${charge.description}`).join('\n')}`
+        }),
+      })
+
+      if (response.ok) {
+        const newInvoice = await response.json()
+        setInvoices([newInvoice, ...invoices])
+        setIsInvoiceModalOpen(false)
+        setSelectedInvoiceBooking(null)
+        toast({
+          title: "Success",
+          description: `Invoice generated successfully for booking ${selectedInvoiceBooking.id}`,
+        })
+        // Refresh bookings to update invoice status
+        fetchBookings()
+      } else {
+        const error = await response.json()
+        toast({
+          title: "Error",
+          description: error.error || "Failed to generate invoice",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error generating invoice:', error)
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice",
+        variant: "destructive",
+      })
+    } finally {
+      setGeneratingEnhancedInvoice(false)
+    }
+  }
+
+  // Handle send invoice via email
+  const handleSendInvoiceEmail = async (invoice: Invoice) => {
+    try {
+      setSendingInvoice(true)
+      
+      const response = await fetch(`/api/invoices/${invoice.id}/send`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailIds: invoiceFormData.emailIds.filter(email => email.trim() !== '')
+        }),
+      })
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Invoice sent successfully via email",
+        })
+      } else {
+        const error = await response.json()
+        toast({
+          title: "Error",
+          description: error.error || "Failed to send invoice",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error sending invoice:', error)
+      toast({
+        title: "Error",
+        description: "Failed to send invoice",
+        variant: "destructive",
+      })
+    } finally {
+      setSendingInvoice(false)
+    }
+  }
+
+  // Handle bill generation
+  const handleBillGeneration = async () => {
+    if (!selectedBooking) return
+
+    try {
+      setGeneratingBill(true)
+      
+      // Use baseAmount if available, otherwise calculate from room price
+      const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+      const totalAmount = roomBaseAmount + billFormData.extraServiceCharge
+      
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          bookingId: selectedBooking.id,
+          guestName: selectedBooking.guestName,
+          guestEmail: selectedBooking.guestEmail,
+          guestPhone: selectedBooking.guestPhone,
+          checkIn: selectedBooking.checkIn,
+          checkOut: selectedBooking.checkOut,
+          nights: selectedBooking.nights,
+          adults: selectedBooking.adults,
+          children: selectedBooking.children,
+          roomTypeName: selectedBooking.room.roomType.name,
+          roomNumber: selectedBooking.room.roomNumber,
+          baseAmount: roomBaseAmount,
+          discountAmount: 0,
+          gstAmount: 0,
+          serviceTaxAmount: 0,
+          otherTaxAmount: 0,
+          totalTaxAmount: 0,
+          totalAmount: totalAmount,
+          status: 'paid',
+          dueDate: new Date(),
+          terms: billFormData.notes || 'Payment due upon receipt',
+          notes: `Extra Service Charge: ${formatCurrency(billFormData.extraServiceCharge)}\nPayment Mode: ${billFormData.paymentMode}\nCollected By: ${billFormData.collectedBy}`
+        }),
+      })
+
+      if (response.ok) {
+        const newInvoice = await response.json()
+        setInvoices([newInvoice, ...invoices])
+        setIsBillModalOpen(false)
+        setSelectedBooking(null)
+        toast({
+          title: "Success",
+          description: `Bill generated successfully for booking ${selectedBooking.id}`,
+        })
+        // Refresh bookings to update invoice status
+        fetchBookings()
+      } else {
+        const error = await response.json()
+        toast({
+          title: "Error",
+          description: error.error || "Failed to generate bill",
+          variant: "destructive",
+        })
+      }
+    } catch (error) {
+      console.error('Error generating bill:', error)
+      toast({
+        title: "Error",
+        description: "Failed to generate bill",
+        variant: "destructive",
+      })
+    } finally {
+      setGeneratingBill(false)
+    }
+  }
+
+  // Filter invoices
+  const filteredInvoices = invoices.filter((invoice) => {
+    const matchesQuery = 
+      invoice.invoiceNumber.toLowerCase().includes(query.toLowerCase()) ||
+      invoice.guestName.toLowerCase().includes(query.toLowerCase()) ||
+      invoice.guestEmail.toLowerCase().includes(query.toLowerCase()) ||
+      invoice.roomNumber.toLowerCase().includes(query.toLowerCase())
+    
+    const matchesStatus = statusFilter === "all" || getDisplayStatus(invoice) === statusFilter
+    
+    return matchesQuery && matchesStatus
+  })
+
+  // Filter bookings
+  const filteredBookings = bookings.filter((booking) => {
+    const matchesQuery = 
+      booking.id.toLowerCase().includes(query.toLowerCase()) ||
+      booking.guestName.toLowerCase().includes(query.toLowerCase()) ||
+      booking.guestEmail.toLowerCase().includes(query.toLowerCase()) ||
+      booking.room.roomNumber.toLowerCase().includes(query.toLowerCase())
+    
+    return matchesQuery
+  })
+
+  // Calculate summary statistics
+  const totalInvoices = filteredInvoices.length
+  const totalAmount = filteredInvoices.reduce((sum, inv) => sum + inv.totalAmount, 0)
+  const paidAmount = filteredInvoices
+    .filter(inv => inv.status === 'paid')
+    .reduce((sum, inv) => sum + inv.totalAmount, 0)
+  const pendingAmount = filteredInvoices
+    .filter(inv => inv.status === 'pending' || inv.status === 'sent')
+    .reduce((sum, inv) => sum + inv.totalAmount, 0)
+  const overdueAmount = filteredInvoices
+    .filter(inv => isOverdue(inv))
+    .reduce((sum, inv) => sum + inv.totalAmount, 0)
+
+  // Calculate booking statistics
+  const totalBookings = filteredBookings.length
+  const bookingsWithInvoices = filteredBookings.filter(booking => booking.invoices && booking.invoices.length > 0).length
+  const bookingsWithoutInvoices = totalBookings - bookingsWithInvoices
+
+
+
+
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Billing & Invoice Management</h1>
+          <p className="text-sm text-gray-600">Professional billing system with streamlined invoice generation and payment processing. Manage bookings, add extra charges, and generate bills all in one place.</p>
+        </div>
+        <Button 
+          className="bg-blue-600 hover:bg-blue-700"
+          onClick={() => setIsBookingSelectionModalOpen(true)}
+        >
+          <Receipt className="h-4 w-4 mr-2" />
+          Generate Invoice
+        </Button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border border-gray-200 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Invoices</p>
+                <p className="text-2xl font-bold text-gray-900">{totalInvoices}</p>
+              </div>
+              <FileText className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border border-gray-200 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Amount</p>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
+              </div>
+              <DollarSign className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border border-gray-200 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ready for Billing</p>
+                <p className="text-2xl font-bold text-gray-900">{totalBookings}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border border-gray-200 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">With Extra Charges</p>
+                <p className="text-2xl font-bold text-purple-600">{bookings.filter(b => b.billItems && b.billItems.length > 0).length}</p>
+              </div>
+              <Plus className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Overdue Alerts Summary */}
+      {filteredInvoices.filter(inv => isOverdue(inv)).length > 0 && (
+        <Card className="border border-red-200 bg-red-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div>
+                <h3 className="font-semibold text-red-800">Overdue Invoices Alert</h3>
+                <p className="text-sm text-red-700">
+                  {filteredInvoices.filter(inv => isOverdue(inv)).length} invoice(s) overdue • 
+                  Total overdue amount: {formatCurrency(overdueAmount)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('bookings')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'bookings'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Calendar className="h-4 w-4 inline mr-2" />
+            Bookings Ready for Billing ({totalBookings})
+          </button>
+          <button
+            onClick={() => setActiveTab('invoices')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'invoices'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <FileText className="h-4 w-4 inline mr-2" />
+            Generated Invoices ({totalInvoices})
+          </button>
+        </nav>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder={activeTab === 'invoices' ? "Search invoices by number, guest name, email, or room..." : "Search bookings by ID, guest name, email, or room..."}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        {activeTab === 'invoices' && (
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-48">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="sent">Sent</SelectItem>
+              <SelectItem value="partially_paid">Partially Paid</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="refunded">Refunded</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+
+      {/* Tables */}
+      {(loading && activeTab === 'invoices') || (bookingsLoading && activeTab === 'bookings') ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        </div>
+      ) : (
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          {activeTab === 'invoices' ? (
+            /* Invoices Table */
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 border-b-2 border-gray-200">
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Invoice #</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Guest Details</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Room</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Stay Period</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Amount</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Status</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Due Date</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredInvoices.map((invoice) => (
+                  <TableRow key={invoice.id} className="border-b border-gray-100">
+                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <div className="font-medium text-gray-900">{invoice.invoiceNumber}</div>
+                      <div className="text-xs text-gray-500">
+                        {new Date(invoice.issuedDate).toLocaleDateString()}
+                      </div>
+                    </TableCell>
+                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <div className="space-y-1">
+                        <div className="font-medium text-gray-900">{invoice.guestName}</div>
+                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                          <Phone className="h-3 w-3" />
+                          {invoice.guestPhone}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                          <Mail className="h-3 w-3" />
+                          {invoice.guestEmail}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <div className="space-y-1">
+                        <div className="font-medium text-gray-900">{invoice.roomNumber}</div>
+                        <div className="text-xs text-gray-600">{invoice.roomTypeName}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <div className="space-y-1">
+                        <div className="text-sm text-gray-900">
+                          {formatDate(invoice.checkIn)} → {formatDate(invoice.checkOut)}
+                        </div>
+                        <div className="text-xs text-gray-600">{invoice.nights} night(s)</div>
+                        
+                        {/* Overdue indicator */}
+                        {isOverdue(invoice) && (
+                          <div className="flex items-center gap-1 text-red-600 text-xs">
+                            <AlertTriangle className="h-3 w-3" />
+                            <span>{getDaysOverdue(invoice)} day(s) overdue</span>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <div className="space-y-1">
+                        <div className="font-medium text-gray-900">{formatCurrency(invoice.totalAmount)}</div>
+                        {invoice.discountAmount > 0 && (
+                          <div className="text-xs text-green-600">
+                            -{formatCurrency(invoice.discountAmount)} discount
+                          </div>
+                        )}
+                        {invoice.payments.length > 0 && (
+                          <div className="text-xs text-blue-600">
+                            {formatCurrency(invoice.payments.reduce((sum, p) => sum + p.amount, 0))} paid
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <div className="space-y-1">
+                        <select
+                          value={invoice.status}
+                          onChange={(e) => console.log('Status changed:', e.target.value)}
+                          className={`px-2 py-1 rounded text-xs font-medium border-0 focus:ring-2 focus:ring-amber-500 ${statusColors[getDisplayStatus(invoice)] || 'bg-gray-100 text-gray-800'}`}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="sent">Sent</option>
+                          <option value="partially_paid">Partially Paid</option>
+                          <option value="paid">Paid</option>
+                          <option value="cancelled">Cancelled</option>
+                          <option value="refunded">Refunded</option>
+                        </select>
+                        
+                        {/* Overdue indicator */}
+                        {isOverdue(invoice) && (
+                          <div className="flex items-center gap-1 text-red-600 text-xs mt-1">
+                            <AlertTriangle className="h-3 w-3" />
+                            <span>Overdue</span>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <div className="text-sm text-gray-900">
+                        {new Date(invoice.dueDate).toLocaleDateString()}
+                      </div>
+                      {isOverdue(invoice) && (
+                        <div className="text-xs text-red-600">
+                          {getDaysOverdue(invoice)} day(s) late
+                        </div>
+                      )}
+                    </TableCell>
+                                         <TableCell className="px-3 py-4">
+                       <div className="flex gap-1">
+                                                 <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewInvoiceAsBill(invoice)}
+                          title="View Bill/Invoice Format"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => handleEditInvoice(invoice)}
+                           title="Edit Invoice"
+                         >
+                           <Edit className="h-4 w-4" />
+                         </Button>
+                         <Button
+                           variant="ghost"
+                           size="sm"
+                           onClick={() => handleSendInvoice(invoice)}
+                           title="Send Invoice"
+                           disabled={invoice.emailSent}
+                         >
+                           <Send className="h-4 w-4" />
+                         </Button>
+                                                   <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownloadInvoice(invoice)}
+                            title="Download Invoice"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewBill(invoice)}
+                            title="View Bill"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
+                          >
+                            <Receipt className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteInvoice(invoice.id)}
+                            disabled={deleting === invoice.id}
+                            title="Delete Invoice"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            {deleting === invoice.id ? (
+                              <Loader className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            )}
+                          </Button>
+                       </div>
+                     </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            /* Bookings Table */
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50 border-b-2 border-gray-200">
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Booking ID</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Guest Details</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Room</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Stay Period</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Base Amount</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Extra Charges</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Total Amount</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Status</TableHead>
+                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredBookings.map((booking) => {
+                  const hasInvoice = booking.invoices && booking.invoices.length > 0;
+                  return (
+                    <TableRow key={booking.id} className="border-b border-gray-100">
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="font-medium text-gray-900">{booking.id}</div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(booking.createdAt).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="space-y-1">
+                          <div className="font-medium text-gray-900">{booking.guestName}</div>
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <Phone className="h-3 w-3" />
+                            {booking.guestPhone}
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                            <Mail className="h-3 w-3" />
+                            {booking.guestEmail}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="space-y-1">
+                          <div className="font-medium text-gray-900">{booking.room.roomNumber}</div>
+                          <div className="text-xs text-gray-600">{booking.room.roomType.name}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="space-y-1">
+                          <div className="text-sm text-gray-900">
+                            {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
+                          </div>
+                          <div className="text-xs text-gray-600">{booking.nights} night(s)</div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="font-medium text-gray-900">{formatCurrency(booking.room.roomType.price * booking.nights)}</div>
+                        <div className="text-xs text-gray-600">Base room rate</div>
+                      </TableCell>
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="space-y-1">
+                          {booking.billItems && booking.billItems.length > 0 ? (
+                            <div className="space-y-1">
+                              {booking.billItems.map((item) => (
+                                <div key={item.id} className="text-xs">
+                                  <div className="font-medium text-gray-900">{item.itemName}</div>
+                                  <div className="text-gray-600">{formatCurrency(item.finalAmount)}</div>
+                                </div>
+                              ))}
+                              <div className="text-xs font-medium text-blue-600">
+                                Total: {formatCurrency(booking.billItems.reduce((sum, item) => sum + item.finalAmount, 0))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-500">No extra charges</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="font-medium text-gray-900">
+                          {formatCurrency(booking.totalAmount)}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {booking.billItems && booking.billItems.length > 0 && (
+                            <span className="text-blue-600">
+                              +{formatCurrency(booking.billItems.reduce((sum, item) => sum + item.finalAmount, 0))} extra
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                        <div className="space-y-1">
+                          <Badge className={`${statusColors[booking.status] || 'bg-gray-100 text-gray-800'} text-xs px-2 py-1`}>
+                            {booking.status.replace('_', ' ').toUpperCase()}
+                          </Badge>
+                          {hasInvoice && (
+                            <div className="text-xs text-green-600">
+                              Invoice generated
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                                                                   <TableCell className="px-3 py-4">
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleGenerateBillInvoice(booking)}
+                            title="Generate Bill"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                          >
+                            <Receipt className="h-4 w-4 mr-1" />
+                            Generate Bill
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewBooking(booking)}
+                            title="View Booking Details"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditBooking(booking)}
+                            title="Edit Booking"
+                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+                 </div>
+       )}
+
+       {/* Invoice Detail Modal */}
+       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle className="text-xl font-semibold text-gray-900">
+               Invoice Details - {selectedInvoice?.invoiceNumber}
+             </DialogTitle>
+             <DialogDescription>
+               Complete invoice information and payment details
+             </DialogDescription>
+           </DialogHeader>
+           {selectedInvoice && (
+             <div className="space-y-6">
+               {/* Guest Information */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Guest Information</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Guest Name</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoice.guestName}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Email</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoice.guestEmail}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoice.guestPhone}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Room</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoice.roomNumber} - {selectedInvoice.roomTypeName}</p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Stay Details */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Stay Details</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Check-in</Label>
+                       <p className="text-sm text-gray-900">{new Date(selectedInvoice.checkIn).toLocaleDateString()}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Check-out</Label>
+                       <p className="text-sm text-gray-900">{new Date(selectedInvoice.checkOut).toLocaleDateString()}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Nights</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoice.nights}</p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Payment Details */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Payment Details</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Base Amount</Label>
+                       <p className="text-sm text-gray-900">{formatCurrency(selectedInvoice.baseAmount)}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Discount</Label>
+                       <p className="text-sm text-green-600">-{formatCurrency(selectedInvoice.discountAmount)}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Taxes</Label>
+                       <p className="text-sm text-gray-900">{formatCurrency(selectedInvoice.totalTaxAmount)}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Total Amount</Label>
+                       <p className="text-lg font-bold text-gray-900">{formatCurrency(selectedInvoice.totalAmount)}</p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Invoice Status */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Invoice Status</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Status</Label>
+                       <Badge className={`${statusColors[getDisplayStatus(selectedInvoice)]} text-xs px-2 py-1`}>
+                         {selectedInvoice.status.toUpperCase()}
+                       </Badge>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Due Date</Label>
+                       <p className="text-sm text-gray-900">{new Date(selectedInvoice.dueDate).toLocaleDateString()}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Issued Date</Label>
+                       <p className="text-sm text-gray-900">{new Date(selectedInvoice.issuedDate).toLocaleDateString()}</p>
+                     </div>
+                     {selectedInvoice.paidDate && (
+                       <div>
+                         <Label className="text-sm font-medium text-gray-700">Paid Date</Label>
+                         <p className="text-sm text-gray-900">{new Date(selectedInvoice.paidDate).toLocaleDateString()}</p>
+                       </div>
+                     )}
+                   </div>
+                 </CardContent>
+               </Card>
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+       {/* Edit Invoice Modal */}
+       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+         <DialogContent className="max-w-2xl">
+           <DialogHeader>
+             <DialogTitle className="text-xl font-semibold text-gray-900">
+               Edit Invoice - {editingInvoice?.invoiceNumber}
+             </DialogTitle>
+             <DialogDescription>
+               Update invoice status and details
+             </DialogDescription>
+           </DialogHeader>
+           <div className="space-y-4">
+             <div>
+               <Label htmlFor="status">Status</Label>
+               <Select value={editFormData.status} onValueChange={(value) => setEditFormData({...editFormData, status: value})}>
+                 <SelectTrigger>
+                   <SelectValue placeholder="Select status" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="pending">Pending</SelectItem>
+                   <SelectItem value="sent">Sent</SelectItem>
+                   <SelectItem value="partially_paid">Partially Paid</SelectItem>
+                   <SelectItem value="paid">Paid</SelectItem>
+                   <SelectItem value="cancelled">Cancelled</SelectItem>
+                   <SelectItem value="refunded">Refunded</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+             <div>
+               <Label htmlFor="notes">Notes</Label>
+               <Textarea
+                 id="notes"
+                 value={editFormData.notes}
+                 onChange={(e) => setEditFormData({...editFormData, notes: e.target.value})}
+                 placeholder="Add any additional notes..."
+                 rows={3}
+               />
+             </div>
+             <div>
+               <Label htmlFor="terms">Terms</Label>
+               <Textarea
+                 id="terms"
+                 value={editFormData.terms}
+                 onChange={(e) => setEditFormData({...editFormData, terms: e.target.value})}
+                 placeholder="Payment terms..."
+                 rows={2}
+               />
+             </div>
+             <div className="flex justify-end gap-2">
+               <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                 Cancel
+               </Button>
+               <Button onClick={handleUpdateInvoice} disabled={updating}>
+                 {updating ? <Loader className="h-4 w-4 animate-spin mr-2" /> : null}
+                 Update Invoice
+               </Button>
+             </div>
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       {/* Generate Bill Modal */}
+       <Dialog open={isBillModalOpen} onOpenChange={setIsBillModalOpen}>
+         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle className="text-xl font-semibold text-gray-900">
+               Generate Bill - {selectedBooking?.id}
+             </DialogTitle>
+             <DialogDescription>
+               Create a comprehensive bill with extra charges and payment details
+             </DialogDescription>
+           </DialogHeader>
+           {selectedBooking && (
+             <div className="space-y-6">
+               {/* Booking Details */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Booking Details</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Guest Name</Label>
+                       <p className="text-sm text-gray-900">{selectedBooking.guestName}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                       <p className="text-sm text-gray-900">{selectedBooking.guestPhone}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Room</Label>
+                       <p className="text-sm text-gray-900">{selectedBooking.room.roomNumber} - {selectedBooking.room.roomType.name}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Stay Period</Label>
+                       <p className="text-sm text-gray-900">
+                         {formatDate(selectedBooking.checkIn)} → {formatDate(selectedBooking.checkOut)} ({selectedBooking.nights} nights)
+                       </p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Bill Calculation */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Bill Calculation</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Base Amount</Label>
+                       <p className="text-lg font-semibold text-gray-900">{formatCurrency(selectedBooking.totalAmount)}</p>
+                     </div>
+                     <div>
+                       <Label htmlFor="extraServiceCharge" className="text-sm font-medium text-gray-700">Extra Service Charge</Label>
+                       <Input
+                         id="extraServiceCharge"
+                         type="number"
+                         value={billFormData.extraServiceCharge}
+                         onChange={(e) => setBillFormData({...billFormData, extraServiceCharge: parseFloat(e.target.value) || 0})}
+                         placeholder="0"
+                         className="mt-1"
+                       />
+                     </div>
+                   </div>
+                   <div className="border-t pt-4">
+                     <div className="flex justify-between items-center">
+                       <Label className="text-lg font-semibold text-gray-900">Total Bill Amount</Label>
+                       <p className="text-2xl font-bold text-blue-600">
+                         {formatCurrency((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0 + billFormData.extraServiceCharge)}
+                       </p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Payment Details */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Payment Details</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label htmlFor="paymentMode">Payment Mode</Label>
+                       <Select value={billFormData.paymentMode} onValueChange={(value) => setBillFormData({...billFormData, paymentMode: value})}>
+                         <SelectTrigger>
+                           <SelectValue placeholder="Select payment mode" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="cash">Cash</SelectItem>
+                           <SelectItem value="card">Card</SelectItem>
+                           <SelectItem value="upi">UPI</SelectItem>
+                           <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                           <SelectItem value="cheque">Cheque</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
+                     <div>
+                       <Label htmlFor="collectedBy">Collected By</Label>
+                       <Input
+                         id="collectedBy"
+                         value={billFormData.collectedBy}
+                         onChange={(e) => setBillFormData({...billFormData, collectedBy: e.target.value})}
+                         placeholder="Staff name"
+                       />
+                     </div>
+                   </div>
+                   <div>
+                     <Label htmlFor="notes">Additional Notes</Label>
+                     <Textarea
+                       id="notes"
+                       value={billFormData.notes}
+                       onChange={(e) => setBillFormData({...billFormData, notes: e.target.value})}
+                       placeholder="Any additional notes or special instructions..."
+                       rows={3}
+                     />
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Action Buttons */}
+               <div className="flex justify-end gap-2">
+                 <Button variant="outline" onClick={() => setIsBillModalOpen(false)}>
+                   Cancel
+                 </Button>
+                 <Button onClick={handleBillGeneration} disabled={generatingBill} className="bg-green-600 hover:bg-green-700">
+                   {generatingBill ? <Loader className="h-4 w-4 animate-spin mr-2" /> : <Receipt className="h-4 w-4 mr-2" />}
+                   Generate Bill
+                 </Button>
+               </div>
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+       {/* View Bill Modal */}
+       <Dialog open={isViewBillModalOpen} onOpenChange={setIsViewBillModalOpen}>
+         <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto p-0">
+           {selectedBillInvoice && (
+             <div className="bg-white">
+                               {/* Bill Header */}
+                <div className="border-b-2 border-gray-200 p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <h1 className="text-3xl font-bold text-gray-900">TAX INVOICE</h1>
+                      <div className="grid grid-cols-2 gap-8 text-sm">
+                        <div>
+                          <span className="font-semibold text-gray-700">BOOKING ID:</span>
+                          <span className="ml-2 text-gray-900">{selectedBillInvoice.bookingId}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-700">DATE:</span>
+                          <span className="ml-2 text-gray-900">{new Date(selectedBillInvoice.issuedDate).toLocaleDateString()}</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-700">DOCUMENT TYPE:</span>
+                          <span className="ml-2 text-gray-900">Invoice</span>
+                        </div>
+                        <div>
+                          <span className="font-semibold text-gray-700">PLACE OF SUPPLY:</span>
+                          <span className="ml-2 text-gray-900">Maharashtra</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right space-y-2">
+                      <div className="flex items-center justify-end space-x-4">
+                        <div className="text-sm">
+                          <div><span className="font-semibold text-gray-700">INVOICE NO.:</span> <span className="text-gray-900">{selectedBillInvoice.invoiceNumber}</span></div>
+                          <div><span className="font-semibold text-gray-700">TRANSACTIONAL TYPE/CATEGORY:</span> <span className="text-gray-900">REG/B2C</span></div>
+                          <div><span className="font-semibold text-gray-700">TRANSACTION DETAIL:</span> <span className="text-gray-900">RG</span></div>
+                        </div>
+                        <div className="flex flex-col items-center space-y-2">
+                          {hotelInfo.logo ? (
+                            <div className="w-20 h-12 flex items-center justify-center">
+                              <img 
+                                src={hotelInfo.logo} 
+                                alt={hotelInfo.name}
+                                className="max-w-full max-h-full object-contain"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-20 h-12 bg-blue-100 rounded flex items-center justify-center">
+                              <span className="text-blue-600 font-bold text-sm">
+                                {hotelInfo.name.split(' ').map(word => word[0]).join('').toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                                                     <div className="bg-gray-100 p-2 rounded">
+                             <div className="text-xs text-gray-500 text-center">QR Code</div>
+                             {selectedBillInvoice.qrCode ? (
+                               <img 
+                                 src={selectedBillInvoice.qrCode} 
+                                 alt="QR Code"
+                                 className="w-16 h-16 rounded"
+                               />
+                             ) : (
+                               <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                                 <span className="text-xs text-gray-500">QR</span>
+                               </div>
+                             )}
+                           </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                               {/* Hotel and Customer Information */}
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        {hotelInfo.logo ? (
+                          <div className="w-16 h-16 flex items-center justify-center">
+                            <img 
+                              src={hotelInfo.logo} 
+                              alt={hotelInfo.name}
+                              className="max-w-full max-h-full object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span className="text-blue-600 font-bold text-lg">
+                              {hotelInfo.name.split(' ').map(word => word[0]).join('').toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                                                 <div>
+                           {/* Hotel name and tagline removed - only logo shown */}
+                         </div>
+                      </div>
+                      {hotelInfo.address && (
+                        <p className="text-sm text-gray-600">{hotelInfo.address}</p>
+                      )}
+                      <p className="text-sm text-gray-600">Stay Period: {new Date(selectedBillInvoice.checkIn).toLocaleDateString()} - {new Date(selectedBillInvoice.checkOut).toLocaleDateString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm">
+                        <div className="font-semibold text-gray-700">CUSTOMER NAME</div>
+                        <div className="text-gray-900">{selectedBillInvoice.guestName}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+               {/* Payment Breakup */}
+               <div className="p-6">
+                 <div className="bg-gray-50 p-4 rounded-lg">
+                   <h3 className="text-lg font-semibold text-gray-900 mb-4">PAYMENT BREAKUP</h3>
+                   <div className="space-y-3">
+                     <div className="flex justify-between items-center">
+                       <span className="text-sm text-gray-700">Accommodation charges (including applicable hotel taxes) collected on behalf of hotel</span>
+                       <span className="font-semibold text-gray-900">{formatCurrency(selectedBillInvoice.baseAmount)}</span>
+                     </div>
+                     {selectedBillInvoice.discountAmount > 0 && (
+                       <div className="flex justify-between items-center">
+                         <span className="text-sm text-gray-700">Effective discount</span>
+                         <span className="font-semibold text-red-600">-{formatCurrency(selectedBillInvoice.discountAmount)}</span>
+                       </div>
+                     )}
+                     {selectedBillInvoice.totalTaxAmount > 0 && (
+                       <div className="flex justify-between items-center">
+                         <span className="text-sm text-gray-700">GST & Service Tax</span>
+                         <span className="font-semibold text-gray-900">{formatCurrency(selectedBillInvoice.totalTaxAmount)}</span>
+                       </div>
+                     )}
+                     <div className="border-t border-gray-300 pt-3">
+                       <div className="flex justify-between items-center">
+                         <span className="font-semibold text-gray-900">Total Booking Amount</span>
+                         <span className="font-bold text-gray-900">{formatCurrency(selectedBillInvoice.totalAmount)}</span>
+                       </div>
+                       <div className="flex justify-between items-center">
+                         <span className="font-semibold text-gray-900">Grand Total</span>
+                         <span className="font-bold text-xl text-gray-900">{formatCurrency(selectedBillInvoice.totalAmount)}</span>
+                       </div>
+                     </div>
+                   </div>
+                   <div className="text-center text-xs text-gray-500 mt-4">
+                     This is a computer generated Invoice and does not require Signature/Stamp.
+                   </div>
+                 </div>
+               </div>
+
+               {/* Important Notes */}
+               <div className="p-6 border-t border-gray-200">
+                 <div className="space-y-3 text-sm text-gray-700">
+                   <div>
+                     <span className="font-semibold">GST Credit Note:</span> GST credit charged by the hotel is only available against the invoice issued by the respective hotel. If you are looking for the hotel GST invoice, please collect from the hotel.
+                   </div>
+                   <div>
+                     <span className="font-semibold">Travel Document Disclaimer:</span> This is not a valid travel document
+                   </div>
+                 </div>
+               </div>
+
+                               {/* Company Information */}
+                <div className="p-6 border-t border-gray-200 bg-gray-50">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                    <div>
+                      {hotelInfo.gstNumber && (
+                        <div><span className="font-semibold text-gray-700">GST Number:</span> <span className="text-gray-900">{hotelInfo.gstNumber}</span></div>
+                      )}
+                      
+                    </div>
+                    <div>
+                      <div><span className="font-semibold text-gray-700">HSN/SAC:</span> <span className="text-gray-900">998552</span></div>
+                      <div><span className="font-semibold text-gray-700">SERVICE DESCRIPTION:</span></div>
+                      <div className="text-gray-900">Reservation service for accommodation</div>
+                    </div>
+                    <div>
+                      {hotelInfo.serviceTaxPercentage && hotelInfo.serviceTaxPercentage > 0 && (
+                        <div><span className="font-semibold text-gray-700">Service Tax %:</span> <span className="text-gray-900">{hotelInfo.serviceTaxPercentage}%</span></div>
+                      )}
+                      {hotelInfo.otherTaxes && hotelInfo.otherTaxes.length > 0 && (
+                        <div>
+                          <span className="font-semibold text-gray-700">Other Taxes:</span>
+                          {hotelInfo.otherTaxes.map((tax, index) => (
+                            <div key={index} className="text-gray-900 ml-2">{tax.name}: {tax.percentage}%</div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2 text-sm">
+                    <div className="font-semibold text-gray-700">{hotelInfo.name} Address:</div>
+                    {hotelInfo.address && (
+                      <div className="text-gray-900">{hotelInfo.address}</div>
+                    )}
+                    <div className="text-gray-900">
+                      {hotelInfo.primaryPhone && `Phone: ${hotelInfo.primaryPhone}`}
+                      {hotelInfo.primaryPhone && hotelInfo.primaryEmail && ' | '}
+                      {hotelInfo.primaryEmail && `Email: ${hotelInfo.primaryEmail}`}
+                    </div>
+                    {hotelInfo.whatsappPhone && (
+                      <div className="text-gray-900">WhatsApp: {hotelInfo.whatsappPhone}</div>
+                    )}
+                    {hotelInfo.reservationEmail && (
+                      <div className="text-gray-900">Reservations: {hotelInfo.reservationEmail}</div>
+                    )}
+                  </div>
+                  {hotelInfo.emergencyContact && (
+                    <div className="mt-4 space-y-2 text-sm">
+                      <div className="font-semibold text-gray-700">Emergency Contact:</div>
+                      <div className="text-gray-900">{hotelInfo.emergencyContact}</div>
+                    </div>
+                  )}
+                </div>
+
+               {/* Action Buttons */}
+               <div className="p-6 border-t border-gray-200 bg-white">
+                 <div className="flex justify-end gap-2">
+                   <Button variant="outline" onClick={() => setIsViewBillModalOpen(false)}>
+                     Close
+                   </Button>
+                   <Button onClick={() => handleDownloadInvoice(selectedBillInvoice)} className="bg-blue-600 hover:bg-blue-700">
+                     <Download className="h-4 w-4 mr-2" />
+                     Download PDF
+                   </Button>
+                 </div>
+               </div>
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+       {/* Enhanced Invoice Modal */}
+       <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
+         <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle className="text-xl font-semibold text-gray-900">
+               Generate Invoice - {selectedInvoiceBooking?.id}
+             </DialogTitle>
+             <DialogDescription>
+               Create a professional invoice with extra charges and payment details (Before Payment)
+             </DialogDescription>
+           </DialogHeader>
+           {selectedInvoiceBooking && (
+             <div className="space-y-6">
+               {/* Booking Details */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Booking Details</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Guest Name</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoiceBooking.guestName}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoiceBooking.guestPhone}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Room</Label>
+                       <p className="text-sm text-gray-900">{selectedInvoiceBooking.room.roomNumber} - {selectedInvoiceBooking.room.roomType.name}</p>
+                     </div>
+                     <div>
+                       <Label className="text-sm font-medium text-gray-700">Stay Period</Label>
+                       <p className="text-sm text-gray-900">
+                         {formatDate(selectedInvoiceBooking.checkIn)} → {formatDate(selectedInvoiceBooking.checkOut)} ({selectedInvoiceBooking.nights} nights)
+                       </p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Extra Charges */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <div className="flex justify-between items-center">
+                     <CardTitle className="text-lg font-semibold text-gray-900">Extra Charges</CardTitle>
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={handleAddExtraCharge}
+                       className="text-blue-600 hover:text-blue-700"
+                     >
+                       <Plus className="h-4 w-4 mr-1" />
+                       Add Item
+                     </Button>
+                   </div>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   {invoiceFormData.extraCharges.map((charge, index) => (
+                     <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                       <div>
+                         <Label className="text-sm font-medium text-gray-700">Item</Label>
+                         <Input
+                           value={charge.item}
+                                                              onChange={(e) => handleUpdateBillExtraCharge(index, 'item', e.target.value)}
+                           placeholder="e.g., Water Bottle, Food"
+                         />
+                       </div>
+                       <div>
+                         <Label className="text-sm font-medium text-gray-700">Amount</Label>
+                         <Input
+                           type="number"
+                           value={charge.amount}
+                                                              onChange={(e) => handleUpdateBillExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)}
+                           placeholder="0"
+                         />
+                       </div>
+                       <div>
+                         <Label className="text-sm font-medium text-gray-700">Description</Label>
+                         <Input
+                           value={charge.description}
+                                                              onChange={(e) => handleUpdateBillExtraCharge(index, 'description', e.target.value)}
+                           placeholder="Optional description"
+                         />
+                       </div>
+                       <div>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                                                              onClick={() => handleRemoveBillExtraCharge(index)}
+                           className="text-red-600 hover:text-red-700"
+                           disabled={invoiceFormData.extraCharges.length === 1}
+                         >
+                           <Trash2 className="h-4 w-4 text-red-600" />
+                         </Button>
+                       </div>
+                     </div>
+                   ))}
+                   <div className="border-t pt-4">
+                     <div className="flex justify-between items-center">
+                       <Label className="text-sm font-medium text-gray-700">Total Extra Charges</Label>
+                       <p className="text-lg font-semibold text-gray-900">{formatCurrency(calculateTotalExtraCharges())}</p>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Payment Details */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <CardTitle className="text-lg font-semibold text-gray-900">Payment Details</CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <Label htmlFor="paymentMode">Payment Mode</Label>
+                       <Select value={invoiceFormData.paymentMode} onValueChange={(value) => setInvoiceFormData({...invoiceFormData, paymentMode: value})}>
+                         <SelectTrigger>
+                           <SelectValue placeholder="Select payment mode" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="cash">Cash</SelectItem>
+                           <SelectItem value="card">Card</SelectItem>
+                           <SelectItem value="upi">UPI</SelectItem>
+                           <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                           <SelectItem value="cheque">Cheque</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
+                     {invoiceFormData.paymentMode !== 'cash' && (
+                       <div>
+                         <Label htmlFor="referenceId">Reference ID</Label>
+                         <Input
+                           id="referenceId"
+                           value={invoiceFormData.referenceId}
+                           onChange={(e) => setInvoiceFormData({...invoiceFormData, referenceId: e.target.value})}
+                           placeholder="Transaction reference"
+                         />
+                       </div>
+                     )}
+                     <div>
+                       <Label htmlFor="collectedBy">Collected By</Label>
+                       <Select value={invoiceFormData.collectedBy} onValueChange={(value) => setInvoiceFormData({...invoiceFormData, collectedBy: value})}>
+                         <SelectTrigger>
+                           <SelectValue placeholder="Select staff member" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           {users.map((user) => (
+                             <SelectItem key={user.id} value={user.name}>
+                               {user.name} ({user.email})
+                             </SelectItem>
+                           ))}
+                         </SelectContent>
+                       </Select>
+                     </div>
+                   </div>
+                   <div>
+                     <Label htmlFor="notes">Additional Notes</Label>
+                     <Textarea
+                       id="notes"
+                       value={invoiceFormData.notes}
+                       onChange={(e) => setInvoiceFormData({...invoiceFormData, notes: e.target.value})}
+                       placeholder="Any additional notes or special instructions..."
+                       rows={3}
+                     />
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Email Configuration */}
+               <Card className="border border-gray-200 shadow-sm">
+                 <CardHeader className="pb-3">
+                   <div className="flex justify-between items-center">
+                     <CardTitle className="text-lg font-semibold text-gray-900">Email Configuration (Optional)</CardTitle>
+                     <Button
+                       variant="outline"
+                       size="sm"
+                       onClick={handleAddEmail}
+                       className="text-blue-600 hover:text-blue-700"
+                     >
+                       <Plus className="h-4 w-4 mr-1" />
+                       Add Email
+                     </Button>
+                   </div>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   {invoiceFormData.emailIds.map((email, index) => (
+                     <div key={index} className="flex gap-2">
+                       <Input
+                         type="email"
+                         value={email}
+                         onChange={(e) => handleUpdateEmail(index, e.target.value)}
+                         placeholder="Enter email address"
+                         className="flex-1"
+                       />
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => handleRemoveEmail(index)}
+                         className="text-red-600 hover:text-red-700"
+                         disabled={invoiceFormData.emailIds.length === 1}
+                       >
+                         <Trash2 className="h-4 w-4 text-red-600" />
+                       </Button>
+                     </div>
+                   ))}
+                   <p className="text-xs text-gray-500">
+                     Add email addresses to automatically send the invoice after generation
+                   </p>
+                 </CardContent>
+               </Card>
+
+               {/* Total Calculation */}
+               <Card className="border border-blue-200 bg-blue-50">
+                 <CardContent className="p-4">
+                   <div className="space-y-2">
+                     <div className="flex justify-between items-center">
+                       <Label className="text-sm font-medium text-gray-700">Base Amount</Label>
+                       <p className="text-sm text-gray-900">{formatCurrency(selectedInvoiceBooking.totalAmount)}</p>
+                     </div>
+                     <div className="flex justify-between items-center">
+                       <Label className="text-sm font-medium text-gray-700">Extra Charges</Label>
+                       <p className="text-sm text-gray-900">{formatCurrency(calculateTotalExtraCharges())}</p>
+                     </div>
+                     <div className="flex justify-between items-center">
+                       <Label className="text-sm font-medium text-gray-700">Subtotal</Label>
+                       <p className="text-sm text-gray-900">{formatCurrency(((selectedInvoiceBooking as any).baseAmount || (selectedInvoiceBooking.room.roomType.price * selectedInvoiceBooking.nights) || 0) + calculateTotalExtraCharges())}</p>
+                     </div>
+                     
+                     {/* Tax Breakdown */}
+                     {taxBreakdown && taxBreakdown.taxes.length > 0 && (
+                       <>
+                         {taxBreakdown.taxes.map((tax, index) => (
+                           <div key={index} className="flex justify-between items-center">
+                             <Label className="text-sm font-medium text-gray-700">{tax.name} ({tax.percentage}%)</Label>
+                             <p className="text-sm text-gray-900">{formatCurrency(tax.amount)}</p>
+                           </div>
+                         ))}
+                         <div className="flex justify-between items-center">
+                           <Label className="text-sm font-medium text-gray-700">Total Tax</Label>
+                           <p className="text-sm text-gray-900">{formatCurrency(taxBreakdown.totalTax)}</p>
+                         </div>
+                       </>
+                     )}
+                     
+                     <div className="border-t pt-2">
+                       <div className="flex justify-between items-center">
+                         <Label className="text-lg font-semibold text-gray-900">Total Invoice Amount</Label>
+                         <p className="text-2xl font-bold text-blue-600">
+                           {formatCurrency(taxBreakdown ? taxBreakdown.totalAmount : ((selectedInvoiceBooking as any).baseAmount || (selectedInvoiceBooking.room.roomType.price * selectedInvoiceBooking.nights) || 0) + calculateTotalExtraCharges())}
+                         </p>
+                       </div>
+                     </div>
+                   </div>
+                 </CardContent>
+               </Card>
+
+               {/* Action Buttons */}
+               <div className="flex justify-end gap-2">
+                 <Button variant="outline" onClick={() => setIsInvoiceModalOpen(false)}>
+                   Cancel
+                 </Button>
+                 <Button onClick={handleEnhancedInvoiceGeneration} disabled={generatingEnhancedInvoice} className="bg-blue-600 hover:bg-blue-700">
+                   {generatingEnhancedInvoice ? <Loader className="h-4 w-4 animate-spin mr-2" /> : <FileText className="h-4 w-4 mr-2" />}
+                   Generate Invoice
+                 </Button>
+               </div>
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+       {/* Tax Invoice Modal */}
+       <Dialog open={isTaxInvoiceModalOpen} onOpenChange={setIsTaxInvoiceModalOpen}>
+         <DialogContent className="max-w-7xl max-h-[98vh] overflow-y-auto p-0">
+           <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-t-lg">
+             <DialogHeader className="text-white">
+               <DialogTitle className="text-2xl font-bold">
+                 Tax Invoice
+               </DialogTitle>
+             </DialogHeader>
+           </div>
+           
+           {selectedTaxInvoiceBooking && (
+             <div className="p-6 space-y-6">
+               {/* Booking Summary */}
+               <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg p-4 border border-blue-200">
+                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                   <div className="text-center">
+                     <span className="text-sm font-medium text-gray-600 block">Booking ID</span>
+                     <span className="text-lg font-bold text-gray-900">{selectedTaxInvoiceBooking.id}</span>
+                   </div>
+                   <div className="text-center">
+                     <span className="text-sm font-medium text-gray-600 block">Guest Name</span>
+                     <span className="text-lg font-semibold text-gray-900">{selectedTaxInvoiceBooking.guestName}</span>
+                   </div>
+                   <div className="text-center">
+                     <span className="text-sm font-medium text-gray-600 block">Room</span>
+                     <span className="text-lg font-semibold text-gray-900">{selectedTaxInvoiceBooking.room.roomNumber}</span>
+                   </div>
+                   <div className="text-center">
+                     <span className="text-sm font-medium text-gray-600 block">Total Amount</span>
+                     <span className="text-lg font-bold text-green-600">
+                       {formatCurrency(selectedTaxInvoiceBooking.totalAmount * 1.18)}
+                     </span>
+                   </div>
+                 </div>
+               </div>
+
+               {/* Tax Invoice Preview */}
+               <div className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden">
+                 <div className="bg-gradient-to-r from-gray-100 to-gray-200 p-4 border-b border-gray-200">
+                   <div className="flex items-center justify-between">
+                     <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                       <span className="w-2 h-2 bg-blue-600 rounded-full mr-3"></span>
+                       Tax Invoice Preview
+                     </h3>
+                     <div className="flex items-center space-x-2 text-sm text-gray-600">
+                       <span>Generated on:</span>
+                       <span className="font-medium">{new Date().toLocaleDateString('en-IN')}</span>
+                     </div>
+                   </div>
+                 </div>
+                 
+                 <div className="p-4">
+                   <InvoicePDF invoiceData={{
+                     invoiceNumber: `INV-${selectedTaxInvoiceBooking.id}`,
+                     invoiceDate: new Date().toISOString().split('T')[0],
+                     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                     terms: 'Due on Receipt',
+                     company: {
+                       name: hotelInfo.name,
+                       address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                         'Hotel Address Line 1',
+                         'Hotel Address Line 2',
+                         'City, State ZIP',
+                         'Country'
+                       ],
+                                            logo: hotelInfo.logo || undefined,
+                     contact: hotelInfo.primaryPhone || undefined
+                     },
+                     billTo: {
+                       name: selectedTaxInvoiceBooking.guestName,
+                       address: [
+                         selectedTaxInvoiceBooking.guestEmail,
+                         selectedTaxInvoiceBooking.guestPhone,
+                         `Room: ${selectedTaxInvoiceBooking.room.roomNumber}`,
+                         `${selectedTaxInvoiceBooking.room.roomType.name}`
+                       ]
+                     },
+                     shipTo: {
+                       address: [
+                         selectedTaxInvoiceBooking.guestEmail,
+                         selectedTaxInvoiceBooking.guestPhone,
+                         `Room: ${selectedTaxInvoiceBooking.room.roomNumber}`,
+                         `${selectedTaxInvoiceBooking.room.roomType.name}`
+                       ]
+                     },
+                     items: [
+                       {
+                         id: 1,
+                         name: `Room Stay - ${selectedTaxInvoiceBooking.room.roomType.name}`,
+                         description: `${formatDate(selectedTaxInvoiceBooking.checkIn)} to ${formatDate(selectedTaxInvoiceBooking.checkOut)} (${selectedTaxInvoiceBooking.nights} nights)`,
+                         quantity: selectedTaxInvoiceBooking.nights,
+                         unit: 'nights',
+                         rate: selectedTaxInvoiceBooking.room.roomType.price,
+                         amount: selectedTaxInvoiceBooking.room.roomType.price * selectedTaxInvoiceBooking.nights
+                       },
+                       ...(selectedTaxInvoiceBooking.billItems || []).map((item, index) => ({
+                         id: index + 2,
+                         name: item.itemName,
+                         description: item.description || '',
+                         quantity: item.quantity,
+                         unit: 'pcs',
+                         rate: item.unitPrice,
+                         amount: item.finalAmount
+                       }))
+                     ],
+                     subtotal: selectedTaxInvoiceBooking.totalAmount,
+                     taxRate: 18, // 18% GST
+                     total: selectedTaxInvoiceBooking.totalAmount * 1.18,
+                     currency: 'INR'
+                   }}>
+                     <Invoice data={{
+                       invoiceNumber: `INV-${selectedTaxInvoiceBooking.id}`,
+                       invoiceDate: new Date().toISOString().split('T')[0],
+                       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                       terms: 'Due on Receipt',
+                       company: {
+                         name: hotelInfo.name,
+                         address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                           'Hotel Address Line 1',
+                           'Hotel Address Line 2',
+                           'City, State ZIP',
+                           'Country'
+                         ],
+                         logo: hotelInfo.logo || undefined,
+                         contact: hotelInfo.primaryPhone || undefined
+                       },
+                       billTo: {
+                         name: selectedTaxInvoiceBooking.guestName,
+                         address: [
+                           selectedTaxInvoiceBooking.guestEmail,
+                           selectedTaxInvoiceBooking.guestPhone,
+                           `Room: ${selectedTaxInvoiceBooking.room.roomNumber}`,
+                           `${selectedTaxInvoiceBooking.room.roomType.name}`
+                         ]
+                       },
+                       shipTo: {
+                         address: [
+                           selectedTaxInvoiceBooking.guestEmail,
+                           selectedTaxInvoiceBooking.guestPhone,
+                           `Room: ${selectedTaxInvoiceBooking.room.roomNumber}`,
+                           `${selectedTaxInvoiceBooking.room.roomType.name}`
+                         ]
+                       },
+                       items: [
+                         {
+                           id: 1,
+                           name: `Room Stay - ${selectedTaxInvoiceBooking.room.roomType.name}`,
+                           description: `${formatDate(selectedTaxInvoiceBooking.checkIn)} to ${formatDate(selectedTaxInvoiceBooking.checkOut)} (${selectedTaxInvoiceBooking.nights} nights)`,
+                           quantity: selectedTaxInvoiceBooking.nights,
+                           unit: 'nights',
+                           rate: selectedTaxInvoiceBooking.room.roomType.price,
+                           amount: selectedTaxInvoiceBooking.room.roomType.price * selectedTaxInvoiceBooking.nights
+                         },
+                         ...(selectedTaxInvoiceBooking.billItems || []).map((item, index) => ({
+                           id: index + 2,
+                           name: item.itemName,
+                           description: item.description || '',
+                           quantity: item.quantity,
+                           unit: 'pcs',
+                           rate: item.unitPrice,
+                           amount: item.finalAmount
+                         }))
+                       ],
+                       subtotal: selectedTaxInvoiceBooking.totalAmount,
+                       taxRate: 18, // 18% GST
+                       total: selectedTaxInvoiceBooking.totalAmount * 1.18,
+                       currency: 'INR'
+                     }} />
+                   </InvoicePDF>
+                 </div>
+               </div>
+
+               {/* Professional Action Bar */}
+               <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-6 border border-gray-200">
+                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                     <div className="flex items-center space-x-2">
+                  </div>
+                   
+                   <div className="flex flex-wrap items-center gap-3">
+                     <Button 
+                       variant="outline" 
+                       onClick={() => setIsTaxInvoiceModalOpen(false)}
+                       className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                     >
+                       Cancel
+                     </Button>
+                     
+                     <Button 
+                       onClick={() => {
+                         toast({
+                           title: "Success",
+                           description: "Professional tax invoice generated successfully!",
+                         })
+                         setIsTaxInvoiceModalOpen(false)
+                       }} 
+                       className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                     >
+                       <FileText className="h-4 w-4 mr-2" />
+                       Generate & Save Invoice
+                     </Button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+       {/* Booking Selection Modal */}
+       <Dialog open={isBookingSelectionModalOpen} onOpenChange={setIsBookingSelectionModalOpen}>
+         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+           <DialogHeader>
+             <DialogTitle className="text-xl font-bold text-slate-800">
+               Select Booking for Invoice Generation
+             </DialogTitle>
+             <DialogDescription className="text-slate-600">
+               Choose a booking that hasn't generated bills yet to create an invoice
+             </DialogDescription>
+           </DialogHeader>
+           
+           <div className="space-y-4">
+             {/* Filter and Search */}
+             <div className="flex gap-4">
+               <div className="flex-1">
+                 <Input
+                   placeholder="Search bookings by guest name, room number, or ID..."
+                   value={query}
+                   onChange={(e) => setQuery(e.target.value)}
+                   className="border-slate-200 focus:border-blue-400 focus:ring-blue-400"
+                 />
+               </div>
+               <Select value={statusFilter} onValueChange={setStatusFilter}>
+                 <SelectTrigger className="w-48 border-slate-200 focus:border-blue-400 focus:ring-blue-400">
+                   <SelectValue placeholder="Filter by status" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="all">All Statuses</SelectItem>
+                   <SelectItem value="confirmed">Confirmed</SelectItem>
+                   <SelectItem value="checked_in">Checked In</SelectItem>
+                   <SelectItem value="checked_out">Checked Out</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+
+             {/* Bookings List */}
+             <div className="space-y-3 max-h-96 overflow-y-auto">
+               {bookings
+                 .filter(booking => {
+                   // Filter out bookings that already have invoices
+                   const hasInvoices = booking.invoices && booking.invoices.length > 0
+                   const matchesQuery = query === "" || 
+                     booking.guestName.toLowerCase().includes(query.toLowerCase()) ||
+                     booking.room.roomNumber.toLowerCase().includes(query.toLowerCase()) ||
+                     booking.id.toLowerCase().includes(query.toLowerCase())
+                   const matchesStatus = statusFilter === "all" || booking.status === statusFilter
+                   
+                   return !hasInvoices && matchesQuery && matchesStatus
+                 })
+                 .map((booking) => (
+                   <Card 
+                     key={booking.id} 
+                     className="cursor-pointer hover:bg-slate-50 transition-colors border-slate-200"
+                     onClick={() => {
+                       setSelectedBooking(booking)
+                       setIsBookingSelectionModalOpen(false)
+                       setIsMultiStepModalOpen(true)
+                       // Reset to invoice type for new selections
+                       setBillGenerationData(prev => ({ ...prev, type: 'invoice' }))
+                     }}
+                   >
+                     <CardContent className="p-4">
+                       <div className="flex items-center justify-between">
+                         <div className="flex-1">
+                           <div className="flex items-center gap-4">
+                             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                               <Users className="w-6 h-6 text-white" />
+                             </div>
+                             <div className="flex-1">
+                               <h4 className="font-semibold text-slate-800">{booking.guestName}</h4>
+                               <p className="text-sm text-slate-600">
+                                 Room {booking.room.roomNumber} • {booking.room.roomType.name}
+                               </p>
+                               <p className="text-xs text-slate-500">
+                                 {formatDate(booking.checkIn)} - {formatDate(booking.checkOut)} • {booking.nights} night{booking.nights > 1 ? 's' : ''}
+                               </p>
+                             </div>
+                           </div>
+                         </div>
+                         <div className="text-right">
+                           <Badge 
+                             variant={booking.status === 'CONFIRMED' ? 'default' : 'secondary'}
+                             className="text-xs"
+                           >
+                             {booking.status}
+                           </Badge>
+                           <p className="text-sm font-semibold text-slate-800 mt-1">
+                             {formatCurrency(booking.totalAmount)}
+                           </p>
+                         </div>
+                       </div>
+                     </CardContent>
+                   </Card>
+                 ))}
+             </div>
+
+             {/* No Bookings Message */}
+             {bookings.filter(booking => !booking.invoices || booking.invoices.length === 0).length === 0 && (
+               <div className="text-center py-8">
+                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                   <FileText className="w-8 h-8 text-slate-400" />
+                 </div>
+                 <h3 className="text-lg font-semibold text-slate-800 mb-2">No Bookings Available</h3>
+                 <p className="text-slate-600 text-sm">
+                   All bookings have already generated invoices or bills.
+                 </p>
+               </div>
+             )}
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       {/* Multi-Step Bill Generation Modal */}
+       <Dialog open={isMultiStepModalOpen} onOpenChange={setIsMultiStepModalOpen}>
+         <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto p-0 border border-slate-200">
+           {selectedBooking && (
+             <div className="p-6 space-y-6 bg-gradient-to-br from-slate-50 to-white">
+               {/* Compact Step Indicator */}
+               <div className="flex items-center justify-center space-x-3 mb-4">
+                 {[1, 2, 3].map((step) => (
+                   <div key={step} className="flex items-center">
+                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-300 ${
+                       step <= currentStep 
+                         ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white scale-105' 
+                         : 'bg-slate-200 text-slate-500'
+                     }`}>
+                       {step < currentStep ? <Check className="w-3 h-3" /> : step}
+                     </div>
+                     {step < 3 && (
+                       <div className={`w-6 h-0.5 mx-2 rounded-full transition-all duration-300 ${
+                         step < currentStep ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-slate-200'
+                       }`} />
+                     )}
+                   </div>
+                 ))}
+               </div>
+
+               {/* Step 1: Type Selection */}
+               {currentStep === 1 && (
+                 <div className="space-y-6">
+                   <div className="text-center">
+                     <h3 className="text-xl font-bold text-slate-800 mb-2">Select Document Type</h3>
+                     <p className="text-slate-600 text-base">Choose whether to generate a bill (after payment) or invoice (before payment)</p>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                     <Card 
+                       className={`cursor-pointer transition-all duration-300 transform hover:scale-102 ${
+                         billGenerationData.type === 'bill' 
+                           ? 'ring-2 ring-blue-400 bg-gradient-to-br from-blue-50 to-indigo-50' 
+                           : 'hover:bg-slate-50'
+                       }`}
+                       onClick={() => handleTypeSelection('bill')}
+                     >
+                       <CardContent className="p-6 text-center">
+                         <div className={`w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center ${
+                           billGenerationData.type === 'bill' 
+                             ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
+                             : 'bg-slate-100'
+                         }`}>
+                           <Receipt className={`w-8 h-8 ${
+                             billGenerationData.type === 'bill' ? 'text-white' : 'text-slate-600'
+                           }`} />
+                         </div>
+                         <h4 className="text-lg font-bold text-slate-800 mb-2">Generate Bill</h4>
+                         <p className="text-slate-600 text-sm leading-relaxed">For completed payments. Includes payment details and shows as paid.</p>
+                       </CardContent>
+                     </Card>
+
+                     <Card 
+                       className={`cursor-pointer transition-all duration-300 transform hover:scale-102 ${
+                         billGenerationData.type === 'invoice' 
+                           ? 'ring-2 ring-emerald-400 bg-gradient-to-br from-emerald-50 to-teal-50' 
+                           : 'hover:bg-slate-50'
+                       }`}
+                       onClick={() => handleTypeSelection('invoice')}
+                     >
+                       <CardContent className="p-6 text-center">
+                         <div className={`w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center ${
+                           billGenerationData.type === 'invoice' 
+                             ? 'bg-gradient-to-br from-emerald-500 to-teal-600' 
+                             : 'bg-slate-100'
+                         }`}>
+                           <FileText className={`w-8 h-8 ${
+                             billGenerationData.type === 'invoice' ? 'text-white' : 'text-slate-600'
+                           }`} />
+                         </div>
+                         <h4 className="text-lg font-bold text-slate-800 mb-2">Generate Invoice</h4>
+                         <p className="text-slate-600 text-sm leading-relaxed">For pending payments. Shows amount due and payment terms.</p>
+                       </CardContent>
+                     </Card>
+                   </div>
+
+                   <div className="flex justify-end pt-2">
+                     <Button 
+                       onClick={handleNextStep}
+                       disabled={!billGenerationData.type}
+                       className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-6 py-2 text-base font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                     >
+                       Next Step
+                       <ArrowRight className="w-4 h-4 ml-2" />
+                     </Button>
+                   </div>
+                 </div>
+               )}
+
+               {/* Step 2: Booking Details and Payment */}
+               {currentStep === 2 && (
+                 <div className="space-y-6">
+                   <div className="text-center">
+                     <h3 className="text-xl font-bold text-slate-800 mb-2">
+                       {billGenerationData.type === 'bill' ? 'Payment Details' : 'Invoice Details'}
+                     </h3>
+                     <p className="text-slate-600 text-base">
+                       {billGenerationData.type === 'bill' 
+                         ? 'Enter payment information and any additional charges' 
+                         : 'Review booking details and add any extra charges'}
+                     </p>
+                   </div>
+
+                   {/* Enhanced Booking Summary */}
+                   <Card className="border border-slate-200 bg-gradient-to-br from-slate-50 to-blue-50">
+                     <CardHeader className="pb-3">
+                       <CardTitle className="flex items-center justify-between text-slate-800 text-lg">
+                         <div className="flex items-center">
+                           <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                             <Calendar className="w-5 h-5 text-white" />
+                           </div>
+                           Booking Information - {selectedBooking.id}
+                         </div>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             setIsMultiStepModalOpen(false);
+                             window.location.href = `/dashboard/bookings?edit=${selectedBooking.id}`;
+                           }}
+                           className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300 hover:bg-blue-50 h-8 px-3 text-xs"
+                         >
+                           <Edit className="w-3 h-3 mr-1" />
+                           Edit Booking Details
+                         </Button>
+                       </CardTitle>
+                     </CardHeader>
+                     <CardContent className="space-y-6">
+                       {/* Guest Information Section */}
+                                                <div className="space-y-4">
+                           <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-200 pb-2">Guest Information</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div className="flex items-center space-x-2">
+                               <span className="text-sm font-medium text-slate-600">Name:</span>
+                               <span className="text-base font-medium text-slate-800">{selectedBooking.guestName}</span>
+                             </div>
+                             <div className="flex items-center space-x-2">
+                               <span className="text-sm font-medium text-slate-600">Email:</span>
+                               <span className="text-base font-medium text-slate-800">{selectedBooking.guestEmail}</span>
+                               </div>
+                             <div className="flex items-center space-x-2">
+                               <span className="text-sm font-medium text-slate-600">Phone:</span>
+                               <span className="text-base font-medium text-slate-800">{selectedBooking.guestPhone}</span>
+                             </div>
+                             <div className="flex items-center space-x-2">
+                               <span className="text-sm font-medium text-slate-600">Guests:</span>
+                               <span className="text-base font-medium text-slate-800">
+                                 {selectedBooking.adults} Adult{selectedBooking.adults > 1 ? 's' : ''}
+                                 {selectedBooking.children > 0 && `, ${selectedBooking.children} Child${selectedBooking.children > 1 ? 'ren' : ''}`}
+                               </span>
+                             </div>
+                             {selectedBooking.specialRequests && (
+                               <div className="flex items-start space-x-2 md:col-span-2">
+                                 <span className="text-sm font-medium text-slate-600">Special Requests:</span>
+                                 <span className="text-base font-medium text-slate-800">
+                                   {selectedBooking.specialRequests}
+                                 </span>
+                               </div>
+                             )}
+                           </div>
+                         </div>
+
+                       {/* Room Information Section */}
+                       <div className="space-y-4">
+                         <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-200 pb-2">Room Information</h4>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Room:</span>
+                             <span className="text-base font-medium text-slate-800">{selectedBooking.room.roomNumber}</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Type:</span>
+                             <span className="text-base font-medium text-slate-800">{selectedBooking.room.roomType.name}</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Floor:</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {selectedBooking.room.floorNumber || 'N/A'}
+                             </span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Size & Bed:</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {selectedBooking.room.roomType.size || 'N/A'} • {selectedBooking.room.roomType.bedType || 'N/A'}
+                             </span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Check In:</span>
+                             <span className="text-base font-medium text-slate-800">{formatDate(selectedBooking.checkIn)}</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Check Out:</span>
+                             <span className="text-base font-medium text-slate-800">{formatDate(selectedBooking.checkOut)}</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Duration:</span>
+                             <span className="text-base font-medium text-slate-800">{selectedBooking.nights} night{selectedBooking.nights > 1 ? 's' : ''}</span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Status:</span>
+                             <span className="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-200">
+                               {selectedBooking.status}
+                             </span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Source:</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {selectedBooking.source || 'N/A'}
+                             </span>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Payment Information Section */}
+                       <div className="space-y-4">
+                         <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-200 pb-2">Payment Information</h4>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Base Amount (after discounts):</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {formatCurrency((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0)}
+                             </span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">GST:</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {formatCurrency(((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0) * 0.18)}
+                             </span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Total Tax Amount:</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {formatCurrency(((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0) * 0.18)}
+                             </span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Total Amount:</span>
+                             <span className="text-base font-medium text-slate-800 font-semibold text-blue-600">
+                               {formatCurrency(selectedBooking.totalAmount)}
+                             </span>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Booking Details Section */}
+                       <div className="space-y-4">
+                         <h4 className="text-sm font-semibold text-slate-800 border-b border-slate-200 pb-2">Booking Details</h4>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Booking Date:</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {formatDate(selectedBooking.createdAt)}
+                             </span>
+                           </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-sm font-medium text-slate-600">Checkout Time:</span>
+                             <span className="text-base font-medium text-slate-800">
+                               {hotelInfo.checkOutTime || '11:00 AM'}
+                             </span>
+                           </div>
+                         </div>
+                       </div>
+                     </CardContent>
+                   </Card>
+
+                   {/* Enhanced Extra Charges */}
+                   <Card className="border border-slate-200 bg-gradient-to-br from-slate-50 to-emerald-50">
+                     <CardHeader className="pb-3">
+                       <CardTitle className="flex items-center justify-between text-slate-800 text-lg">
+                         <span className="flex items-center">
+                           <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mr-3">
+                             <Plus className="w-4 h-4 text-white" />
+                           </div>
+                           Extra Charges
+                         </span>
+                         <Button 
+                           variant="outline" 
+                           size="sm" 
+                           onClick={handleAddBillExtraCharge}
+                           className="border-emerald-300 text-emerald-700 hover:bg-emerald-50 hover:border-emerald-400 text-xs px-3 py-1 h-8"
+                         >
+                           <Plus className="w-3 h-3 mr-1" />
+                           Add Charge
+                         </Button>
+                       </CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                       {billGenerationData.extraCharges.length === 0 ? (
+                         <div className="text-center py-8">
+                           <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                             <Plus className="w-6 h-6 text-slate-400" />
+                           </div>
+                           <p className="text-slate-500 text-sm">No extra charges added yet</p>
+                           <p className="text-slate-400 text-xs">Click "Add Charge" to include additional services</p>
+                         </div>
+                       ) : (
+                         <div className="space-y-3">
+                           {billGenerationData.extraCharges.map((charge, index) => (
+                             <div key={index} className="grid grid-cols-12 gap-3 items-end bg-white p-3 rounded-md border border-slate-200">
+                               <div className="col-span-3">
+                                 <Label className="text-xs font-medium text-slate-600 mb-1 block">Item</Label>
+                                 <Input
+                                   value={charge.item}
+                                   onChange={(e) => handleUpdateBillExtraCharge(index, 'item', e.target.value)}
+                                   placeholder="e.g., Room Service"
+                                   className="border-slate-200 focus:border-emerald-400 focus:ring-emerald-400 h-8 text-sm"
+                                 />
+                               </div>
+                               <div className="col-span-2">
+                                 <Label className="text-xs font-medium text-slate-600 mb-1 block">Amount</Label>
+                                 <Input
+                                   type="number"
+                                   value={charge.amount}
+                                   onChange={(e) => handleUpdateBillExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)}
+                                   placeholder="0"
+                                   className="border-slate-200 focus:border-emerald-400 focus:ring-emerald-400 h-8 text-sm"
+                                 />
+                               </div>
+                               <div className="col-span-3">
+                                 <Label className="text-xs font-medium text-slate-600 mb-1 block">Description</Label>
+                                 <Input
+                                   value={charge.description}
+                                   onChange={(e) => handleUpdateBillExtraCharge(index, 'description', e.target.value)}
+                                   placeholder="Optional description"
+                                   className="border-slate-200 focus:border-emerald-400 focus:ring-emerald-400 h-8 text-sm"
+                                 />
+                               </div>
+                               <div className="col-span-2">
+                                 <div className="flex items-center space-x-2">
+                                   <input
+                                     type="checkbox"
+                                     id={`gst-${index}`}
+                                     checked={charge.gstApplicable}
+                                     onChange={(e) => handleUpdateBillExtraCharge(index, 'gstApplicable', e.target.checked)}
+                                     className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                                   />
+                                   <Label htmlFor={`gst-${index}`} className="text-xs font-medium text-slate-600">
+                                     GST ({charge.gstPercentage}%)
+                                   </Label>
+                                 </div>
+                               </div>
+                               <div className="col-span-1">
+                                 <Button
+                                   variant="outline"
+                                   size="sm"
+                                   onClick={() => handleRemoveBillExtraCharge(index)}
+                                   className="text-red-500 hover:text-red-600 border-red-200 hover:border-red-300 hover:bg-red-50 h-8 w-8 p-0"
+                                 >
+                                   <X className="w-3 h-3" />
+                                 </Button>
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       )}
+                     </CardContent>
+                   </Card>
+
+                   {/* Enhanced Payment Details (only for bills) */}
+                   {billGenerationData.type === 'bill' && (
+                     <Card className="border border-slate-200 bg-gradient-to-br from-slate-50 to-purple-50">
+                       <CardHeader className="pb-3">
+                         <CardTitle className="flex items-center text-slate-800 text-lg">
+                           <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
+                             <CreditCard className="w-4 h-4 text-white" />
+                           </div>
+                           Payment Information
+                         </CardTitle>
+                       </CardHeader>
+                       <CardContent className="space-y-4">
+                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                           <div className="space-y-1">
+                             <Label className="text-xs font-medium text-slate-600">Payment Method</Label>
+                             <Select 
+                               value={billGenerationData.paymentMethod} 
+                               onValueChange={handlePaymentMethodChange}
+                             >
+                               <SelectTrigger className="border-slate-200 focus:border-purple-400 focus:ring-purple-400 h-8 text-sm">
+                                 <SelectValue />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="cash">Cash</SelectItem>
+                                 <SelectItem value="card">Card</SelectItem>
+                                 <SelectItem value="upi">UPI</SelectItem>
+                                 <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                               </SelectContent>
+                             </Select>
+                           </div>
+                           
+                           <div className="space-y-1">
+                             <Label className="text-xs font-medium text-slate-600">Collected By</Label>
+                             <Select 
+                               value={billGenerationData.collectedBy} 
+                               onValueChange={(value) => setBillGenerationData({
+                                 ...billGenerationData,
+                                 collectedBy: value
+                               })}
+                             >
+                               <SelectTrigger className="border-slate-200 focus:border-purple-400 focus:ring-purple-400 h-8 text-sm">
+                                 <SelectValue placeholder="Select staff member" />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 {users.map((user) => (
+                                   <SelectItem key={user.id} value={user.name}>
+                                     {user.name}
+                                   </SelectItem>
+                                 ))}
+                               </SelectContent>
+                             </Select>
+                           </div>
+
+                                                        <div className="space-y-1">
+                               <Label className="text-xs font-medium text-slate-600">Notes (Optional)</Label>
+                               <Textarea
+                                 value={billGenerationData.notes}
+                                 onChange={(e) => setBillGenerationData({
+                                   ...billGenerationData,
+                                   notes: e.target.value
+                                 })}
+                                 placeholder="Additional notes..."
+                                 rows={1}
+                                 className="border-slate-200 focus:border-purple-400 focus:ring-purple-400 text-sm"
+                               />
+                             </div>
+                         </div>
+
+                         {billGenerationData.paymentMethod !== 'cash' && (
+                           <div className="space-y-1">
+                             <Label className="text-xs font-medium text-slate-600">Reference ID / Transaction ID</Label>
+                             <Input
+                               value={billGenerationData.referenceId}
+                               onChange={(e) => setBillGenerationData({
+                                 ...billGenerationData,
+                                 referenceId: e.target.value
+                               })}
+                               placeholder="Enter reference ID"
+                               className="border-slate-200 focus:border-purple-400 focus:ring-purple-400 h-8 text-sm"
+                             />
+                           </div>
+                         )}
+                       </CardContent>
+                     </Card>
+                   )}
+
+                   {/* Enhanced Total Summary */}
+                   <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                     <CardContent className="p-6">
+                       <div className="space-y-4">
+                         <div className="flex justify-between items-center">
+                           <h4 className="text-lg font-bold text-slate-800">Total Amount</h4>
+                           <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                             {formatCurrency(calculateBillTotal())}
+                           </p>
+                         </div>
+                         
+                                                  {/* GST Breakdown */}
+                         <div className="bg-white p-3 rounded-md border border-emerald-200">
+                           {(() => {
+                             const breakdown = calculateGSTBreakdown();
+                             return (
+                               <div className="space-y-2 text-sm">
+                                 <div className="flex justify-between">
+                                   <span className="text-slate-600">Room Stay:</span>
+                                   <span className="font-medium">{formatCurrency((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0)}</span>
+                                 </div>
+                                 
+                                 {billGenerationData.extraCharges.map((charge, index) => (
+                                   <div key={index} className="flex justify-between">
+                                     <span className="text-slate-600">{charge.item}:</span>
+                                     <span className="font-medium">
+                                       {formatCurrency(charge.amount)}
+                                       {charge.gstApplicable && (
+                                         <span className="text-emerald-600 ml-1">
+                                           +{formatCurrency((charge.amount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)} GST
+                                         </span>
+                                       )}
+                                     </span>
+                                   </div>
+                                 ))}
+                                 
+                                 <div className="border-t border-slate-200 pt-2 mt-2">
+                                   <div className="flex justify-between text-sm text-slate-600">
+                                     <span>Subtotal:</span>
+                                     <span>{formatCurrency(breakdown.subtotal)}</span>
+                                   </div>
+                                   <div className="flex justify-between text-sm text-emerald-600">
+                                     <span>GST on Room Stay:</span>
+                                     <span>{formatCurrency(breakdown.roomGSTAmount || 0)}</span>
+                                   </div>
+                                   <div className="flex justify-between text-sm text-emerald-600">
+                                     <span>GST on Extra Charges:</span>
+                                     <span>{formatCurrency(breakdown.extraChargesGSTAmount || 0)}</span>
+                                   </div>
+                                   <div className="border-t border-slate-200 pt-2 mt-2">
+                                     <div className="flex justify-between font-semibold">
+                                       <span className="text-slate-700">Final Total:</span>
+                                       <span className="text-emerald-600">{formatCurrency(breakdown.total)}</span>
+                                     </div>
+                                   </div>
+                                 </div>
+                               </div>
+                             );
+                           })()}
+                         </div>
+                       </div>
+                     </CardContent>
+                   </Card>
+
+                   {/* Enhanced Navigation */}
+                   <div className="flex justify-between pt-4">
+                     <Button 
+                       variant="outline" 
+                       onClick={handlePrevStep}
+                       className="border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-4 py-2 text-sm font-medium h-9"
+                     >
+                       <ArrowLeft className="w-4 h-4 mr-2" />
+                       Previous
+                     </Button>
+                     
+                     <Button 
+                       onClick={generateBillOrInvoice}
+                       disabled={generatingEnhancedInvoice || (billGenerationData.type === 'bill' && !billGenerationData.collectedBy)}
+                       className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-6 py-2 text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed h-9"
+                     >
+                       {generatingEnhancedInvoice ? (
+                         <>
+                           <Loader className="w-4 h-4 mr-2 animate-spin" />
+                           Generating...
+                         </>
+                       ) : (
+                         <>
+                           Generate {billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'}
+                           <ArrowRight className="w-4 h-4 ml-2" />
+                         </>
+                       )}
+                     </Button>
+                   </div>
+                 </div>
+               )}
+
+               {/* Step 3: Generated Document */}
+               {currentStep === 3 && generatedBill && selectedBooking && (
+                 <div className="space-y-6">
+                   <div className="text-center">
+                     <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                       <CheckCircle className="w-8 h-8 text-white" />
+                     </div>
+                     <h3 className="text-2xl font-bold text-slate-800 mb-2">
+                       {billGenerationData.type === 'bill' ? 'Bill Generated Successfully!' : 'Invoice Generated Successfully!'}
+                     </h3>
+                     <p className="text-slate-600 text-base">
+                       {billGenerationData.type === 'bill' 
+                         ? 'Your bill has been generated and saved. Payment has been recorded.' 
+                         : 'Your invoice has been generated and is ready for payment.'}
+                     </p>
+                   </div>
+
+                   {/* Generated Document with Exact Same Format */}
+                   <InvoicePDF 
+                     invoiceData={{
+                       invoiceNumber: generatedBill.invoiceNumber,
+                       invoiceDate: new Date().toISOString().split('T')[0],
+                       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                       terms: 'Due on Receipt',
+                       company: {
+                         name: hotelInfo.name,
+                         address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                           'Hotel Address Line 1',
+                           'Hotel Address Line 2',
+                           'City, State ZIP',
+                           'Country'
+                         ],
+                         logo: hotelInfo.logo || undefined,
+                         contact: hotelInfo.primaryPhone || undefined
+                       },
+                       billTo: {
+                         name: selectedBooking.guestName,
+                         address: [
+                           selectedBooking.guestEmail,
+                           selectedBooking.guestPhone,
+                           `Room: ${selectedBooking.room.roomNumber}`,
+                           `${selectedBooking.room.roomType.name}`
+                         ]
+                       },
+                       shipTo: {
+                         address: [
+                           selectedBooking.guestEmail,
+                           selectedBooking.guestPhone,
+                           `Room: ${selectedBooking.room.roomNumber}`,
+                           `${selectedBooking.room.roomType.name}`
+                         ]
+                       },
+                       items: [
+                         {
+                           id: 1,
+                           name: `Room Stay - ${selectedBooking.room.roomType.name}`,
+                           description: `${formatDate(selectedBooking.checkIn)} to ${formatDate(selectedBooking.checkOut)} (${selectedBooking.nights} nights)`,
+                           quantity: selectedBooking.nights,
+                           unit: 'nights',
+                           rate: selectedBooking.room.roomType.price,
+                           amount: selectedBooking.room.roomType.price * selectedBooking.nights
+                         },
+                         ...billGenerationData.extraCharges.map((charge, index) => ({
+                           id: index + 2,
+                           name: charge.item,
+                           description: charge.description || '',
+                           quantity: 1,
+                           unit: 'pcs',
+                           rate: charge.amount,
+                           amount: charge.gstApplicable 
+                             ? charge.amount + ((charge.amount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)
+                             : charge.amount
+                         }))
+                       ],
+                       subtotal: ((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0) + billGenerationData.extraCharges.reduce((sum, charge) => {
+                         if (charge.gstApplicable) {
+                           return sum + charge.amount + ((charge.amount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)
+                         }
+                         return sum + charge.amount
+                       }, 0),
+                       taxRate: 18, // 18% GST
+                       total: generatedBill.totalAmount,
+                       currency: 'INR',
+                       paymentInfo: billGenerationData.type === 'bill' ? {
+                         method: billGenerationData.paymentMethod,
+                         referenceId: billGenerationData.referenceId || undefined,
+                         collectedBy: billGenerationData.collectedBy,
+                         status: 'paid'
+                       } : undefined
+                     }}
+                     filename={`${billGenerationData.type === 'bill' ? 'bill' : 'invoice'}-${generatedBill.invoiceNumber}.pdf`}
+                   >
+                     <Invoice data={{
+                       invoiceNumber: generatedBill.invoiceNumber,
+                       invoiceDate: new Date().toISOString().split('T')[0],
+                       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                       terms: 'Due on Receipt',
+                       company: {
+                         name: hotelInfo.name,
+                         address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                           'Hotel Address Line 1',
+                           'Hotel Address Line 2',
+                           'City, State ZIP',
+                           'Country'
+                         ],
+                         logo: hotelInfo.logo || undefined,
+                         contact: hotelInfo.primaryPhone || undefined
+                       },
+                       billTo: {
+                         name: selectedBooking.guestName,
+                         address: [
+                           selectedBooking.guestEmail,
+                           selectedBooking.guestPhone,
+                           `Room: ${selectedBooking.room.roomNumber}`,
+                           `${selectedBooking.room.roomType.name}`
+                         ]
+                       },
+                       shipTo: {
+                         address: [
+                           selectedBooking.guestEmail,
+                           selectedBooking.guestPhone,
+                           `Room: ${selectedBooking.room.roomNumber}`,
+                           `${selectedBooking.room.roomType.name}`
+                         ]
+                       },
+                       items: [
+                         {
+                           id: 1,
+                           name: `Room Stay - ${selectedBooking.room.roomType.name}`,
+                           description: `${formatDate(selectedBooking.checkIn)} to ${formatDate(selectedBooking.checkOut)} (${selectedBooking.nights} nights)`,
+                           quantity: selectedBooking.nights,
+                           unit: 'nights',
+                           rate: selectedBooking.room.roomType.price,
+                           amount: selectedBooking.room.roomType.price * selectedBooking.nights
+                         },
+                         ...billGenerationData.extraCharges.map((charge, index) => ({
+                           id: index + 2,
+                           name: charge.item,
+                           description: charge.description || '',
+                           quantity: 1,
+                           unit: 'pcs',
+                           rate: charge.amount,
+                           amount: charge.gstApplicable 
+                             ? charge.amount + ((charge.amount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)
+                             : charge.amount
+                         }))
+                       ],
+                       subtotal: ((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0) + billGenerationData.extraCharges.reduce((sum, charge) => {
+                         if (charge.gstApplicable) {
+                           return sum + charge.amount + ((charge.amount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)
+                         }
+                         return sum + charge.amount
+                       }, 0),
+                       taxRate: 18, // 18% GST
+                       total: generatedBill.totalAmount,
+                       currency: 'INR',
+                       paymentInfo: billGenerationData.type === 'bill' ? {
+                         method: billGenerationData.paymentMethod,
+                         referenceId: billGenerationData.referenceId || undefined,
+                         collectedBy: billGenerationData.collectedBy,
+                         status: 'paid'
+                       } : undefined
+                     }} />
+                   </InvoicePDF>
+
+                   {/* Enhanced Payment Details Summary (for bills) */}
+                   {billGenerationData.type === 'bill' && (
+                     <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200">
+                       <CardContent className="p-6">
+                         <h4 className="text-lg font-bold text-emerald-900 mb-4 flex items-center">
+                           <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mr-3">
+                             <CheckCircle className="w-4 h-4 text-white" />
+                           </div>
+                           Payment Details
+                         </h4>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="space-y-1">
+                             <Label className="text-xs font-medium text-emerald-700">Payment Method</Label>
+                             <p className="text-base font-medium text-slate-800 bg-white px-3 py-2 rounded-md border border-emerald-200">{billGenerationData.paymentMethod.toUpperCase()}</p>
+                           </div>
+                           {billGenerationData.referenceId && (
+                             <div className="space-y-1">
+                               <Label className="text-xs font-medium text-emerald-700">Reference ID</Label>
+                               <p className="text-base font-medium text-slate-800 bg-white px-3 py-2 rounded-md border border-emerald-200">{billGenerationData.referenceId}</p>
+                             </div>
+                           )}
+                           <div className="space-y-1">
+                             <Label className="text-xs font-medium text-emerald-700">Collected By</Label>
+                             <p className="text-base font-medium text-slate-800 bg-white px-3 py-2 rounded-md border border-emerald-200">{billGenerationData.collectedBy}</p>
+                           </div>
+                           <div className="space-y-1">
+                             <Label className="text-xs font-medium text-emerald-700">Status</Label>
+                             <p className="text-base font-medium text-emerald-600 bg-white px-3 py-2 rounded-md border border-emerald-200">PAID</p>
+                           </div>
+                         </div>
+                       </CardContent>
+                     </Card>
+                   )}
+
+                   <div className="flex justify-center pt-4">
+                     <Button 
+                       variant="outline" 
+                       onClick={handleCloseModal}
+                       className="border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 px-6 py-2 text-sm font-medium h-9"
+                     >
+                       Close
+                     </Button>
+                   </div>
+                 </div>
+               )}
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+       {/* View Booking Bill/Invoice Modal */}
+       <Dialog open={isViewBookingModalOpen} onOpenChange={setIsViewBookingModalOpen}>
+         <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+           
+           {viewBookingData && (
+             <div className="space-y-6">
+
+               {/* Bill/Invoice Preview */}
+               <InvoicePDF 
+                 invoiceData={{
+                   invoiceNumber: `PREVIEW-${viewBookingData.id}`,
+                   invoiceDate: new Date().toISOString().split('T')[0],
+                   dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                   terms: 'Due on Receipt',
+                   company: {
+                     name: hotelInfo.name,
+                     address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                       'Hotel Address Line 1',
+                       'Hotel Address Line 2',
+                       'City, State ZIP',
+                       'Country'
+                     ],
+                     logo: hotelInfo.logo || undefined,
+                     contact: hotelInfo.primaryPhone || undefined
+                   },
+                   billTo: {
+                     name: viewBookingData.guestName,
+                     address: [
+                       viewBookingData.guestEmail,
+                       viewBookingData.guestPhone,
+                       `Room: ${viewBookingData.room.roomNumber}`,
+                       `${viewBookingData.room.roomType.name}`
+                     ]
+                   },
+                   shipTo: {
+                     address: [
+                       viewBookingData.guestEmail,
+                       viewBookingData.guestPhone,
+                       `Room: ${viewBookingData.room.roomNumber}`,
+                       `${viewBookingData.room.roomType.name}`
+                     ]
+                   },
+                   items: [
+                     {
+                       id: 1,
+                       name: `Room Stay - ${viewBookingData.room.roomType.name}`,
+                       description: `${formatDate(viewBookingData.checkIn)} to ${formatDate(viewBookingData.checkOut)} (${viewBookingData.nights} nights)`,
+                       quantity: viewBookingData.nights,
+                       unit: 'nights',
+                       rate: viewBookingData.room.roomType.price,
+                       amount: viewBookingData.room.roomType.price * viewBookingData.nights
+                     },
+                     ...(viewBookingData.billItems || []).map((item, index) => ({
+                       id: index + 2,
+                       name: item.itemName,
+                       description: item.description || '',
+                       quantity: item.quantity,
+                       unit: 'pcs',
+                       rate: item.unitPrice,
+                       amount: item.finalAmount
+                     }))
+                   ],
+                   subtotal: viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0),
+                   taxRate: 18, // 18% GST
+                   total: (viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0)) * 1.18,
+                                    currency: 'INR',
+                 paymentInfo: viewBookingData.invoices?.[0]?.payments?.[0] ? {
+                   method: viewBookingData.invoices[0].payments[0].paymentMethod,
+                   referenceId: viewBookingData.invoices[0].payments[0].paymentReference || undefined,
+                   collectedBy: viewBookingData.invoices[0].payments[0].receivedBy || 'Staff',
+                   status: viewBookingData.invoices[0].payments[0].status
+                 } : undefined
+               }}
+               filename={`booking-preview-${viewBookingData.id}.pdf`}
+               >
+                 <Invoice data={{
+                   invoiceNumber: `PREVIEW-${viewBookingData.id}`,
+                   invoiceDate: new Date().toISOString().split('T')[0],
+                   dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                   terms: 'Due on Receipt',
+                   company: {
+                     name: hotelInfo.name,
+                     address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                       'Hotel Address Line 1',
+                       'Hotel Address Line 2',
+                       'City, State ZIP',
+                       'Country'
+                     ],
+                     logo: hotelInfo.logo || undefined,
+                     contact: hotelInfo.primaryPhone || undefined
+                   },
+                   billTo: {
+                     name: viewBookingData.guestName,
+                     address: [
+                       viewBookingData.guestEmail,
+                       viewBookingData.guestPhone,
+                       `Room: ${viewBookingData.room.roomNumber}`,
+                       `${viewBookingData.room.roomType.name}`
+                     ]
+                   },
+                   shipTo: {
+                     address: [
+                       viewBookingData.guestEmail,
+                       viewBookingData.guestPhone,
+                       `Room: ${viewBookingData.room.roomNumber}`,
+                       `${viewBookingData.room.roomType.name}`
+                     ]
+                   },
+                   items: [
+                     {
+                       id: 1,
+                       name: `Room Stay - ${viewBookingData.room.roomType.name}`,
+                       description: `${formatDate(viewBookingData.checkIn)} to ${formatDate(viewBookingData.checkOut)} (${viewBookingData.nights} nights)`,
+                       quantity: viewBookingData.nights,
+                       unit: 'nights',
+                       rate: viewBookingData.room.roomType.price,
+                       amount: viewBookingData.room.roomType.price * viewBookingData.nights
+                     },
+                     ...(viewBookingData.billItems || []).map((item, index) => ({
+                       id: index + 2,
+                       name: item.itemName,
+                       description: item.description || '',
+                       quantity: item.quantity,
+                       unit: 'pcs',
+                       rate: item.unitPrice,
+                       amount: item.finalAmount
+                     }))
+                   ],
+                   subtotal: viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0),
+                   taxRate: 18, // 18% GST
+                   total: (viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0)) * 1.18,
+                   currency: 'INR',
+                   paymentInfo: viewBookingData.invoices?.[0]?.payments?.[0] ? {
+                     method: viewBookingData.invoices[0].payments[0].paymentMethod,
+                     referenceId: viewBookingData.invoices[0].payments[0].paymentReference || undefined,
+                     collectedBy: viewBookingData.invoices[0].payments[0].receivedBy || 'Staff',
+                     status: viewBookingData.invoices[0].payments[0].status
+                   } : undefined
+                 }} />
+               </InvoicePDF>
+
+               <div className="flex justify-center space-x-4">
+                 <Button 
+                   variant="outline" 
+                   onClick={() => setIsViewBookingModalOpen(false)}
+                 >
+                   Close
+                 </Button>
+                 <Button 
+                   onClick={() => {
+                     setIsViewBookingModalOpen(false)
+                     setSelectedBooking(viewBookingData)
+                     setIsMultiStepModalOpen(true)
+                   }}
+                   className="bg-green-600 hover:bg-green-700"
+                 >
+                   <Receipt className="h-4 w-4 mr-2" />
+                   Generate Bill/Invoice
+                 </Button>
+               </div>
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+
+
+
+
+       {/* Delete Confirmation Modal */}
+       <DeleteConfirmationModal
+         isOpen={deleteConfirmation.isOpen}
+         onClose={deleteConfirmation.onClose}
+         onConfirm={deleteConfirmation.onConfirm}
+         title={deleteConfirmation.title}
+         description={deleteConfirmation.description}
+         itemName={deleteConfirmation.itemName}
+         isLoading={deleteConfirmation.isLoading}
+         variant={deleteConfirmation.variant}
+       />
+
+       {/* Hotel Info Loading State */}
+       {hotelInfoLoading && (
+         <Card className="border border-blue-200 bg-blue-50">
+           <CardContent className="p-4">
+             <div className="flex items-center gap-3">
+               <Loader className="h-5 w-5 animate-spin text-blue-600" />
+               <div>
+                 <h3 className="font-semibold text-blue-800">Loading Hotel Information</h3>
+                 <p className="text-sm text-blue-700">
+                   Please wait while we fetch your hotel details. This ensures accurate billing information.
+                 </p>
+               </div>
+             </div>
+           </CardContent>
+         </Card>
+       )}
+
+       {/* Subtle Revenue Tracking Status */}
+       <div className="fixed bottom-4 right-4 z-50">
+         <div className="bg-green-100 border border-green-300 rounded-lg px-3 py-2 shadow-lg">
+           <div className="flex items-center gap-2 text-green-700 text-sm">
+             <CheckCircle className="h-4 w-4" />
+             <span>Revenue tracking active</span>
+           </div>
+         </div>
+       </div>
+     </div>
+   )
+ }

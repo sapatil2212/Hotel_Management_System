@@ -1,0 +1,614 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model booking {
+  id               String          @id
+  guestName        String
+  guestEmail       String
+  guestPhone       String
+  checkIn          DateTime
+  checkOut         DateTime
+  actualCheckoutTime DateTime?
+  nights           Int
+  adults           Int             @default(1)
+  children         Int             @default(0)
+  totalAmount      Float
+  status           String          @default("pending")
+  source           booking_source  @default(website)
+  specialRequests  String?         @db.Text
+  roomId           String
+  promoCodeId      String?
+  originalAmount   Float?
+  discountAmount   Float?
+  baseAmount       Float?
+  gstAmount        Float?          @default(0)
+  serviceTaxAmount Float?          @default(0)
+  otherTaxAmount   Float?          @default(0)
+  totalTaxAmount   Float?          @default(0)
+  paymentMethod    String?         @default("pay_at_hotel")
+  paymentStatus    payment_status  @default(pending)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  promoCode        promocode?      @relation(fields: [promoCodeId], references: [id], map: "Booking_promoCodeId_fkey")
+  room             rooms           @relation(fields: [roomId], references: [id], map: "Booking_roomId_fkey")
+  invoices         invoice[]
+  payments         payment[]
+  billItems        bill_item[]
+  splitPayments    split_payment[]
+  guestBillingView guest_billing_view?
+
+  @@index([roomId], map: "Booking_roomId_fkey")
+  @@index([promoCodeId], map: "Booking_promoCodeId_fkey")
+  @@index([paymentStatus])
+  @@index([source])
+  @@index([checkIn])
+  @@index([checkOut])
+}
+
+model invoice {
+  id               String         @id @default(cuid())
+  invoiceNumber    String         @unique
+  bookingId        String
+  guestName        String
+  guestEmail       String
+  guestPhone       String
+  checkIn          DateTime
+  checkOut         DateTime
+  nights           Int
+  adults           Int
+  children         Int
+  roomTypeName     String
+  roomNumber       String
+  baseAmount       Float
+  discountAmount   Float
+  gstAmount        Float
+  serviceTaxAmount Float
+  otherTaxAmount   Float
+  totalTaxAmount   Float
+  totalAmount      Float
+  status           invoice_status @default(pending)
+  dueDate          DateTime
+  issuedDate       DateTime       @default(now())
+  paidDate         DateTime?
+  notes            String?        @db.Text
+  terms            String?        @default("Payment due upon receipt")
+  qrCode           String?        @db.Text
+  emailSent        Boolean        @default(false)
+  whatsappSent     Boolean        @default(false)
+  downloadCount    Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  booking          booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payments         payment[]
+  invoiceItems     invoice_item[]
+
+  @@index([bookingId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([issuedDate])
+}
+
+model payment {
+  id               String         @id @default(cuid())
+  bookingId        String
+  invoiceId        String?
+  amount           Float
+  paymentMethod    payment_method
+  paymentReference String?
+  paymentDate      DateTime       @default(now())
+  receivedBy       String?
+  notes            String?        @db.Text
+  status           String         @default("completed")
+  gatewayResponse  String?        @db.Text
+  transactionId    String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  booking          booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  invoice          invoice?       @relation(fields: [invoiceId], references: [id])
+
+  @@index([bookingId])
+  @@index([invoiceId])
+  @@index([paymentMethod])
+  @@index([paymentDate])
+  @@unique([bookingId, amount, paymentMethod, paymentDate], map: "unique_booking_payment")
+}
+
+model category {
+  id               String   @id
+  name             String   @unique(map: "Category_name_key")
+  slug             String   @unique(map: "Category_slug_key")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime
+  aboutMore        String?  @db.Text
+  aboutShort       String?
+  aboutTitle       String?
+  contactAddress   String?  @db.Text
+  contactEmail     String?
+  contactPhone     String?
+  faqs             Json?
+  mapDirectionsUrl String?
+  mapEmbedUrl      String?  @db.Text
+  partners         Json?
+  propertyFeatures Json?
+  reviews          Json?
+  room             room[]
+}
+
+model emailotp {
+  id        String   @id
+  email     String   @unique(map: "EmailOTP_email_key")
+  code      String
+  purpose   String   @default("register")
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+}
+
+model hotelinfo {
+  id                    String   @id
+  name                  String
+  tagline               String?
+  description           String?  @db.Text
+  starRating            Int      @default(5)
+  overallRating         Float    @default(4.5)
+  reviewCount           Int      @default(0)
+  primaryPhone          String?
+  whatsappPhone         String?
+  primaryEmail          String?
+  reservationEmail      String?
+  address               String?  @db.Text
+  emergencyContact      String?
+  googleMapsEmbedCode   String?  @db.Text
+  latitude              Float?
+  longitude             Float?
+  directionsUrl         String?
+  nearbyAttractions     Json?
+  distanceFromKeyPlaces Json?
+  checkInTime           String?  @default("3:00 PM")
+  checkOutTime          String?  @default("11:00 AM")
+  cancellationPolicy    String?  @db.Text
+  petPolicy             String?  @db.Text
+  smokingPolicy         String?  @db.Text
+  bookingPartners       Json?
+  partnerLogos          Json?
+  propertyAmenities     Json?
+  businessFacilities    Json?
+  safetyFeatures        Json?
+  services              Json?
+  gstNumber             String?
+  gstPercentage         Float?   @default(18)
+  serviceTaxPercentage  Float?   @default(0)
+  otherTaxes            Json?
+  taxEnabled            Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime
+  guestPolicies         String?  @db.Text
+  faqs                  Json?
+  privacyPolicy         String?  @db.Text
+  termsOfService        String?  @db.Text
+  logo                  String?  @db.Text
+  logoDisplayType       String?  @default("image") // "image" or "text"
+  brandText             String?  @db.Text
+  brandTextStyle        String?  @default("default") // "default", "abbreviation", "custom"
+}
+
+model room {
+  id               String    @id
+  name             String
+  slug             String    @unique(map: "Room_slug_key")
+  price            Int
+  description      String    @db.Text
+  shortDescription String
+  images           Json
+  amenities        Json
+  maxGuests        Int
+  size             String
+  bedType          String
+  available        Boolean   @default(true)
+  features         Json
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime
+  categoryId       String?
+  totalRooms       Int       @default(1)
+  bathroomCount    Int       @default(1)
+  cancellationFree Boolean   @default(true)
+  currency         String    @default("INR")
+  discountPercent  Float?
+  floorNumber      Int?
+  highlights       String?   @db.Text
+  instantBooking   Boolean   @default(true)
+  isPromoted       Boolean   @default(false)
+  keywords         Json?
+  metaDescription  String?
+  metaTitle        String?
+  originalPrice    Int?
+  roomNumber       String?
+  viewType         String?
+  category         category? @relation(fields: [categoryId], references: [id], map: "Room_categoryId_fkey")
+  rooms            rooms[]
+
+  @@index([categoryId], map: "Room_categoryId_fkey")
+  @@map("room_types")
+}
+
+model rooms {
+  id                  String       @id
+  roomNumber          String       @unique
+  roomTypeId          String
+  status              rooms_status @default(available)
+  floorNumber         Int?
+  notes               String?      @db.Text
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime
+  availableForBooking Boolean      @default(true)
+  bookings            booking[]
+  roomType            room         @relation(fields: [roomTypeId], references: [id], map: "Rooms_roomTypeId_fkey")
+
+  @@index([roomTypeId], map: "Rooms_roomTypeId_fkey")
+}
+
+model user {
+  id              String    @id
+  name            String
+  email           String    @unique(map: "User_email_key")
+  phone           String
+  role            user_role
+  passwordHash    String
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+  bankAccounts    bank_account[]
+  expenses        expense[]
+}
+
+model promocode {
+  id                String                  @id
+  code              String                  @unique
+  title             String
+  description       String?                 @db.Text
+  discountType      promocode_discount_type
+  discountValue     Float
+  minOrderAmount    Float?
+  maxDiscountAmount Float?
+  usageLimit        Int?
+  usedCount         Int                     @default(0)
+  isActive          Boolean                 @default(true)
+  validFrom         DateTime
+  validUntil        DateTime
+  applicableRooms   Json?
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime
+  bookings          booking[]
+}
+
+enum user_role {
+  OWNER
+  ADMIN
+  RECEPTION
+}
+
+enum promocode_discount_type {
+  percentage
+  fixed
+}
+
+enum rooms_status {
+  available
+  occupied
+  maintenance
+  reserved
+  cleaning
+}
+
+enum booking_source {
+  website
+  phone
+  walk_in
+  ota
+  corporate
+  agent
+  referral
+}
+
+enum payment_status {
+  pending
+  partially_paid
+  paid
+  overdue
+  cancelled
+  refunded
+}
+
+enum invoice_status {
+  pending
+  sent
+  partially_paid
+  paid
+  overdue
+  cancelled
+  refunded
+}
+
+enum payment_method {
+  cash
+  card
+  upi
+  bank_transfer
+  online_gateway
+  cheque
+  wallet
+}
+
+enum service_category {
+  accommodation
+  food_beverage
+  spa
+  transport
+  laundry
+  minibar
+  conference
+  other
+}
+
+model service {
+  id               String           @id @default(cuid())
+  name             String
+  description      String?          @db.Text
+  category         service_category
+  price            Float
+  taxable          Boolean          @default(true)
+  isActive         Boolean          @default(true)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  billItems        bill_item[]
+  invoiceItems     invoice_item[]
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model bill_item {
+  id          String  @id @default(cuid())
+  bookingId   String
+  serviceId   String?
+  itemName    String
+  description String?
+  quantity    Float   @default(1)
+  unitPrice   Float
+  totalPrice  Float
+  discount    Float   @default(0)
+  taxRate     Float   @default(0)
+  taxAmount   Float   @default(0)
+  finalAmount Float
+  addedBy     String?
+  addedAt     DateTime @default(now())
+  booking     booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  service     service? @relation(fields: [serviceId], references: [id])
+
+  @@index([bookingId])
+  @@index([serviceId])
+  @@index([addedAt])
+}
+
+model invoice_item {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  serviceId   String?
+  itemName    String
+  description String?
+  quantity    Float   @default(1)
+  unitPrice   Float
+  totalPrice  Float
+  discount    Float   @default(0)
+  taxRate     Float   @default(0)
+  taxAmount   Float   @default(0)
+  finalAmount Float
+  invoice     invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  service     service? @relation(fields: [serviceId], references: [id])
+
+  @@index([invoiceId])
+  @@index([serviceId])
+}
+
+model split_payment {
+  id            String         @id @default(cuid())
+  bookingId     String
+  amount        Float
+  paymentMethod payment_method
+  description   String?
+  status        String         @default("pending")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  booking       booking        @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+model revenue_report {
+  id                   String   @id @default(cuid())
+  date                 DateTime
+  period_type          String   // daily, monthly, yearly
+  accommodation_revenue Float   @default(0)
+  food_beverage_revenue Float   @default(0)
+  spa_revenue          Float    @default(0)
+  transport_revenue    Float    @default(0)
+  laundry_revenue      Float    @default(0)
+  minibar_revenue      Float    @default(0)
+  other_revenue        Float    @default(0)
+  total_revenue        Float    @default(0)
+  cash_payments        Float    @default(0)
+  card_payments        Float    @default(0)
+  upi_payments         Float    @default(0)
+  online_payments      Float    @default(0)
+  bank_transfer_payments Float  @default(0)
+  website_bookings     Int      @default(0)
+  ota_bookings         Int      @default(0)
+  phone_bookings       Int      @default(0)
+  walk_in_bookings     Int      @default(0)
+  corporate_bookings   Int      @default(0)
+  total_bookings       Int      @default(0)
+  tax_collected        Float    @default(0)
+  outstanding_amount   Float    @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@unique([date, period_type])
+  @@index([date])
+  @@index([period_type])
+}
+
+model guest_billing_view {
+  id          String   @id @default(cuid())
+  bookingId   String   @unique
+  accessToken String   @unique
+  expiresAt   DateTime
+  isActive    Boolean  @default(true)
+  viewCount   Int      @default(0)
+  lastViewed  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  booking     booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([accessToken])
+  @@index([expiresAt])
+}
+
+model bank_account {
+  id              String        @id @default(cuid())
+  accountName     String
+  accountNumber   String?
+  bankName        String?
+  accountType     account_type  @default(main)
+  balance         Float         @default(0)
+  isActive        Boolean       @default(true)
+  userId          String?       // For user-specific accounts
+  isMainAccount   Boolean       @default(false) // Main hotel account
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  transactions    transaction[]
+  user            user?         @relation(fields: [userId], references: [id])
+
+  @@index([accountType])
+  @@index([isActive])
+  @@index([userId])
+  @@index([isMainAccount])
+}
+
+model transaction {
+  id                String             @id @default(cuid())
+  accountId         String
+  type              transaction_type
+  category          transaction_category
+  amount            Float
+  description       String
+  referenceId       String?            // Reference to booking/invoice/payment/expense ID
+  referenceType     reference_type?    // booking, invoice, payment, expense, etc.
+  paymentMethod     payment_method?
+  processedBy       String?
+  notes             String?            @db.Text
+  transactionDate   DateTime           @default(now())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  isModification    Boolean            @default(false) // For tracking payment modifications
+  originalAmount    Float?             // Original amount before modification
+  modificationReason String?           @db.Text
+  account           bank_account       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([type])
+  @@index([category])
+  @@index([transactionDate])
+  @@index([referenceId])
+  @@index([referenceType])
+  @@index([isModification])
+}
+
+enum account_type {
+  main
+  petty_cash
+  online_payments
+  savings
+  current
+}
+
+enum transaction_type {
+  credit
+  debit
+}
+
+enum transaction_category {
+  accommodation_revenue
+  food_beverage_revenue
+  spa_revenue
+  transport_revenue
+  laundry_revenue
+  minibar_revenue
+  other_services_revenue
+  room_maintenance
+  staff_salary
+  utilities
+  marketing
+  supplies
+  equipment
+  taxes_paid
+  bank_charges
+  refunds
+  discounts
+  other_expense
+  transfer_in
+  transfer_out
+}
+
+model expense_type {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?   // User who created this expense type
+  expenses    expense[]
+
+  @@index([isActive])
+  @@index([name])
+}
+
+model expense {
+  id               String             @id @default(cuid())
+  expenseTypeId    String
+  amount           Float
+  description      String
+  notes            String?            @db.Text
+  paymentMethod    payment_method?
+  userId           String             // User who made the expense
+  approvedBy       String?            // For approval workflow
+  isApproved       Boolean            @default(false)
+  expenseDate      DateTime           @default(now())
+  referenceNumber  String?            // Receipt/bill reference
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  expenseType      expense_type       @relation(fields: [expenseTypeId], references: [id])
+  user             user               @relation(fields: [userId], references: [id])
+
+  @@index([expenseTypeId])
+  @@index([userId])
+  @@index([expenseDate])
+  @@index([isApproved])
+}
+
+enum reference_type {
+  booking
+  invoice
+  payment
+  expense
+  transfer
+  adjustment
+  refund
+}
