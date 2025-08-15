@@ -1,0 +1,7 @@
+warning: in the working copy of 'components/layout/navigation.tsx', LF will be replaced by CRLF the next time Git touches it
+app/dashboard/bookings/page.tsx
+components/dashboard/billing-table.tsx
+components/dashboard/topbar.tsx
+components/layout/navigation.tsx
+package.json
+prisma/schema.prisma

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { QuickBanner } from "@/components/layout/quick-banner"
-import { Navigation } from "@/components/layout/navigation"
+import Navigation from "@/components/layout/navigation"
 
 export default function TestBannerPage() {
   const [showBanner, setShowBanner] = useState(true)

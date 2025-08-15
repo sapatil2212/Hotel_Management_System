@@ -112,13 +112,12 @@ export class InvoiceService {
         throw new Error('Booking not found');
       }
 
-<<<<<<< HEAD
       // Check for duplicate payment before creating
       const existingPayment = await prisma.payment.findFirst({
         where: {
           bookingId: data.bookingId,
           amount: data.amount,
-          paymentMethod: data.paymentMethod,
+          paymentMethod: data.paymentMethod as any,
           paymentDate: {
             gte: new Date(Date.now() - 5 * 60 * 1000), // Within last 5 minutes
           },
@@ -129,16 +128,13 @@ export class InvoiceService {
         console.log(`Duplicate payment detected for booking ${data.bookingId}, amount ${data.amount}, method ${data.paymentMethod}`);
         return existingPayment; // Return existing payment instead of creating duplicate
       }
-
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       // Create payment record
       const payment = await prisma.payment.create({
         data: {
           bookingId: data.bookingId,
           invoiceId: data.invoiceId,
           amount: data.amount,
-          paymentMethod: data.paymentMethod,
+          paymentMethod: data.paymentMethod as any,
           paymentReference: data.paymentReference,
           receivedBy: data.receivedBy,
           notes: data.notes,
@@ -160,8 +156,8 @@ export class InvoiceService {
       await prisma.booking.update({
         where: { id: data.bookingId },
         data: {
-          paymentStatus,
-          paymentMethod: data.paymentMethod
+          paymentStatus: paymentStatus as any,
+          paymentMethod: data.paymentMethod as any
         }
       });
 
@@ -185,7 +181,7 @@ export class InvoiceService {
           await prisma.invoice.update({
             where: { id: data.invoiceId },
             data: {
-              status: invoiceStatus,
+              status: invoiceStatus as any,
               paidDate: invoiceStatus === 'paid' ? new Date() : null
             }
           });
@@ -319,7 +315,7 @@ export class InvoiceService {
       const invoice = await prisma.invoice.update({
         where: { id: invoiceId },
         data: {
-          status,
+          status: status as any,
           paidDate: status === 'paid' ? new Date() : null
         }
       });

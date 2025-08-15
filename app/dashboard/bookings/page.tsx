@@ -1,10 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-<<<<<<< HEAD
 import { useSearchParams } from "next/navigation"
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 import BookingsTable from "@/components/dashboard/bookings-table"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -21,12 +18,9 @@ interface BookingStats {
 }
 
 export default function DashboardBookingsPage() {
-<<<<<<< HEAD
   const searchParams = useSearchParams()
   const editBookingId = searchParams.get('edit')
   
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   const [stats, setStats] = useState<BookingStats>({
     totalBookings: 0,
     confirmedBookings: 0,
@@ -86,11 +80,7 @@ export default function DashboardBookingsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-<<<<<<< HEAD
           {/* Bookings Management heading removed */}
-=======
-          <h1 className="text-2xl font-bold">Bookings Management</h1>
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
           <p className="text-muted-foreground">
             Manage hotel bookings, view guest information, and track reservations
           </p>
@@ -160,11 +150,7 @@ export default function DashboardBookingsPage() {
       </div>
 
       {/* Bookings Table */}
-<<<<<<< HEAD
       <BookingsTable editBookingId={editBookingId} />
-=======
-      <BookingsTable />
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
       {/* New Booking Modal */}
       <NewBookingModal 

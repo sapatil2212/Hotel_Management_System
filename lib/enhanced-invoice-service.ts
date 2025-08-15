@@ -379,11 +379,11 @@ export class EnhancedInvoiceService {
         dueDate: invoice.dueDate,
         hotelInfo: {
           name: hotelInfo.name,
-          gstNumber: hotelInfo.gstNumber,
+          gstNumber: hotelInfo.gstNumber || undefined,
           address: this.formatHotelAddress(hotelInfo),
-          phone: hotelInfo.primaryPhone,
-          email: hotelInfo.primaryEmail,
-          logo: hotelInfo.logo,
+          phone: hotelInfo.primaryPhone || undefined,
+          email: hotelInfo.primaryEmail || undefined,
+          logo: hotelInfo.logo || undefined,
         },
         guestInfo: {
           name: invoice.guestName,
@@ -407,8 +407,8 @@ export class EnhancedInvoiceService {
           paymentStatus: paymentSummary.paymentStatus,
         },
         qrCode: invoice.qrCode || '',
-        notes: invoice.notes,
-        terms: invoice.terms,
+        notes: invoice.notes || undefined,
+        terms: invoice.terms || undefined,
       };
     } catch (error) {
       console.error('Error getting GST invoice:', error);

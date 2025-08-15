@@ -65,6 +65,7 @@ export default function BillingManagement() {
   const [invoices, setInvoices] = useState<InvoiceData[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+  const [selectedInvoiceData, setSelectedInvoiceData] = useState<any>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showInvoiceDialog, setShowInvoiceDialog] = useState(false);
@@ -89,6 +90,25 @@ export default function BillingManagement() {
     fetchInvoices();
     fetchUsers();
   }, []);
+
+  // Convert invoice data when selectedInvoice changes
+  useEffect(() => {
+    const convertInvoiceData = async () => {
+      if (selectedInvoice) {
+        try {
+          const converted = await InvoiceService.convertToInvoiceData(selectedInvoice);
+          setSelectedInvoiceData(converted);
+        } catch (error) {
+          console.error('Error converting invoice data:', error);
+          setSelectedInvoiceData(null);
+        }
+      } else {
+        setSelectedInvoiceData(null);
+      }
+    };
+    
+    convertInvoiceData();
+  }, [selectedInvoice]);
 
   const fetchBookings = async () => {
     try {
@@ -546,9 +566,9 @@ export default function BillingManagement() {
           <DialogHeader>
             <DialogTitle>Invoice Details</DialogTitle>
           </DialogHeader>
-          {selectedInvoice && (
-            <InvoicePDF invoiceData={InvoiceService.convertToInvoiceData(selectedInvoice)}>
-              <Invoice data={InvoiceService.convertToInvoiceData(selectedInvoice)} />
+          {selectedInvoice && selectedInvoiceData && (
+            <InvoicePDF invoiceData={selectedInvoiceData}>
+              <Invoice data={selectedInvoiceData} />
             </InvoicePDF>
           )}
                  </DialogContent>

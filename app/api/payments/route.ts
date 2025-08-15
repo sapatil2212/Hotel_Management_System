@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
     if (skipComplexProcessing) {
       // Simple payment record with main account crediting
       payment = await prisma.$transaction(async (tx) => {
-<<<<<<< HEAD
         // Check for duplicate payment before creating
         const existingPayment = await tx.payment.findFirst({
           where: {
@@ -83,8 +82,6 @@ export async function POST(request: NextRequest) {
           return existingPayment; // Return existing payment instead of creating duplicate
         }
 
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
         // Create payment record
         const paymentRecord = await tx.payment.create({
           data: {

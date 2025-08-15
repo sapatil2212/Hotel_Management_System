@@ -51,9 +51,7 @@ export interface RevenueReportData {
     occupiedRooms: number;
     occupancyRate: number;
     averageStayDuration: number;
-    averageRevenuePer
-
-: number;
+    averageRevenuePerBooking: number;
   };
   outstandingPayments: {
     pending: number;

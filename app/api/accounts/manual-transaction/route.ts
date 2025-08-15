@@ -7,7 +7,7 @@ import { z } from 'zod';
 const manualTransactionSchema = z.object({
   accountId: z.string().min(1, 'Account ID is required'),
   amount: z.number().min(0.01, 'Amount must be greater than 0'),
-  type: z.enum(['deposit', 'withdrawal'], 'Type must be deposit or withdrawal'),
+  type: z.enum(['deposit', 'withdrawal'], { message: 'Type must be deposit or withdrawal' }),
   description: z.string().min(1, 'Description is required'),
   notes: z.string().optional(),
   paymentMethod: z.enum(['cash', 'card', 'upi', 'bank_transfer', 'online_gateway', 'cheque', 'wallet']).optional(),

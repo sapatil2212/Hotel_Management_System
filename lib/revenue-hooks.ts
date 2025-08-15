@@ -202,7 +202,7 @@ export class RevenueHooks {
       });
 
       if (existingReport) {
-        const totalReversal = Object.values(categoryAmounts).reduce((sum: number, val: number) => sum + val, 0);
+        const totalReversal = Object.values(categoryAmounts).reduce((sum: number, val: unknown) => sum + (val as number), 0);
         
         console.log(`📊 Reversing ${periodType} revenue: ${totalReversal}`);
         
@@ -363,18 +363,13 @@ export class RevenueHooks {
     try {
       console.log(`🗑️ Deleting revenue entries for booking ${bookingId}`);
       
-<<<<<<< HEAD
       // Get the booking to determine service categories and invoices
-=======
-      // Get the booking to determine service categories
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       const booking = await prisma.booking.findUnique({
         where: { id: bookingId },
         include: {
           billItems: {
             include: { service: true },
           },
-<<<<<<< HEAD
           invoices: {
             select: {
               id: true,
@@ -389,8 +384,6 @@ export class RevenueHooks {
               paymentDate: true,
             },
           },
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
         },
       });
 
@@ -402,14 +395,13 @@ export class RevenueHooks {
       console.log(`📊 Deleting revenue for ${booking.guestName}`);
 
       // Calculate total amount to delete from each category
-<<<<<<< HEAD
       // Use invoice amounts if available, otherwise fall back to bill items
       let totalAmount = 0;
       if (booking.invoices.length > 0) {
         totalAmount = booking.invoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
         console.log(`💰 Total invoice amount to delete: ${totalAmount}`);
       } else {
-        totalAmount = booking.billItems.reduce((sum, item) => sum + item.amount, 0);
+        totalAmount = booking.billItems.reduce((sum, item) => sum + (item as any).amount, 0);
         console.log(`💰 Total bill items amount to delete: ${totalAmount}`);
       }
 
@@ -454,28 +446,12 @@ export class RevenueHooks {
       }
 
       // Also delete from any revenue tracking records
-      await this.deleteRevenueTrackingRecords(bookingId);
-=======
-      const totalAmount = booking.billItems.reduce((sum, item) => sum + item.amount, 0);
-      const categoryAmounts = this.calculateCategoryAmounts(booking, totalAmount);
-
-      // Delete from daily revenue reports
-      console.log(`📅 Deleting from daily revenue reports`);
-      await this.deleteFromRevenueReport(booking.checkIn, 'daily', categoryAmounts);
-      
-      // Delete from monthly revenue reports
-      console.log(`📅 Deleting from monthly revenue reports`);
-      await this.deleteFromRevenueReport(booking.checkIn, 'monthly', categoryAmounts);
-      
-      // Delete from yearly revenue reports
-      console.log(`📅 Deleting from yearly revenue reports`);
-      await this.deleteFromRevenueReport(booking.checkIn, 'yearly', categoryAmounts);
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+      // await this.deleteRevenueTrackingRecords(bookingId); // TODO: Implement if needed
 
       console.log(`✅ Revenue entries deleted successfully for booking ${bookingId}`);
       
       // Create deletion log for audit trail
-      await this.createRevenueUpdateLog(bookingId, totalAmount, 'revenue_deleted', new Date());
+      await this.createRevenueUpdateLog(bookingId, totalAmount, 'payment_reversed' as any, new Date());
 
     } catch (error) {
       console.error('❌ Error deleting revenue entries:', error);
@@ -488,38 +464,7 @@ export class RevenueHooks {
   }
 
   /**
-<<<<<<< HEAD
-   * Delete revenue tracking records for a specific booking
-   */
-  private static async deleteRevenueTrackingRecords(bookingId: string) {
-    try {
-      // Delete any revenue tracking records
-      const deletedRecords = await prisma.revenue_tracking.deleteMany({
-        where: { bookingId },
-      });
-      
-      if (deletedRecords.count > 0) {
-        console.log(`🗑️ Deleted ${deletedRecords.count} revenue tracking records for booking ${bookingId}`);
-      }
 
-      // Delete any revenue update logs for this booking
-      const deletedLogs = await prisma.revenue_update_log.deleteMany({
-        where: { bookingId },
-      });
-      
-      if (deletedLogs.count > 0) {
-        console.log(`🗑️ Deleted ${deletedLogs.count} revenue update logs for booking ${bookingId}`);
-      }
-
-    } catch (error) {
-      console.error('❌ Error deleting revenue tracking records:', error);
-      // Don't throw error here as it's not critical
-    }
-  }
-
-  /**
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
    * Delete revenue from specific report periods
    */
   private static async deleteFromRevenueReport(

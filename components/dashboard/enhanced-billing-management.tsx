@@ -570,7 +570,7 @@ export default function EnhancedBillingManagement() {
                     </div>
                   )}
 
-                  {paymentSummary?.payments.length > 0 && (
+                  {paymentSummary?.payments && paymentSummary.payments.length > 0 && (
                     <Table>
                       <TableHeader>
                         <TableRow>

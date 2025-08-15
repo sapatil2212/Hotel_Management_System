@@ -3,10 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { generateUniqueInvoiceNumber, generateQRCode } from '@/lib/qr-generator';
-<<<<<<< HEAD
 import { EnhancedAccountService } from '@/lib/enhanced-account-service';
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
 const prisma = new PrismaClient();
 
@@ -60,15 +57,15 @@ export async function POST(request: NextRequest) {
     const qrCode = generateQRCode(invoiceNumber);
     
     // Extract extra charges and payment info from notes if they exist
-    let extraCharges = [];
-    let paymentInfo = null;
+    let extraCharges: Array<{itemName: string; description: string; amount: number} | null> = [];
+    let paymentInfo: {method: string; collectedBy: string; referenceId: string | null} | null = null;
     
     if (body.notes) {
       // Parse extra charges from notes
       const extraChargesMatch = body.notes.match(/Extra Charge Details:\n([\s\S]*?)(?=\n\n|$)/);
       if (extraChargesMatch) {
         const extraChargesText = extraChargesMatch[1];
-        extraCharges = extraChargesText.split('\n').map(line => {
+        extraCharges = extraChargesText.split('\n').map((line: string) => {
           const match = line.match(/^(.+): (.+) - (.+)$/);
           if (match) {
             return {
@@ -124,7 +121,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Create invoice items for extra charges
-      for (const charge of extraCharges) {
+      for (const charge of extraCharges.filter((c): c is {itemName: string; description: string; amount: number} => c !== null)) {
         await tx.invoice_item.create({
           data: {
             invoiceId: createdInvoice.id,
@@ -141,7 +138,6 @@ export async function POST(request: NextRequest) {
         });
       }
 
-<<<<<<< HEAD
       // Create payment record if this is a bill (paid invoice) and no payment exists yet
       if (body.status === 'paid' && paymentInfo) {
         // Check if a payment already exists for this booking to avoid duplicates
@@ -167,27 +163,11 @@ export async function POST(request: NextRequest) {
             }
           });
         }
-=======
-      // Create payment record if this is a bill (paid invoice)
-      if (body.status === 'paid' && paymentInfo) {
-        await tx.payment.create({
-          data: {
-            bookingId: body.bookingId,
-            invoiceId: createdInvoice.id,
-            amount: body.totalAmount,
-            paymentMethod: paymentInfo.method as any,
-            paymentReference: paymentInfo.referenceId,
-            receivedBy: paymentInfo.collectedBy,
-            status: 'completed'
-          }
-        });
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       }
 
-      return createdInvoice;
-    });
+          return createdInvoice;
+  });
     
-<<<<<<< HEAD
     // If invoice is paid, automatically add revenue to Hotel account
     if (body.status === 'paid') {
       try {
@@ -197,7 +177,7 @@ export async function POST(request: NextRequest) {
         // Calculate revenue breakdown
         const revenueBreakdown = {
           accommodation: body.baseAmount,
-          extraCharges: extraCharges.reduce((sum, charge) => sum + charge.amount, 0),
+          extraCharges: extraCharges.filter(c => c !== null).reduce((sum, charge) => sum + charge!.amount, 0),
           taxes: body.totalTaxAmount || 0
         };
         
@@ -217,9 +197,6 @@ export async function POST(request: NextRequest) {
         // Don't fail the invoice creation if account update fails, but log it
       }
     }
-    
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     // Fetch the complete invoice with all relations
     const completeInvoice = await prisma.invoice.findUnique({
       where: { id: invoice.id },

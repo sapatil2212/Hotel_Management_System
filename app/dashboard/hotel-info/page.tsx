@@ -90,11 +90,7 @@ interface HotelInfo {
 
 export default function HotelInfoPage() {
   const [loading, setLoading] = useState(false)
-<<<<<<< HEAD
   const { hotelInfo, updateHotelInfo, refreshHotelInfo, isLoading } = useHotel()
-=======
-  const { hotelInfo, updateHotelInfo, refreshHotelInfo } = useHotel()
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   const [newAttraction, setNewAttraction] = useState("")
   const [newAmenity, setNewAmenity] = useState("")
   const [newBusinessFacility, setNewBusinessFacility] = useState("")
@@ -321,7 +317,6 @@ export default function HotelInfoPage() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-<<<<<<< HEAD
         {/* Loading State */}
         {isLoading && (
           <Card className="border-blue-200 bg-blue-50">
@@ -338,9 +333,6 @@ export default function HotelInfoPage() {
             </CardContent>
           </Card>
         )}
-
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="border-slate-200">
@@ -349,115 +341,52 @@ export default function HotelInfoPage() {
                 <Star className="h-4 w-4" />
                 <span className="text-sm font-medium">Star rating</span>
               </div>
-<<<<<<< HEAD
-              <div className="text-2xl font-semibold text-slate-900">
-                {hotelInfo.starRating ? `${hotelInfo.starRating} Star` : 'Not set'}
+              <div className="text-2xl font-bold text-slate-900">
+                {hotelInfo.starRating} Star Hotel
               </div>
-=======
-              <div className="text-2xl font-semibold text-slate-900">{hotelInfo.starRating} Star</div>
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
             </CardContent>
           </Card>
-          <Card className="border-slate-200">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-1 text-slate-600">
-                <CheckCircle2 className="h-4 w-4" />
-                <span className="text-sm font-medium">Overall rating</span>
-              </div>
-<<<<<<< HEAD
-              <div className="text-2xl font-semibold text-slate-900">
-                {hotelInfo.overallRating ? `${hotelInfo.overallRating}/5.0` : 'Not set'}
-              </div>
-=======
-              <div className="text-2xl font-semibold text-slate-900">{hotelInfo.overallRating}/5.0</div>
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
-            </CardContent>
-          </Card>
+          
           <Card className="border-slate-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1 text-slate-600">
                 <Users className="h-4 w-4" />
+                <span className="text-sm font-medium">Overall Rating</span>
+              </div>
+              <div className="text-2xl font-bold text-slate-900">
+                {hotelInfo.overallRating}/5
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="border-slate-200">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-1 text-slate-600">
+                <CheckCircle2 className="h-4 w-4" />
                 <span className="text-sm font-medium">Reviews</span>
               </div>
-<<<<<<< HEAD
-              <div className="text-2xl font-semibold text-slate-900">
-                {hotelInfo.reviewCount || '0'}
+              <div className="text-2xl font-bold text-slate-900">
+                {hotelInfo.reviewCount}
               </div>
-=======
-              <div className="text-2xl font-semibold text-slate-900">{hotelInfo.reviewCount}</div>
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
             </CardContent>
           </Card>
         </div>
 
-        {/* FAQs Overview */}
-
-
         {/* Main Content */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="space-y-6">
           <Tabs defaultValue="basic" className="w-full">
-            <div className="border-b border-slate-200 bg-slate-50/60">
-              <TabsList className="grid w-full grid-cols-6 h-14 bg-transparent border-0 rounded-none">
-                <TabsTrigger 
-                  value="basic" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-none h-full border-r border-slate-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Basic Info
-                  </div>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="contact" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-none h-full border-r border-slate-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    Contact
-                  </div>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="location" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-none h-full border-r border-slate-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Location
-                  </div>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="taxes" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-none h-full border-r border-slate-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <Calculator className="h-4 w-4" />
-                    Taxes/GST
-                  </div>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="policies" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-none h-full border-r border-slate-200"
-                >
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4" />
-                    Policies
-                  </div>
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="faqs" 
-                  className="data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm rounded-none h-full"
-                >
-                  <div className="flex items-center gap-2">
-                    <Info className="h-4 w-4" />
-                    FAQs
-                  </div>
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="basic">Basic Info</TabsTrigger>
+              <TabsTrigger value="faqs">FAQs</TabsTrigger>
+              <TabsTrigger value="contact">Contact</TabsTrigger>
+              <TabsTrigger value="location">Location</TabsTrigger>
+              <TabsTrigger value="taxes">Taxes</TabsTrigger>
+              <TabsTrigger value="policies">Policies</TabsTrigger>
+            </TabsList>
 
-            <div className="p-8">
+            <div className="mt-6">
               <TabsContent value="basic" className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 gap-8">
                   {/* Basic Information */}
                   <Card className="border-slate-200">
                     <CardHeader className="pb-2">
@@ -469,22 +398,16 @@ export default function HotelInfoPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <Label htmlFor="name" className="text-sm font-medium text-slate-700 mb-2 block">
                             Hotel Name <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="name"
-                            aria-required
-                            aria-invalid={!hotelInfo.name}
                             value={hotelInfo.name}
                             onChange={(e) => updateHotelField('name', e.target.value)}
-<<<<<<< HEAD
                             placeholder="Enter hotel name"
-=======
-                            placeholder="Grand Luxe Hotel"
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                             className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                           />
                           <p className="mt-1 text-xs text-slate-500">Displayed across guest-facing pages and emails.</p>
@@ -498,11 +421,7 @@ export default function HotelInfoPage() {
                             id="tagline"
                             value={hotelInfo.tagline}
                             onChange={(e) => updateHotelField('tagline', e.target.value)}
-<<<<<<< HEAD
-                            placeholder="Enter hotel tagline (optional)"
-=======
-                            placeholder="Luxury redefined"
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+                            placeholder="Enter hotel tagline"
                             className="h-11 border-slate-300 focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                           />
                         </div>
@@ -674,11 +593,7 @@ export default function HotelInfoPage() {
                           id="primaryPhone"
                           value={hotelInfo.primaryPhone}
                           onChange={(e) => updateHotelField('primaryPhone', e.target.value)}
-<<<<<<< HEAD
-                          placeholder="Enter primary phone number"
-=======
-                          placeholder="+91 98765 43210"
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                         <p className="mt-1 text-xs text-slate-500">Shown on booking confirmations and contact pages.</p>
@@ -692,11 +607,7 @@ export default function HotelInfoPage() {
                           id="whatsappPhone"
                           value={hotelInfo.whatsappPhone}
                           onChange={(e) => updateHotelField('whatsappPhone', e.target.value)}
-<<<<<<< HEAD
-                          placeholder="Enter WhatsApp number (optional)"
-=======
-                          placeholder="+91 98765 43210"
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>
@@ -710,11 +621,7 @@ export default function HotelInfoPage() {
                           type="email"
                           value={hotelInfo.primaryEmail}
                           onChange={(e) => updateHotelField('primaryEmail', e.target.value)}
-<<<<<<< HEAD
-                          placeholder="Enter primary email address"
-=======
-                          placeholder="info@grandluxe.com"
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>
@@ -728,11 +635,7 @@ export default function HotelInfoPage() {
                           type="email"
                           value={hotelInfo.reservationEmail}
                           onChange={(e) => updateHotelField('reservationEmail', e.target.value)}
-<<<<<<< HEAD
-                          placeholder="Enter reservation email (optional)"
-=======
-                          placeholder="reservations@grandluxe.com"
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>
@@ -745,11 +648,7 @@ export default function HotelInfoPage() {
                           id="emergencyContact"
                           value={hotelInfo.emergencyContact}
                           onChange={(e) => updateHotelField('emergencyContact', e.target.value)}
-<<<<<<< HEAD
-                          placeholder="Enter emergency contact (optional)"
-=======
-                          placeholder="+91 98765 43210"
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+
                           className="h-11 border-slate-300 focus:border-purple-500 focus:ring-purple-500 rounded-lg"
                         />
                       </div>

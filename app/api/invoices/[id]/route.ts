@@ -135,7 +135,6 @@ export async function DELETE(
       where: { id: params.id },
     });
 
-<<<<<<< HEAD
     console.log(`🗑️ Invoice ${params.id} deleted successfully`);
 
     // If there were payments for this invoice, reverse the revenue
@@ -155,17 +154,6 @@ export async function DELETE(
       // Continue with the deletion process even if revenue deletion fails
       // This ensures the invoice is still deleted
     }
-=======
-         // If there were payments for this invoice, reverse the revenue
-     if (totalPayments > 0) {
-       console.log(`💰 Reversing revenue for deleted invoice: ${totalPayments} for booking ${booking.id}`);
-       await RevenueHooks.onPaymentReversed(booking.id, totalPayments);
-     }
-
-     // Delete all revenue entries for this booking since invoices are being deleted
-     console.log(`🗑️ Deleting all revenue entries for booking ${booking.id}`);
-     await RevenueHooks.deleteRevenueForBooking(booking.id);
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
     // Update booking payment status if needed
     const remainingPayments = await prisma.payment.findMany({

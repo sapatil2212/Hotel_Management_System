@@ -163,7 +163,7 @@ export class EnhancedAccountService {
       const mainAccount = await this.getOrCreateMainAccount();
       
       // Get or create user account if guest user ID provided
-      let userAccount = null;
+      let userAccount: any = null;
       if (guestUserId) {
         userAccount = await prisma.bank_account.findFirst({
           where: {
@@ -275,7 +275,7 @@ export class EnhancedAccountService {
       const difference = newAmount - originalAmount;
       const mainAccount = await this.getOrCreateMainAccount();
       
-      let userAccount = null;
+      let userAccount: any = null;
       if (guestUserId) {
         userAccount = await prisma.bank_account.findFirst({
           where: {

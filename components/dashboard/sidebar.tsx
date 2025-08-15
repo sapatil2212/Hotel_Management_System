@@ -14,10 +14,7 @@ const menuItems = [
   { href: "/dashboard/hotel-info", label: "Hotel Info", icon: Building },
   { href: "/dashboard/guests", label: "Guests", icon: Users },
   { href: "/dashboard/billing", label: "Billing & Invoice Management", icon: Receipt },
-<<<<<<< HEAD
-=======
   { href: "/dashboard/revenue", label: "Revenue", icon: TrendingUp },
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   { href: "/dashboard/revenue-tracking", label: "Revenue Tracking", icon: TrendingUp },
   { href: "/dashboard/expenses", label: "Expenses", icon: CreditCard },
   { href: "/dashboard/accounts", label: "Account Management", icon: Banknote },

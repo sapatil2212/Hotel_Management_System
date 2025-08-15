@@ -245,7 +245,10 @@ async function main() {
 
     for (const serviceInfo of serviceData) {
       const service = await prisma.service.create({
-        data: serviceInfo
+        data: {
+          ...serviceInfo,
+          category: serviceInfo.category as any
+        }
       })
       services.push(service)
     }

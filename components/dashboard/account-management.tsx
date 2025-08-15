@@ -24,19 +24,12 @@ import {
   Filter,
   Download,
   Loader2,
-<<<<<<< HEAD
   Loader,
   Eye
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-=======
-  Loader
-} from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
 interface AccountBalance {
   accountId: string;
@@ -58,13 +51,10 @@ interface Transaction {
     accountName: string;
     accountType: string;
   };
-<<<<<<< HEAD
   paymentMethod?: string;
   referenceId?: string;
   referenceType?: string;
   notes?: string;
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 }
 
 interface TransactionSummary {
@@ -109,14 +99,11 @@ export default function AccountManagement() {
     description: '',
   });
 
-<<<<<<< HEAD
   // Credit information modal states
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
 
   // Fetch account data only when filters change, not automatically
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   useEffect(() => {
     fetchAccountData();
   }, [selectedPeriod, selectedAccount]);
@@ -240,15 +227,12 @@ export default function AccountManagement() {
     }
   };
 
-<<<<<<< HEAD
   // Handle view credit information
   const handleViewCredit = (transaction: Transaction) => {
     setSelectedTransaction(transaction);
     setShowCreditModal(true);
   };
 
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -389,10 +373,7 @@ export default function AccountManagement() {
                     <TableHead>Amount</TableHead>
                     <TableHead>Account</TableHead>
                     <TableHead>Processed By</TableHead>
-<<<<<<< HEAD
                     <TableHead>Actions</TableHead>
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -408,7 +389,6 @@ export default function AccountManagement() {
                         </div>
                       </TableCell>
                       <TableCell>{getCategoryDisplayName(transaction.category)}</TableCell>
-<<<<<<< HEAD
                       <TableCell>
                         <div className="max-w-xs">
                           <div className="font-medium text-gray-900 truncate">
@@ -446,14 +426,11 @@ export default function AccountManagement() {
                           <Eye className="h-4 w-4" />
                         </Button>
                       </TableCell>
-=======
-                      <TableCell>{transaction.description}</TableCell>
                       <TableCell className={getTransactionTypeColor(transaction.type)}>
                         {transaction.type === 'credit' ? '+' : '-'}{formatCurrency(transaction.amount)}
                       </TableCell>
                       <TableCell>{transaction.account.accountName}</TableCell>
                       <TableCell>{transaction.processedBy || 'System'}</TableCell>
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
                     </TableRow>
                   ))}
                 </TableBody>
@@ -646,7 +623,6 @@ export default function AccountManagement() {
           </div>
         </TabsContent>
       </Tabs>
-<<<<<<< HEAD
 
       {/* Credit Information Modal */}
       <Dialog open={showCreditModal} onOpenChange={setShowCreditModal}>
@@ -831,8 +807,6 @@ export default function AccountManagement() {
           )}
         </DialogContent>
       </Dialog>
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     </div>
   );
 }

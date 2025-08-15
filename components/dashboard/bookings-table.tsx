@@ -95,15 +95,11 @@ const getDisplayStatus = (booking: Booking): string => {
   return booking.status;
 };
 
-<<<<<<< HEAD
 interface BookingsTableProps {
   editBookingId?: string | null
 }
 
 export default function BookingsTable({ editBookingId }: BookingsTableProps) {
-=======
-export default function BookingsTable() {
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   const { hotelInfo } = useHotel()
   const deleteConfirmation = useDeleteConfirmation()
   const [query, setQuery] = useState("")
@@ -158,7 +154,6 @@ export default function BookingsTable() {
     fetchBookings()
   }, [])
 
-<<<<<<< HEAD
   // Auto-open edit modal when editBookingId is provided
   useEffect(() => {
     if (editBookingId && bookings.length > 0) {
@@ -172,9 +167,6 @@ export default function BookingsTable() {
       }
     }
   }, [editBookingId, bookings])
-
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   // Real-time checkout status updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -789,7 +781,8 @@ export default function BookingsTable() {
           units: 1,
           description: '',
           gstApplicable: false,
-          gstPercentage: 18
+          gstPercentage: 18,
+          additionalTaxes: 0
         })
         await fetchBillItems(selectedBookingForCharges.id)
         fetchBookings() // Refresh booking data to show updated total

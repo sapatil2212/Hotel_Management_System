@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user has sufficient balance
-    if (userAccount.balance < validated.amount) {
+    if (userAccount!.balance < validated.amount) {
       return NextResponse.json(
         { error: 'Insufficient balance in user account' },
         { status: 400 }
@@ -204,7 +204,7 @@ export async function POST(request: NextRequest) {
       if (expense.isApproved) {
         // Deduct from user account
         await tx.bank_account.update({
-          where: { id: userAccount.id },
+          where: { id: userAccount!.id },
           data: {
             balance: {
               decrement: validated.amount,
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
         // Create transaction records for user account
         await tx.transaction.create({
           data: {
-            accountId: userAccount.id,
+            accountId: userAccount!.id,
             type: 'debit',
             category: 'other_expense',
             amount: validated.amount,

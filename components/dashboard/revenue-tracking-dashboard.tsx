@@ -8,10 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-<<<<<<< HEAD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 import { 
   TrendingUp, 
   DollarSign, 
@@ -27,7 +24,6 @@ import {
   Trash2,
   Save,
   X,
-<<<<<<< HEAD
   Loader,
   BarChart3,
   PieChart,
@@ -52,11 +48,6 @@ import {
   Legend, 
   ResponsiveContainer 
 } from 'recharts';
-=======
-  Loader
-} from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 
 interface RevenueStatus {
   lastUpdated: Date | null;
@@ -95,7 +86,6 @@ interface RevenueSummary {
   thisMonthRevenue: number;
 }
 
-<<<<<<< HEAD
 interface ChartData {
   labels: string[];
   datasets: Array<{
@@ -140,9 +130,6 @@ interface ChartDataPoint {
   color?: string;
   [key: string]: any;
 }
-
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
 export default function RevenueTrackingDashboard() {
   const [recentBookings, setRecentBookings] = useState<BookingRevenueData[]>([]);
   const [revenueSummary, setRevenueSummary] = useState<RevenueSummary | null>(null);
@@ -150,16 +137,12 @@ export default function RevenueTrackingDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<BookingRevenueData | null>(null);
   
-<<<<<<< HEAD
   // Chart states
   const [chartPeriod, setChartPeriod] = useState<'7d' | '30d' | '90d'>('30d');
   const [revenueTrendData, setRevenueTrendData] = useState<ChartDataPoint[]>([]);
   const [paymentMethodData, setPaymentMethodData] = useState<ChartDataPoint[]>([]);
   const [monthlyRevenueData, setMonthlyRevenueData] = useState<ChartDataPoint[]>([]);
   const [categoryRevenueData, setCategoryRevenueData] = useState<ChartDataPoint[]>([]);
-  
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   // Edit/Delete states
   const [editingPayment, setEditingPayment] = useState<any>(null);
   const [deletingPayment, setDeletingPayment] = useState<any>(null);
@@ -266,7 +249,6 @@ export default function RevenueTrackingDashboard() {
 
   const refreshData = async () => {
     setRefreshing(true);
-<<<<<<< HEAD
     try {
       await fetchRevenueData();
       toast({
@@ -386,17 +368,6 @@ export default function RevenueTrackingDashboard() {
   useEffect(() => {
     generateChartData();
   }, [chartPeriod, recentBookings]);
-
-=======
-    await fetchRevenueData();
-    setRefreshing(false);
-    toast({
-      title: 'Success',
-      description: 'Revenue data refreshed',
-    });
-  };
-
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
   // Edit payment functionality
   const handleEditPayment = (payment: any, booking: BookingRevenueData) => {
     setEditingPayment(payment);
@@ -545,8 +516,6 @@ export default function RevenueTrackingDashboard() {
 
   return (
     <div className="space-y-6">
-<<<<<<< HEAD
-=======
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Revenue Tracking Dashboard</h2>
         <Button onClick={refreshData} disabled={refreshing}>
@@ -554,8 +523,6 @@ export default function RevenueTrackingDashboard() {
           Refresh
         </Button>
       </div>
-
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       {/* Revenue Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
@@ -635,7 +602,6 @@ export default function RevenueTrackingDashboard() {
         </Card>
       </div>
 
-<<<<<<< HEAD
       {/* Interactive Charts Section */}
       <div className="space-y-6">
         {/* Chart Period Selector */}
@@ -795,9 +761,6 @@ export default function RevenueTrackingDashboard() {
           </Card>
         </div>
       </div>
-
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       {/* Recent Bookings with Revenue Status */}
       <Card>
         <CardHeader>
@@ -889,29 +852,7 @@ export default function RevenueTrackingDashboard() {
                                 </div>
                               </div>
                             ))}
-<<<<<<< HEAD
-                            
-                            {/* Show payment summary if there are multiple payments */}
-                            {booking.recentPayments.length > 1 && (
-                              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
-                                <div className="flex justify-between items-center text-blue-800">
-                                  <span className="font-medium">Payment Summary:</span>
-                                  <span className="font-semibold">
-                                    {booking.recentPayments.length} payments totaling ₹{booking.recentPayments.reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
-                                  </span>
-                                </div>
-                                <div className="text-blue-700 mt-1">
-                                  {booking.recentPayments.length > 1 && (
-                                    <span>
-                                      Multiple payments detected. Total paid: ₹{booking.totalPaid.toLocaleString()} | 
-                                      Invoice amount: ₹{booking.totalAmount.toLocaleString()}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
+
                           </div>
                         </div>
                       )}
@@ -932,66 +873,7 @@ export default function RevenueTrackingDashboard() {
         </CardContent>
       </Card>
 
-<<<<<<< HEAD
-=======
-      {/* Revenue Tracking Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Automatic Revenue Tracking
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">How Automatic Revenue Tracking Works</h4>
-              <div className="space-y-2 text-sm text-blue-800">
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>When a bill is paid, revenue is automatically added to daily, monthly, and yearly reports</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Revenue is categorized by service type (accommodation, food & beverage, spa, etc.)</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Payment method breakdown is tracked for financial reporting</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>If payment status changes, revenue is automatically reversed or updated</span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                  <span>Edit or delete payments to adjust revenue with automatic updates</span>
-                </div>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 border rounded-lg">
-                <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <h4 className="font-semibold">Up to Date</h4>
-                <p className="text-sm text-gray-600">Revenue has been automatically tracked</p>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <Clock className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                <h4 className="font-semibold">Pending</h4>
-                <p className="text-sm text-gray-600">Payment pending, revenue not yet tracked</p>
-              </div>
-              <div className="text-center p-4 border rounded-lg">
-                <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                <h4 className="font-semibold">Error</h4>
-                <p className="text-sm text-gray-600">Issue with revenue tracking</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       {/* Edit Payment Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="sm:max-w-md">

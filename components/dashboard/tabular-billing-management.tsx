@@ -50,6 +50,7 @@ interface Booking {
   paymentStatus: 'pending' | 'paid' | 'partially_paid' | 'cancelled' | 'refunded';
   paymentMethod: string;
   status: string;
+  source?: string;
   createdAt: string;
   room: {
     roomNumber: string;
@@ -62,6 +63,10 @@ interface Booking {
   gstAmount?: number;
   serviceTaxAmount?: number;
   discountAmount?: number;
+  originalAmount?: number;
+  specialRequests?: string;
+  otherTaxAmount?: number;
+  totalTaxAmount?: number;
 }
 
 interface Service {

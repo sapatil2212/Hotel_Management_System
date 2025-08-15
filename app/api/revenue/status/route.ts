@@ -126,7 +126,6 @@ export async function GET(request: NextRequest) {
       revenueStatus.status = 'error';
     }
 
-<<<<<<< HEAD
     // Deduplicate payments by amount, method, and date to avoid showing duplicate payments
     const uniquePayments = booking.payments.reduce((acc, payment) => {
       // Check if a payment with the same amount, method, and date already exists
@@ -153,24 +152,15 @@ export async function GET(request: NextRequest) {
         acc.push(payment);
       } else {
         console.log(`Skipping duplicate/split payment: ${payment.amount} ${payment.paymentMethod} on ${payment.paymentDate}`);
-=======
-    // Deduplicate payments by ID to avoid showing the same payment multiple times
-    const uniquePayments = booking.payments.reduce((acc, payment) => {
-      if (!acc.find(p => p.id === payment.id)) {
-        acc.push(payment);
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       }
       return acc;
     }, [] as typeof booking.payments);
 
-<<<<<<< HEAD
     // Sort payments by date (most recent first) and limit to 3 most recent unique payments
     const sortedPayments = uniquePayments
       .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
       .slice(0, 3);
 
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
     return NextResponse.json({
       bookingId,
       guestName: booking.guestName,
@@ -179,11 +169,7 @@ export async function GET(request: NextRequest) {
       remainingAmount,
       paymentStatus: correctPaymentStatus, // Use corrected payment status
       revenueStatus,
-<<<<<<< HEAD
       recentPayments: sortedPayments, // Last 3 unique payments
-=======
-      recentPayments: uniquePayments.slice(0, 5), // Last 5 unique payments
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       checkIn: booking.checkIn,
       checkOut: booking.checkOut,
       hasInvoices, // Add this flag to indicate if invoices exist

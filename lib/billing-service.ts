@@ -377,7 +377,6 @@ export class BillingService {
         throw new Error('Booking not found');
       }
 
-<<<<<<< HEAD
       // Check for duplicate payment before creating
       const existingPayment = await prisma.payment.findFirst({
         where: {
@@ -394,9 +393,6 @@ export class BillingService {
         console.log(`Duplicate payment detected for booking ${bookingId}, amount ${amount}, method ${paymentMethod}`);
         return existingPayment; // Return existing payment instead of creating duplicate
       }
-
-=======
->>>>>>> 2bfb5ac0ecad7768c2a0e781c04f1c79a6db8397
       // Create payment record
       const payment = await prisma.payment.create({
         data: {
