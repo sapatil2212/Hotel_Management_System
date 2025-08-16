@@ -9,7 +9,10 @@ import { AppSessionProvider } from '@/components/auth/session-provider';
 import { HotelProvider } from '@/contexts/hotel-context';
 
 const inter = Inter({ subsets: ['latin'] });
-const playfair = Playfair_Display({ subsets: ['latin'] });
+const playfair = Playfair_Display({ 
+  subsets: ['latin'],
+  variable: '--font-playfair'
+});
 
 export const metadata: Metadata = {
   title: 'Grand Luxe Hotel - Experience Luxury Redefined',

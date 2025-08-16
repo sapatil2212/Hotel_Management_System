@@ -1,7 +1,14 @@
 import { Target, Eye, Gem, HeartHandshake, Award, Sparkles, Leaf, UserRound } from "lucide-react";
 
 export default function VisionMission() {
-  const cards = [
+  const cards: Array<{
+    icon: React.ReactElement;
+    title: string;
+    content?: string;
+    items?: Array<{ icon: React.ReactElement; text: string }>;
+    bgColor: string;
+    borderColor: string;
+  }> = [
     {
       icon: <Eye className="w-6 h-6" strokeWidth={1.5} />,
       title: "Our Vision",
