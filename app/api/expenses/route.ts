@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
+import { NotificationService } from '@/lib/notification-service';
 import { z } from 'zod';
 
 const createExpenseSchema = z.object({
@@ -257,6 +258,21 @@ export async function POST(request: NextRequest) {
 
       return expense;
     });
+
+    // Create notification for expense recorded
+    try {
+      await NotificationService.createNotification({
+        title: 'Expense Recorded',
+        message: `Expense of ₹${result.amount} recorded: ${result.description}`,
+        type: 'expense',
+        userId: result.userId,
+        referenceId: result.id,
+        referenceType: 'expense'
+      })
+    } catch (notificationError) {
+      console.error('Error creating expense notification:', notificationError)
+      // Don't fail the expense creation if notification fails
+    }
 
     return NextResponse.json(result, { status: 201 });
   } catch (error) {

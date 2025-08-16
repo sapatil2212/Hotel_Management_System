@@ -266,6 +266,7 @@ model user {
   updatedAt       DateTime
   bankAccounts    bank_account[]
   expenses        expense[]
+  notifications   notification[]
 }
 
 model promocode {
@@ -611,4 +612,37 @@ enum reference_type {
   transfer
   adjustment
   refund
+}
+
+model notification {
+  id          String              @id @default(cuid())
+  title       String
+  message     String              @db.Text
+  type        notification_type   @default(info)
+  isRead      Boolean             @default(false)
+  userId      String?             // If null, it's a system-wide notification
+  referenceId String?             // Reference to booking/invoice/payment/expense ID
+  referenceType reference_type?   // Type of reference
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  user        user?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([createdAt])
+  @@index([referenceId])
+  @@index([referenceType])
+}
+
+enum notification_type {
+  info
+  success
+  warning
+  error
+  booking
+  payment
+  revenue
+  expense
+  system
 }

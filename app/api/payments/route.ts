@@ -3,6 +3,7 @@ import { BillingService } from '@/lib/billing-service';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { prisma } from '@/lib/prisma';
+import { NotificationService } from '@/lib/notification-service';
 
 // GET /api/payments - Get payment history for a booking
 export async function GET(request: NextRequest) {
@@ -157,6 +158,27 @@ export async function POST(request: NextRequest) {
         gatewayResponse,
         transactionId
       );
+    }
+
+    // Create notification for payment received
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user?.email || '' }
+      })
+      
+      if (user) {
+        await NotificationService.createNotification({
+          title: 'Payment Received',
+          message: `Payment of ₹${amount} received via ${paymentMethod}`,
+          type: 'payment',
+          userId: user.id,
+          referenceId: payment.id,
+          referenceType: 'payment'
+        })
+      }
+    } catch (notificationError) {
+      console.error('Error creating payment notification:', notificationError)
+      // Don't fail the payment if notification fails
     }
 
     return NextResponse.json(payment, { status: 201 });

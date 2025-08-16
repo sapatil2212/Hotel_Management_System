@@ -3,9 +3,9 @@
 ## Changes Implemented
 
 ### 1. OTP Validation Time
-- ✅ Changed OTP expiration from 10 minutes to 5 minutes
+- ✅ Changed OTP expiration from 10 minutes to 2 minutes
 - ✅ Updated in both registration and forgot password flows
-- ✅ Updated email template to reflect 5-minute expiration
+- ✅ Updated email template to reflect 2-minute expiration
 
 ### 2. Resend OTP Functionality
 - ✅ Added 1-minute cooldown timer for resend functionality
@@ -70,7 +70,7 @@
 
 ### OTP Expiration Test
 1. Request OTP
-2. Wait 5 minutes
+2. Wait 2 minutes
 3. Try to verify OTP (should show "OTP expired" error)
 
 ## API Endpoints
@@ -85,12 +85,12 @@
 
 ## Database Schema
 The OTP system uses the existing `emailotp` table with:
-- `expiresAt`: Set to 5 minutes from creation
+- `expiresAt`: Set to 2 minutes from creation
 - `purpose`: "register" or "reset_password"
 - `attempts`: Tracks failed attempts (max 5)
 
 ## Security Features
-- ✅ OTP expires after 5 minutes
+- ✅ OTP expires after 2 minutes
 - ✅ Maximum 5 failed attempts
 - ✅ 1-minute cooldown for resend
 - ✅ Password hashing with bcrypt

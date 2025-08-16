@@ -13,24 +13,30 @@ const Hero = () => {
   
   const slides = [
     {
-      image: "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg",
-      mobileImage: "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg",
+      // Desktop: Wide landscape hotel exterior with pool
+      image: "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop&crop=center",
+      // Mobile: Portrait hotel lobby/entrance - closer, more intimate
+      mobileImage: "https://images.pexels.com/photos/338504/pexels-photo-338504.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&fit=crop&crop=center",
       title: "Where Every Door Opens to Luxury.",
       subtitle: "From the moment you step inside, feel the warmth of personalized service",
       cta: "Explore Rooms",
       link: "/rooms"
     },
     {
-      image: "https://images.pexels.com/photos/1457847/pexels-photo-1457847.jpeg",
-      mobileImage: "https://images.pexels.com/photos/1457847/pexels-photo-1457847.jpeg",
+      // Desktop: Wide banquet hall with elegant lighting
+      image: "https://images.pexels.com/photos/1457847/pexels-photo-1457847.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop&crop=center",
+      // Mobile: Close-up of elegant table setting and decor
+      mobileImage: "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&fit=crop&crop=center",
       title: "Your dream event deserves a royal venue",
       subtitle: "Spacious and equipped with modern amenities, our banquet hall is ready to host your happiest moments",
       cta: "View Banquet",
       link: "/services"
     },
     {
-      image: "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg",
-      mobileImage: "https://images.pexels.com/photos/261102/pexels-photo-261102.jpeg",
+      // Desktop: Restaurant dining area with ambiance
+      image: "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&fit=crop&crop=center",
+      // Mobile: Close-up of gourmet dish presentation
+      mobileImage: "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=800&h=1200&fit=crop&crop=center",
       title: "Exceptional Dining Experience",
       subtitle: "Taste the finest cuisine at our world-class restaurant",
       cta: "Explore Now",
@@ -55,6 +61,9 @@ const Hero = () => {
 
   return (
     <section className="relative px-4 sm:px-6 lg:px-8 pt-0 pb-8 group bg-white">
+      {/* Preload first slide images for better performance */}
+      <link rel="preload" as="image" href={slides[0].image} />
+      <link rel="preload" as="image" href={slides[0].mobileImage} />
       <div className="relative h-[60vh] md:h-[85vh] overflow-hidden rounded-3xl">
         {/* Navigation Arrows */}
         <div className="absolute inset-y-0 left-0 z-30 flex items-center justify-center w-12 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -84,24 +93,37 @@ const Hero = () => {
               index === currentSlide ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            {/* Mobile Image (hidden on desktop) */}
-            <div className="md:hidden">
+            {/* Responsive Images with Picture Element */}
+            <div className="absolute inset-0">
               <div className="absolute inset-0 bg-black bg-opacity-40 z-10 rounded-3xl" />
-              <img
-                src={slide.mobileImage}
-                alt={slide.title}
-                className="w-full h-full object-cover object-center rounded-3xl"
-              />
-            </div>
-            
-            {/* Desktop Image */}
-            <div className="hidden md:block">
-              <div className="absolute inset-0 bg-black bg-opacity-40 z-10 rounded-3xl" />
-              <img
-                src={slide.image}
-                alt={slide.title}
-                className="w-full h-full object-cover object-center rounded-3xl"
-              />
+              <picture className="w-full h-full block">
+                {/* Mobile Image */}
+                <source
+                  media="(max-width: 767px)"
+                  srcSet={slide.mobileImage}
+                  sizes="100vw"
+                />
+                {/* Tablet Image */}
+                <source
+                  media="(min-width: 768px) and (max-width: 1023px)"
+                  srcSet={slide.image}
+                  sizes="100vw"
+                />
+                {/* Desktop Image */}
+                <source
+                  media="(min-width: 1024px)"
+                  srcSet={slide.image}
+                  sizes="100vw"
+                />
+                {/* Fallback Image */}
+                <img
+                  src={slide.image}
+                  alt={slide.title}
+                  className="w-full h-full object-cover object-center rounded-3xl"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  sizes="100vw"
+                />
+              </picture>
             </div>
           </div>
         ))}
@@ -109,13 +131,13 @@ const Hero = () => {
         {/* Content */}
         <div className="absolute inset-0 z-20 flex items-center justify-center md:justify-start">
           <div className="text-center md:text-left text-white max-w-4xl px-6 lg:px-[60px] transform md:translate-y-0 -translate-y-[90px] transition-all duration-1000 ease-out">
-            {/* Luxury Badge */}
+            {/* Luxury Badge 
             <div className="inline-flex items-center justify-center mb-6 bg-amber-600/20 backdrop-blur-sm px-6 py-2 rounded-full border border-amber-500/30">
               <Sparkles className="h-5 w-5 text-amber-300 mr-2" />
               <span className="text-xs sm:text-sm font-medium text-amber-100 tracking-widest">
                 ⭐ {hotelInfo.starRating || 5}-STAR LUXURY
               </span>
-            </div>
+            </div>*/}
 
             {/* Main Title */}
             <h1 className="text-3xl md:text-6xl lg:text-6xl font-bold mb-4 md:mb-6 font-luxury leading-tight">
@@ -158,18 +180,7 @@ const Hero = () => {
           ))}
         </div>
 
-        {/* Luxury Decorative Elements */}
-        <div className="absolute top-6 right-6 bg-black/20 backdrop-blur-sm rounded-2xl p-4 transform transition-all duration-500 hover:scale-105">
-          <div className="flex items-center space-x-2">
-            <Crown className="h-4 w-4 text-amber-400" /> 
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="h-4 w-4 text-amber-400 fill-current" />
-              ))}
-            </div>
-          </div>
-          <p className="text-sm text-white font-semibold mt-1">Premium Stay</p>
-        </div>
+      
       </div>
     </section>
   )

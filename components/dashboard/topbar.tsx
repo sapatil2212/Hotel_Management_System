@@ -3,9 +3,10 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Search, Menu, Bell } from "lucide-react"
+import { Search, Menu } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import Sidebar from "./sidebar"
+import { NotificationBell } from "@/components/ui/notification-bell"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,9 +39,6 @@ export default function Topbar() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72">
-                <SheetHeader className="p-4 border-b">
-                  <SheetTitle>Menu</SheetTitle>
-                </SheetHeader>
                 <Sidebar isInDrawer />
               </SheetContent>
             </Sheet>
@@ -55,9 +53,7 @@ export default function Topbar() {
             <Search className="h-4 w-4 text-muted-foreground" />
             <Input className="border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0" placeholder="Search bookings, guests..." />
           </div>
-          <Button variant="ghost" size="icon" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-          </Button>
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button aria-label="User menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring">

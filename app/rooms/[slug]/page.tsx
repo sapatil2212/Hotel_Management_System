@@ -350,14 +350,14 @@ export default function RoomDetailsPage() {
         </Container>
       </div>
 
-      <Container className="py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <Container className="py-4 sm:py-6 md:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6 md:space-y-8">
             {/* Image Gallery */}
             <Card className="overflow-hidden">
               <div className="relative">
-                <div className="relative h-96 overflow-hidden">
+                <div className="relative h-64 sm:h-80 md:h-96 overflow-hidden">
                   <Image
                     src={room.images[currentImageIndex]}
                     alt={room.name}
@@ -371,27 +371,27 @@ export default function RoomDetailsPage() {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors"
+                        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors"
                       >
-                        <ChevronLeft className="h-6 w-6" />
+                        <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors"
+                        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-white/90 transition-colors"
                       >
-                        <ChevronRight className="h-6 w-6" />
+                        <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />
                       </button>
                     </>
                   )}
                   
                   {/* Image indicators */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                  <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 flex gap-1 sm:gap-2">
                     {room.images.map((_, index) => (
                       <button
                         key={index}
                         onClick={() => setCurrentImageIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          index === currentImageIndex ? 'bg-white w-6' : 'bg-white/60'
+                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all ${
+                          index === currentImageIndex ? 'bg-white w-4 sm:w-6' : 'bg-white/60'
                         }`}
                       />
                     ))}
@@ -403,15 +403,15 @@ export default function RoomDetailsPage() {
                       <Button 
                         variant="secondary" 
                         size="sm"
-                        className="absolute bottom-4 right-4"
+                        className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-xs sm:text-sm"
                       >
                         View All Photos ({room.images.length})
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-4xl h-[80vh]">
-                      <div className="grid grid-cols-2 gap-4 p-4 h-full overflow-y-auto">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 p-2 sm:p-4 h-full overflow-y-auto">
                         {room.images.map((image, index) => (
-                          <div key={index} className="relative h-64 rounded-lg overflow-hidden">
+                          <div key={index} className="relative h-48 sm:h-64 rounded-lg overflow-hidden">
                             <Image
                               src={image}
                               alt={`${room.name} - Image ${index + 1}`}
@@ -429,77 +429,76 @@ export default function RoomDetailsPage() {
 
             {/* Room Information */}
             <Card>
-              <CardHeader>
+              <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <CardTitle className="text-2xl">{room.name}</CardTitle>
-                      {room.isPromoted && (
-                        <Badge className="bg-amber-500 hover:bg-amber-600">
-                          ⭐ Promoted
-                        </Badge>
-                      )}
-                      {room.isSoldOut ? (
-                        <Badge variant="destructive" className="bg-red-500 hover:bg-red-600">
-                          ✗ SOLD OUT
-                        </Badge>
-                      ) : (
-                        <Badge variant="default" className="bg-green-500 hover:bg-green-600">
-                          ✓ Available
-                          {room.availableRoomsCount && room.availableRoomsCount < room.totalRooms && (
-                            <span className="ml-1 text-xs">({room.availableRoomsCount}/{room.totalRooms})</span>
-                          )}
-                        </Badge>
-                      )}
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                      <CardTitle className="text-xl sm:text-2xl">{room.name}</CardTitle>
+                      <div className="flex flex-wrap gap-1 sm:gap-2">
+                        {room.isPromoted && (
+                          <Badge className="bg-amber-500 hover:bg-amber-600 text-xs sm:text-sm">
+                            ⭐ Promoted
+                          </Badge>
+                        )}
+                        {room.isSoldOut ? (
+                          <Badge variant="destructive" className="bg-red-500 hover:bg-red-600 text-xs sm:text-sm">
+                            ✗ SOLD OUT
+                          </Badge>
+                                                 ) : (
+                           <Badge variant="default" className="bg-green-500 hover:bg-green-600 text-xs sm:text-sm">
+                             ✓ Available
+                           </Badge>
+                         )}
+                      </div>
                     </div>
                     {room.viewType && (
-                      <p className="text-lg text-amber-600 font-medium">{room.viewType}</p>
+                      <p className="text-base sm:text-lg text-amber-600 font-medium">{room.viewType}</p>
                     )}
-                    <p className="text-muted-foreground">{room.shortDescription}</p>
+                    <p className="text-muted-foreground text-sm sm:text-base">{room.shortDescription}</p>
                   </div>
-                  <Button variant="outline" size="icon">
+                  <Button variant="outline" size="icon" className="hidden sm:flex">
                     <Heart className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6">
                 <Tabs defaultValue="highlights" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
+                  <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
                     <TabsTrigger value="highlights">Room Highlights</TabsTrigger>
                     <TabsTrigger value="amenities">Amenities & Services</TabsTrigger>
                     <TabsTrigger value="faqs">FAQs</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="highlights" className="mt-6">
-                    <div className="space-y-6">
+                  <TabsContent value="highlights" className="mt-4 sm:mt-6">
+                    <div className="space-y-4 sm:space-y-6">
                       <div>
-                        <h3 className="text-lg font-semibold mb-4">Room Details</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Room Details</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                           <div className="flex items-center gap-2">
-                            <Square className="h-5 w-5 text-muted-foreground" />
+                            <Square className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                             <div>
-                              <div className="text-sm font-medium">{room.size}</div>
+                              <div className="text-xs sm:text-sm font-medium">{room.size}</div>
                               <div className="text-xs text-muted-foreground">Room Size</div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Bed className="h-5 w-5 text-muted-foreground" />
+                            <Bed className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                             <div>
-                              <div className="text-sm font-medium">{room.bedType}</div>
+                              <div className="text-xs sm:text-sm font-medium">{room.bedType}</div>
                               <div className="text-xs text-muted-foreground">Bed Type</div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Bath className="h-5 w-5 text-muted-foreground" />
+                            <Bath className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                             <div>
-                              <div className="text-sm font-medium">{room.bathroomCount} Bathroom{room.bathroomCount > 1 ? 's' : ''}</div>
+                              <div className="text-xs sm:text-sm font-medium">{room.bathroomCount} Bathroom{room.bathroomCount > 1 ? 's' : ''}</div>
                               <div className="text-xs text-muted-foreground">Private Bath</div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Users className="h-5 w-5 text-muted-foreground" />
+                            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
                             <div>
-                              <div className="text-sm font-medium">Max {room.maxGuests} Guests</div>
+                              <div className="text-xs sm:text-sm font-medium">Max {room.maxGuests} Guests</div>
                               <div className="text-xs text-muted-foreground">Occupancy</div>
                             </div>
                           </div>
@@ -509,33 +508,33 @@ export default function RoomDetailsPage() {
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-4">Description</h3>
-                        <p className="text-muted-foreground leading-relaxed">{room.description}</p>
+                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Description</h3>
+                        <p className="text-muted-foreground leading-relaxed text-sm sm:text-base">{room.description}</p>
                       </div>
                       
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-4">Key Features</h3>
-                        <div className="whitespace-pre-line text-muted-foreground leading-relaxed">
+                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Key Features</h3>
+                        <div className="whitespace-pre-line text-muted-foreground leading-relaxed text-sm sm:text-base">
                           {room.highlights || "No key features listed"}
                         </div>
                       </div>
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="amenities" className="mt-6">
-                    <div className="space-y-6">
+                  <TabsContent value="amenities" className="mt-4 sm:mt-6">
+                    <div className="space-y-4 sm:space-y-6">
                       <div>
-                        <h3 className="text-lg font-semibold mb-4">Room Amenities</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Room Amenities</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                           {room.amenities?.length > 0 ? room.amenities.map((amenity, index) => (
                             <div key={index} className="flex items-center gap-2">
-                              <Check className="h-4 w-4 text-green-500" />
-                              <span className="text-sm">{amenity}</span>
+                              <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                              <span className="text-xs sm:text-sm">{amenity}</span>
                             </div>
                           )) : (
-                            <p className="text-muted-foreground">No amenities listed</p>
+                            <p className="text-muted-foreground text-sm sm:text-base">No amenities listed</p>
                           )}
                         </div>
                       </div>
@@ -543,35 +542,35 @@ export default function RoomDetailsPage() {
                       <Separator />
                       
                       <div>
-                        <h3 className="text-lg font-semibold mb-4">Room Features</h3>
-                        <div className="flex flex-wrap gap-2">
+                        <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Room Features</h3>
+                        <div className="flex flex-wrap gap-1 sm:gap-2">
                           {room.features?.length > 0 ? room.features.map((feature, index) => (
-                            <Badge key={index} variant="outline">
+                            <Badge key={index} variant="outline" className="text-xs sm:text-sm">
                               {feature}
                             </Badge>
                           )) : (
-                            <p className="text-muted-foreground">No features listed</p>
+                            <p className="text-muted-foreground text-sm sm:text-base">No features listed</p>
                           )}
                         </div>
                       </div>
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="faqs" className="mt-6">
-                    <div className="space-y-4">
+                  <TabsContent value="faqs" className="mt-4 sm:mt-6">
+                    <div className="space-y-3 sm:space-y-4">
                       {Array.isArray((hotelInfo as any).faqs) && (hotelInfo as any).faqs.length > 0 && (
                         <>
                           {(hotelInfo as any).faqs.map((faq: any, index: number) => (
-                            <div key={`hfaq-${index}`} className="border rounded-lg p-4">
-                              <h4 className="font-medium mb-2">{faq.question}</h4>
-                              <p className="text-sm text-muted-foreground">{faq.answer}</p>
+                            <div key={`hfaq-${index}`} className="border rounded-lg p-3 sm:p-4">
+                              <h4 className="font-medium mb-2 text-sm sm:text-base">{faq.question}</h4>
+                              <p className="text-xs sm:text-sm text-muted-foreground">{faq.answer}</p>
                             </div>
                           ))}
                           <Separator />
                         </>
                       )}
                       {Array.isArray((hotelInfo as any).faqs) && (hotelInfo as any).faqs.length === 0 && (
-                        <p className="text-sm text-muted-foreground">No FAQs available at the moment.</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground">No FAQs available at the moment.</p>
                       )}
                     </div>
                   </TabsContent>
@@ -581,23 +580,23 @@ export default function RoomDetailsPage() {
 
             {/* Guest Reviews */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Star className="h-4 w-4 sm:h-5 sm:w-5 fill-amber-400 text-amber-400" />
                   Guest Reviews
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
+              <CardContent className="p-4 sm:p-6">
+                <div className="space-y-4 sm:space-y-6">
                   {mockReviews.map((review) => (
-                    <div key={review.id} className="border-b pb-6 last:border-b-0">
+                    <div key={review.id} className="border-b pb-4 sm:pb-6 last:border-b-0">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{review.guestName}</span>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="font-medium text-sm sm:text-base">{review.guestName}</span>
                             {review.verified && (
-                              <Badge variant="secondary" className="text-xs">
-                                <Check className="h-3 w-3 mr-1" />
+                              <Badge variant="secondary" className="text-xs w-fit">
+                                <Check className="h-2 w-2 sm:h-3 sm:w-3 mr-1" />
                                 Verified Stay
                               </Badge>
                             )}
@@ -606,20 +605,20 @@ export default function RoomDetailsPage() {
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`h-4 w-4 ${
+                                className={`h-3 w-3 sm:h-4 sm:w-4 ${
                                   i < review.rating
                                     ? 'fill-amber-400 text-amber-400'
                                     : 'text-gray-300'
                                 }`}
                               />
                             ))}
-                            <span className="text-sm text-muted-foreground ml-2">
+                            <span className="text-xs sm:text-sm text-muted-foreground ml-2">
                               {new Date(review.date).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
                       </div>
-                      <p className="text-muted-foreground">{review.comment}</p>
+                      <p className="text-muted-foreground text-sm sm:text-base">{review.comment}</p>
                     </div>
                   ))}
                 </div>
@@ -629,50 +628,50 @@ export default function RoomDetailsPage() {
 
           {/* Booking Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-8">
+            <div className="sticky top-4 sm:top-8">
               <Card>
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <div className="text-center">
-                    <div className="text-lg md:text-xl font-semibold text-foreground mb-2">{room.name}</div>
-                    <div className="flex items-center justify-center gap-3 mb-1">
-                      <div className="text-3xl font-bold">{formatPrice(room.price)}</div>
+                    <div className="text-base sm:text-lg md:text-xl font-semibold text-foreground mb-2">{room.name}</div>
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 mb-1">
+                      <div className="text-2xl sm:text-3xl font-bold">{formatPrice(room.price)}</div>
                       {room.originalPrice && room.originalPrice > room.price && (
-                        <div className="text-sm text-muted-foreground line-through">{formatPrice(room.originalPrice)}</div>
+                        <div className="text-xs sm:text-sm text-muted-foreground line-through">{formatPrice(room.originalPrice)}</div>
                       )}
                       {room.discountPercent && room.discountPercent > 0 && (
-                        <Badge variant="destructive">{room.discountPercent}% OFF</Badge>
+                        <Badge variant="destructive" className="text-xs sm:text-sm">{room.discountPercent}% OFF</Badge>
                       )}
                     </div>
-                    <div className="text-sm text-muted-foreground">per night</div>
-                    <div className="mt-3 flex items-center justify-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Bed className="h-4 w-4" />
+                    <div className="text-xs sm:text-sm text-muted-foreground">per night</div>
+                    <div className="mt-3 flex items-center justify-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Bed className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>{room.bedType}</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users className="h-4 w-4" />
+                      <div className="flex items-center gap-1 sm:gap-1.5">
+                        <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                         <span>Max {room.maxGuests}</span>
                       </div>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
                   {/* Quick features */}
-                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-center">
+                  <div className="flex flex-wrap items-center justify-center gap-x-4 sm:gap-x-6 gap-y-1 sm:gap-y-2 text-center">
                     {room.cancellationFree && (
-                      <div className="flex items-center gap-1.5 text-xs text-green-600">
-                        <Check className="h-3 w-3" />
+                      <div className="flex items-center gap-1 sm:gap-1.5 text-xs text-green-600">
+                        <Check className="h-2 w-2 sm:h-3 sm:w-3" />
                         <span>Free cancellation</span>
                       </div>
                     )}
                     {room.instantBooking && (
-                      <div className="flex items-center gap-1.5 text-xs text-blue-600">
-                        <Clock className="h-3 w-3" />
+                      <div className="flex items-center gap-1 sm:gap-1.5 text-xs text-blue-600">
+                        <Clock className="h-2 w-2 sm:h-3 sm:w-3" />
                         <span>Instant booking</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                      <Shield className="h-3 w-3" />
+                    <div className="flex items-center gap-1 sm:gap-1.5 text-xs text-gray-600">
+                      <Shield className="h-2 w-2 sm:h-3 sm:w-3" />
                       <span>Secure payment</span>
                     </div>
                   </div>
@@ -680,7 +679,7 @@ export default function RoomDetailsPage() {
                   <Separator />
                   
                   {/* Booking buttons */}
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3">
                     {room.isSoldOut ? (
                       <Button 
                         className="w-full bg-red-500 hover:bg-red-600 cursor-not-allowed opacity-60" 
@@ -718,12 +717,12 @@ export default function RoomDetailsPage() {
                     </Button>
 
                     {/* Cancellation Policy - editable from backend */}
-                    <div className="space-y-2 p-4 bg-amber-50 rounded-lg border border-amber-200">
-                      <h4 className="text-sm font-semibold text-amber-800">Cancellation Policy</h4>
+                    <div className="space-y-2 p-3 sm:p-4 bg-amber-50 rounded-lg border border-amber-200">
+                      <h4 className="text-xs sm:text-sm font-semibold text-amber-800">Cancellation Policy</h4>
                       {hotelInfo.cancellationPolicy ? (
-                        <p className="text-sm text-amber-900 whitespace-pre-line">{hotelInfo.cancellationPolicy}</p>
+                        <p className="text-xs sm:text-sm text-amber-900 whitespace-pre-line">{hotelInfo.cancellationPolicy}</p>
                       ) : (
-                        <div className="text-sm text-amber-900 space-y-1">
+                        <div className="text-xs sm:text-sm text-amber-900 space-y-1">
                           <p>For cancellation done prior 9 AM on 10 August, 100% Refundable</p>
                           <p>For cancellation done post 9 AM on 10 August, Non Refundable</p>
                           <p>Follow safety measures advised at the hotel</p>
@@ -745,10 +744,8 @@ export default function RoomDetailsPage() {
 
                   </div>
                   
-                  <Separator />
-                  
                   {/* Contact info */}
-                  <div className="text-center text-sm text-muted-foreground">
+                  <div className="text-center text-xs sm:text-sm text-muted-foreground">
                     <p>Need help? Call us at</p>
                     <p className="font-medium text-foreground">{hotelInfo.primaryPhone || "+91 98765 43210"}</p>
                   </div>

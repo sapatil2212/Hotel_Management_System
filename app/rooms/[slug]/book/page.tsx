@@ -132,6 +132,9 @@ export default function BookingPage() {
     agreeToTerms: false,
     promoCode: ""
   })
+  
+  const [checkInOpen, setCheckInOpen] = useState(false)
+  const [checkOutOpen, setCheckOutOpen] = useState(false)
 
   const fetchRoom = async () => {
     try {
@@ -589,7 +592,7 @@ export default function BookingPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                     <div>
                       <Label>Check-in Date *</Label>
-                      <Popover>
+                      <Popover open={checkInOpen} onOpenChange={setCheckInOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -603,7 +606,10 @@ export default function BookingPage() {
                           <Calendar
                             mode="single"
                             selected={bookingData.checkIn}
-                            onSelect={(date) => updateBookingData('checkIn', date)}
+                            onSelect={(date) => {
+                              updateBookingData('checkIn', date)
+                              setCheckInOpen(false)
+                            }}
                             disabled={(date) => date < new Date()}
                             initialFocus
                           />
@@ -613,7 +619,7 @@ export default function BookingPage() {
                     
                     <div>
                       <Label>Check-out Date *</Label>
-                      <Popover>
+                      <Popover open={checkOutOpen} onOpenChange={setCheckOutOpen}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
@@ -627,7 +633,10 @@ export default function BookingPage() {
                           <Calendar
                             mode="single"
                             selected={bookingData.checkOut}
-                            onSelect={(date) => updateBookingData('checkOut', date)}
+                            onSelect={(date) => {
+                              updateBookingData('checkOut', date)
+                              setCheckOutOpen(false)
+                            }}
                             disabled={(date) => 
                               date < new Date() || 
                               (bookingData.checkIn ? date <= bookingData.checkIn : false)
@@ -741,36 +750,37 @@ export default function BookingPage() {
                    </CardTitle>
                  </CardHeader>
                 <CardContent className="space-y-3 md:space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="relative h-16 w-20 rounded overflow-hidden bg-gray-100">
-                      {room.images && room.images.length > 0 ? (
-                        <Image
-                          src={room.images[0]}
-                          alt={room.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full text-gray-400">
-                          <Bed className="h-6 w-6" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium">{room.name}</h3>
-                      <div className="text-sm text-muted-foreground space-y-1">
-                        <div className="flex items-center gap-1">
-                          <Square className="h-3 w-3" />
-                          {room.size}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Bed className="h-3 w-3" />
-                          {room.bedType}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          Max {room.maxGuests} guests
-                        </div>
+                  {/* Room Image - Made Bigger */}
+                  <div className="relative h-32 w-full rounded-lg overflow-hidden bg-gray-100">
+                    {room.images && room.images.length > 0 ? (
+                      <Image
+                        src={room.images[0]}
+                        alt={room.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400">
+                        <Bed className="h-8 w-8" />
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Room Details - Moved Below Image */}
+                  <div className="space-y-2">
+                    <h3 className="font-medium text-base text-center">{room.name}</h3>
+                    <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Square className="h-3 w-3" />
+                        {room.size}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Bed className="h-3 w-3" />
+                        {room.bedType}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="h-3 w-3" />
+                        Max {room.maxGuests} guests
                       </div>
                     </div>
                   </div>

@@ -33,8 +33,8 @@ export async function POST(req: Request) {
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString()
-    // 5 minutes expiration
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000)
+    // 2 minutes expiration
+    const expiresAt = new Date(Date.now() + 2 * 60 * 1000)
     const now = new Date()
 
     // upsert OTP

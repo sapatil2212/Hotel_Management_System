@@ -173,54 +173,51 @@ export default function RoomsPage() {
           alt={room.name}
           width={400}
           height={250}
-          className="w-full h-72 object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+          className="w-full h-48 sm:h-56 md:h-64 lg:h-72 object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
         />
         
         {/* Enhanced gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         
         {/* Badges with improved styling */}
-        <div className="absolute top-4 left-4 flex flex-col gap-2 z-20">
+        <div className="absolute top-2 sm:top-4 left-2 sm:left-4 flex flex-col gap-1 sm:gap-2 z-20">
           {room.isPromoted && (
-            <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0 shadow-lg backdrop-blur-sm">
-              <Star className="w-3 h-3 mr-1" />
+            <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white border-0 shadow-lg backdrop-blur-sm text-xs sm:text-sm">
+              <Star className="w-2 h-2 sm:w-3 sm:h-3 mr-1" />
               Promoted
             </Badge>
           )}
           {room.discountPercent && room.discountPercent > 0 && (
-            <Badge className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold">
+            <Badge className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold text-xs sm:text-sm">
               {room.discountPercent}% OFF
             </Badge>
           )}
         </div>
         
         {/* Availability with improved styling */}
-        <div className="absolute top-4 right-4 z-20">
+        <div className="absolute top-2 sm:top-4 right-2 sm:right-4 z-20">
           {room.isSoldOut ? (
             <Badge 
               variant="destructive" 
-              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold text-sm px-3 py-1"
+              className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold text-xs px-2 sm:px-3 py-1"
             >
               ✗ SOLD OUT
             </Badge>
           ) : (
-            <Badge 
-              variant="default" 
-              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold text-sm px-3 py-1"
-            >
-              ✓ Available
-              {room.availableRoomsCount && room.availableRoomsCount < room.totalRooms && (
-                <span className="ml-1 text-xs">({room.availableRoomsCount}/{room.totalRooms})</span>
-              )}
-            </Badge>
+                                    <Badge 
+                          variant="default" 
+                          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white border-0 shadow-lg backdrop-blur-sm font-semibold text-xs px-2 sm:px-3 py-1"
+                        >
+                          ✓ Available
+                        </Badge>
           )}
         </div>
         
                           {/* Enhanced price overlay */}
-          <div className="absolute bottom-4 right-4 text-right z-20">
-            <div className="bg-white/20 backdrop-blur-lg rounded-2xl p-3 shadow-2xl border border-white/30">
-              <div className="flex items-center gap-2 justify-end mb-1">
-                <div className="text-lg font-bold text-white drop-shadow-lg">
+          <div className="absolute bottom-2 sm:bottom-4 right-2 sm:right-4 text-right z-20">
+            <div className="bg-white/20 backdrop-blur-lg rounded-xl sm:rounded-2xl p-2 sm:p-3 shadow-2xl border border-white/30">
+              <div className="flex items-center gap-1 sm:gap-2 justify-end mb-1">
+                <div className="text-sm sm:text-lg font-bold text-white drop-shadow-lg">
                   {formatPrice(room.price)}
                 </div>
                 {room.originalPrice && room.originalPrice > room.price && (
@@ -235,18 +232,18 @@ export default function RoomsPage() {
         
         {/* View type badge */}
         {room.viewType && (
-          <div className="absolute bottom-4 left-4 z-20">
-            <Badge className="bg-black/60 hover:bg-black/70 text-white border-0 backdrop-blur-sm">
+          <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 z-20">
+            <Badge className="bg-black/60 hover:bg-black/70 text-white border-0 backdrop-blur-sm text-xs">
               {room.viewType}
             </Badge>
           </div>
         )}
       </div>
       
-      <CardContent className="p-6 space-y-5">
+      <CardContent className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-5">
         {/* Room name and rating */}
         <div className="space-y-2">
-          <h3 className="text-xl font-bold text-gray-900 group-hover:text-amber-600 transition-colors duration-300">
+          <h3 className="text-lg sm:text-xl font-bold text-gray-900 group-hover:text-amber-600 transition-colors duration-300">
             {room.name}
           </h3>
                      <div className="flex items-center gap-2">
@@ -265,9 +262,9 @@ export default function RoomsPage() {
         </div>
         
                  {/* Enhanced room details grid */}
-                   <div className="grid grid-cols-2 gap-3">
-            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
-              <div className="p-1.5 bg-white rounded-md shadow-sm">
+                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
+              <div className="p-1 sm:p-1.5 bg-white rounded-md shadow-sm">
                 <Square className="h-3 w-3 text-amber-600" />
               </div>
               <div>
@@ -276,8 +273,8 @@ export default function RoomsPage() {
               </div>
             </div>
             
-            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
-              <div className="p-1.5 bg-white rounded-md shadow-sm">
+            <div className="flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
+              <div className="p-1 sm:p-1.5 bg-white rounded-md shadow-sm">
                 <Bed className="h-3 w-3 text-amber-600" />
               </div>
               <div>
@@ -292,7 +289,7 @@ export default function RoomsPage() {
            <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
              Key Amenities
            </div>
-           <div className="flex flex-wrap gap-2">
+           <div className="flex flex-wrap gap-1 sm:gap-2">
              {room.amenities.slice(0, 4).map((amenity, index) => (
                <Badge 
                  key={index} 
@@ -314,20 +311,20 @@ export default function RoomsPage() {
          </div>
       </CardContent>
       
-      <CardFooter className="p-6 pt-0">
-                 <div className="flex gap-3 w-full">
+      <CardFooter className="p-3 sm:p-4 md:p-6 pt-0">
+                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
            <Button 
              variant="outline" 
-             className="flex-1 h-10 border-2 hover:border-amber-300 hover:bg-amber-50 transition-all duration-300 font-semibold text-sm" 
+             className="flex-1 h-8 sm:h-10 border-2 hover:border-amber-300 hover:bg-amber-50 transition-all duration-300 font-semibold text-xs sm:text-sm" 
              asChild
            >
              <Link href={`/rooms/${room.slug}`}>
-               <Eye className="mr-2 h-3 w-3" />
+               <Eye className="mr-1 sm:mr-2 h-3 w-3" />
                View Details
              </Link>
            </Button>
            <Button 
-             className={`flex-1 h-10 font-semibold text-sm transition-all duration-300 ${
+             className={`flex-1 h-8 sm:h-10 font-semibold text-xs sm:text-sm transition-all duration-300 ${
                room.isSoldOut 
                  ? "bg-gray-400 cursor-not-allowed opacity-60" 
                  : "bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 shadow-lg hover:shadow-xl"
@@ -338,12 +335,12 @@ export default function RoomsPage() {
              {room.isSoldOut ? (
                <span className="flex items-center justify-center">
                  Sold Out
-                 <X className="ml-2 h-3 w-3" />
+                 <X className="ml-1 sm:ml-2 h-3 w-3" />
                </span>
              ) : (
                <Link href={`/rooms/${room.slug}/book`}>
                  Book Now
-                 <ArrowRight className="ml-2 h-3 w-3" />
+                 <ArrowRight className="ml-1 sm:ml-2 h-3 w-3" />
                </Link>
              )}
            </Button>
@@ -354,8 +351,8 @@ export default function RoomsPage() {
 
   const LoadingSkeleton = () => (
     <Card className="overflow-hidden border-0 bg-white/80 backdrop-blur-sm">
-      <Skeleton className="w-full h-72" />
-      <CardContent className="p-6 space-y-5">
+      <Skeleton className="w-full h-48 sm:h-56 md:h-64 lg:h-72" />
+      <CardContent className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-5">
         {/* Room name and rating skeleton */}
         <div className="space-y-2">
           <Skeleton className="h-6 w-3/4" />
@@ -370,9 +367,9 @@ export default function RoomsPage() {
         </div>
         
                  {/* Room details grid skeleton */}
-                   <div className="grid grid-cols-2 gap-3">
+                   <div className="grid grid-cols-2 gap-2 sm:gap-3">
             {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+              <div key={i} className="flex items-center gap-1 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded-lg">
                 <Skeleton className="h-6 w-6 rounded-md" />
                 <div className="space-y-1">
                   <Skeleton className="h-3 w-16" />
@@ -385,7 +382,7 @@ export default function RoomsPage() {
                  {/* Amenities skeleton */}
          <div className="space-y-2">
            <Skeleton className="h-3 w-20" />
-           <div className="flex gap-2">
+           <div className="flex gap-1 sm:gap-2">
              <Skeleton className="h-6 w-16" />
              <Skeleton className="h-6 w-20" />
              <Skeleton className="h-6 w-18" />
@@ -393,10 +390,10 @@ export default function RoomsPage() {
            </div>
          </div>
       </CardContent>
-      <CardFooter className="p-6 pt-0">
-                 <div className="flex gap-3 w-full">
-           <Skeleton className="h-10 flex-1" />
-           <Skeleton className="h-10 flex-1" />
+      <CardFooter className="p-3 sm:p-4 md:p-6 pt-0">
+                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full">
+           <Skeleton className="h-8 sm:h-10 flex-1" />
+           <Skeleton className="h-8 sm:h-10 flex-1" />
          </div>
       </CardFooter>
     </Card>
@@ -407,37 +404,36 @@ export default function RoomsPage() {
         {/* Enhanced Header */}
         <div className="relative bg-gradient-to-r from-amber-50 via-white to-amber-50 border-b border-amber-100">
           <div className="absolute inset-0 bg-amber-50/30 opacity-50"></div>
-          <Container className="relative py-16">
+          <Container className="relative py-8 sm:py-12 md:py-16">
             <div className="text-center max-w-4xl mx-auto">
               {hotelInfo ? (
                 <>
-                  {/* Hotel Badge */}
-                  <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-amber-200">
+                  {/* Rating Badge - Removed hotel name */}
+                  <div className="inline-flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6 px-4 sm:px-6 py-2 sm:py-3 bg-white/80 backdrop-blur-sm rounded-full shadow-lg border border-amber-200">
                     <div className="flex items-center">
                       {[...Array(hotelInfo.starRating || 5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 fill-amber-400 text-amber-400" />
                       ))}
                     </div>
-                    <span className="text-lg font-bold text-gray-900">{hotelInfo.name || "Grand Luxe Hotel"}</span>
-                    <div className="w-px h-4 bg-gray-300"></div>
-                    <span className="text-sm font-semibold text-amber-600">{hotelInfo.overallRating || 4.8}/5 Rating</span>
+                    <div className="w-px h-3 sm:h-4 bg-gray-300"></div>
+                    <span className="text-sm sm:text-lg font-semibold text-amber-600">{hotelInfo.overallRating || 4.8}/5 Rating</span>
                   </div>
                   
                   {/* Main Title */}
-                  <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-amber-800 to-gray-900 bg-clip-text text-transparent">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-gray-900 via-amber-800 to-gray-900 bg-clip-text text-transparent">
                     Choose Your Perfect Room
                   </h1>
                   
                                      {/* Subtitle */}
-                   <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed max-w-2xl mx-auto">
+                   <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto px-4">
                      Experience luxury and comfort in our carefully designed accommodations, where every detail is crafted for your ultimate satisfaction
                    </p>
                 </>
               ) : (
-                                 <div className="space-y-6">
-                   <Skeleton className="h-12 w-80 mx-auto rounded-full" />
-                   <Skeleton className="h-16 w-96 mx-auto" />
-                   <Skeleton className="h-8 w-96 mx-auto" />
+                                 <div className="space-y-4 sm:space-y-6">
+                   <Skeleton className="h-8 sm:h-12 w-60 sm:w-80 mx-auto rounded-full" />
+                   <Skeleton className="h-12 sm:h-16 w-72 sm:w-96 mx-auto" />
+                   <Skeleton className="h-6 sm:h-8 w-80 sm:w-96 mx-auto" />
                  </div>
               )}
             </div>
@@ -445,8 +441,8 @@ export default function RoomsPage() {
         </div>
 
         {/* Enhanced Rooms Grid */}
-        <Container className="py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <Container className="py-8 sm:py-12 md:py-16">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {loading
               ? [...Array(6)].map((_, i) => <LoadingSkeleton key={i} />)
               : rooms.map((room) => <RoomCard key={room.id} room={room} />)
@@ -454,10 +450,10 @@ export default function RoomsPage() {
           </div>
           
           {!loading && rooms.length === 0 && (
-            <div className="text-center py-20">
-              <div className="text-8xl mb-6">🏨</div>
-              <h3 className="text-3xl font-bold mb-4 text-gray-900">No Rooms Available</h3>
-              <p className="text-lg text-gray-600 max-w-md mx-auto">
+            <div className="text-center py-12 sm:py-16 md:py-20">
+              <div className="text-6xl sm:text-8xl mb-4 sm:mb-6">🏨</div>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-gray-900">No Rooms Available</h3>
+              <p className="text-base sm:text-lg text-gray-600 max-w-md mx-auto px-4">
                 We're currently updating our room inventory. Please check back soon for our latest offerings.
               </p>
             </div>
@@ -465,28 +461,28 @@ export default function RoomsPage() {
         </Container>
 
         {/* Enhanced Call to Action */}
-        <div className="relative bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white py-20 overflow-hidden">
+        <div className="relative bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 text-white py-12 sm:py-16 md:py-20 overflow-hidden">
           <div className="absolute inset-0 bg-white/10 opacity-30"></div>
           <Container className="relative text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6">
               Ready to Experience Luxury?
             </h2>
-            <p className="text-xl md:text-2xl mb-10 opacity-95 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-10 opacity-95 max-w-2xl mx-auto px-4">
               Book your perfect room today and enjoy world-class hospitality with personalized service
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
               <Button 
                 size="lg" 
                 variant="secondary" 
-                className="bg-white text-amber-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+                className="bg-white text-amber-600 hover:bg-gray-100 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
               >
-                <Phone className="mr-3 h-5 w-5" />
+                <Phone className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
                 Call for Reservations
               </Button>
               <Button 
                 size="lg" 
                 variant="outline" 
-                className="border-2 border-white text-white hover:bg-white hover:text-amber-600 px-8 py-4 text-lg font-semibold transition-all duration-300"
+                className="border-2 border-white text-white hover:bg-white hover:text-amber-600 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold transition-all duration-300"
               >
                 View All Services
               </Button>

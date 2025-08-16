@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { calculateTaxes } from "@/lib/tax-calculator"
+import { NotificationService } from "@/lib/notification-service"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth-options"
 
 // GET /api/bookings - Get all bookings
 export async function GET(request: NextRequest) {
@@ -66,6 +69,16 @@ export async function GET(request: NextRequest) {
 // POST /api/bookings - Create a new booking with automatic room allocation
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Get user ID for notifications
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    })
+
     const data = await request.json()
     const { 
       roomTypeId, 
@@ -210,6 +223,23 @@ export async function POST(request: NextRequest) {
 
       return booking
     })
+
+    // Create notification for new booking
+    try {
+      if (user) {
+        await NotificationService.createNotification({
+          title: 'New Booking Received',
+          message: `New booking received from ${result.guestName}`,
+          type: 'booking',
+          userId: user.id,
+          referenceId: result.id,
+          referenceType: 'booking'
+        })
+      }
+    } catch (notificationError) {
+      console.error('Error creating booking notification:', notificationError)
+      // Don't fail the booking creation if notification fails
+    }
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {

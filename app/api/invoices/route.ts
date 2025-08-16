@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { generateUniqueInvoiceNumber, generateQRCode } from '@/lib/qr-generator';
 import { EnhancedAccountService } from '@/lib/enhanced-account-service';
+import { NotificationService } from '@/lib/notification-service';
 
 const prisma = new PrismaClient();
 
@@ -214,6 +215,30 @@ export async function POST(request: NextRequest) {
         invoiceItems: true,
       },
     });
+
+    // Create notification for invoice generated
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user?.email || '' }
+      })
+      
+      if (user) {
+        const action = body.status === 'paid' ? 'paid' : 'generated'
+        await NotificationService.createNotification({
+          title: `Bill ${action}`,
+          message: action === 'paid' 
+            ? `Bill paid for ${completeInvoice!.guestName} - ₹${completeInvoice!.totalAmount}`
+            : `Bill generated for ${completeInvoice!.guestName} - ₹${completeInvoice!.totalAmount}`,
+          type: action === 'paid' ? 'payment' : 'info',
+          userId: user.id,
+          referenceId: completeInvoice!.id,
+          referenceType: 'invoice'
+        })
+      }
+    } catch (notificationError) {
+      console.error('Error creating invoice notification:', notificationError)
+      // Don't fail the invoice creation if notification fails
+    }
 
     return NextResponse.json(completeInvoice);
   } catch (error) {

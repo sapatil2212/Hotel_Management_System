@@ -4,6 +4,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, Users, CalendarCheck2, BarChart3, Settings, Building, Bed, Home, Tag, Receipt, Palette, TrendingUp, CreditCard, Banknote } from "lucide-react"
+import { useHotel } from "@/contexts/hotel-context"
+import Image from "next/image"
 
 const menuItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -14,7 +16,6 @@ const menuItems = [
   { href: "/dashboard/hotel-info", label: "Hotel Info", icon: Building },
   { href: "/dashboard/guests", label: "Guests", icon: Users },
   { href: "/dashboard/billing", label: "Billing & Invoice Management", icon: Receipt },
-  { href: "/dashboard/revenue", label: "Revenue", icon: TrendingUp },
   { href: "/dashboard/revenue-tracking", label: "Revenue Tracking", icon: TrendingUp },
   { href: "/dashboard/expenses", label: "Expenses", icon: CreditCard },
   { href: "/dashboard/accounts", label: "Account Management", icon: Banknote },
@@ -25,6 +26,7 @@ const menuItems = [
 
 export default function Sidebar({ isInDrawer = false }: { isInDrawer?: boolean }) {
   const pathname = usePathname()
+  const { hotelInfo } = useHotel()
 
   return (
     <aside
@@ -36,7 +38,18 @@ export default function Sidebar({ isInDrawer = false }: { isInDrawer?: boolean }
       )}
     >
       <div className="h-16 flex items-center px-6 border-b">
-        <div className="text-lg font-bold bg-gradient-to-r from-amber-500 to-blue-600 bg-clip-text text-transparent">Grand Luxe Admin</div>
+        {hotelInfo.logo && (
+          <div className="flex items-center justify-center w-full">
+            <Image
+              src={hotelInfo.logo}
+              alt={hotelInfo.name || "Hotel Logo"}
+              width={120}
+              height={40}
+              className="h-8 w-auto object-contain"
+              priority
+            />
+          </div>
+        )}
       </div>
       <nav className="p-3">
         <ul className="space-y-1">

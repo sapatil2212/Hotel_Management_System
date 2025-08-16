@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
+import { NotificationService } from '@/lib/notification-service';
 
 const prisma = new PrismaClient();
 
@@ -175,6 +176,53 @@ export async function PUT(
       }
     }
 
+    // Create notification for booking status changes
+    try {
+      const user = await prisma.user.findUnique({
+        where: { email: session.user?.email || '' }
+      });
+
+      if (user && originalBooking.status !== updatedBooking.status) {
+        let notificationTitle = '';
+        let notificationMessage = '';
+
+        switch (newStatus) {
+          case 'cancelled':
+          case 'canceled':
+            notificationTitle = 'Booking Cancelled';
+            notificationMessage = `Booking for ${updatedBooking.guestName} has been cancelled`;
+            break;
+          case 'checked_in':
+            notificationTitle = 'Guest Checked In';
+            notificationMessage = `${updatedBooking.guestName} has checked in`;
+            break;
+          case 'checked_out':
+            notificationTitle = 'Guest Checked Out';
+            notificationMessage = `${updatedBooking.guestName} has checked out`;
+            break;
+          case 'confirmed':
+            notificationTitle = 'Booking Confirmed';
+            notificationMessage = `Booking for ${updatedBooking.guestName} has been confirmed`;
+            break;
+          default:
+            notificationTitle = 'Booking Updated';
+            notificationMessage = `Booking for ${updatedBooking.guestName} has been updated`;
+        }
+
+        await NotificationService.createNotification({
+          title: notificationTitle,
+          message: notificationMessage,
+          type: 'booking',
+          userId: user.id,
+          referenceId: updatedBooking.id,
+          referenceType: 'booking'
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating booking status notification:', notificationError);
+      // Don't fail the booking update if notification fails
+    }
+
     return NextResponse.json(updatedBooking);
   } catch (error) {
     console.error('Error updating booking:', error);
@@ -195,6 +243,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user ID for notifications
+    const user = await prisma.user.findUnique({
+      where: { email: session.user?.email || '' }
+    });
+
     // Check if booking exists
     const booking = await prisma.booking.findUnique({
       where: { id: params.id },
@@ -203,6 +256,13 @@ export async function DELETE(
     if (!booking) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
+
+    // Store booking details before deletion for notification
+    const bookingDetails = {
+      id: booking.id,
+      guestName: booking.guestName,
+      roomId: booking.roomId
+    };
 
     // Free up the room and delete the booking atomically
     await prisma.$transaction([
@@ -217,7 +277,24 @@ export async function DELETE(
       prisma.booking.delete({
         where: { id: params.id },
       }),
-    ])
+    ]);
+
+    // Create notification for booking deletion
+    try {
+      if (user) {
+        await NotificationService.createNotification({
+          title: 'Booking Deleted',
+          message: `Booking for ${bookingDetails.guestName} has been deleted`,
+          type: 'booking',
+          userId: user.id,
+          referenceId: bookingDetails.id,
+          referenceType: 'booking'
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating booking deletion notification:', notificationError);
+      // Don't fail the deletion if notification fails
+    }
 
     return NextResponse.json({ success: true, message: 'Booking deleted successfully and room made available' });
   } catch (error) {
