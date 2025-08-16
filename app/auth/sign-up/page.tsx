@@ -1,17 +1,18 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useState, useTransition, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Mail, LockKeyhole, User, Home, Phone, KeySquare, ShieldCheck } from "lucide-react"
+import { Mail, LockKeyhole, User, Home, Phone, KeySquare, ShieldCheck, Eye, EyeOff } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { Loader, ButtonLoader } from "@/components/ui/loader"
 import { SuccessModal } from "@/components/ui/success-modal"
+
 
 export default function SignUpPage() {
   const [step, setStep] = useState<"details" | "verify">("details")
@@ -21,12 +22,34 @@ export default function SignUpPage() {
   const [role, setRole] = useState<"OWNER" | "ADMIN" | "RECEPTION" | "">("")
   const [psk, setPsk] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [code, setCode] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [resendDisabled, setResendDisabled] = useState(false)
+  const [resendTimer, setResendTimer] = useState(0)
+  const [isProcessing, setIsProcessing] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
   const [successOpen, setSuccessOpen] = useState(false)
+
+
+  // Timer for resend functionality
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            setResendDisabled(false)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [resendTimer])
 
   const requestOtp = async () => {
     const res = await fetch("/api/auth/register/request-otp", {
@@ -60,6 +83,29 @@ export default function SignUpPage() {
     }
   }
 
+  const handleResendOtp = async () => {
+    setError(null)
+    startTransition(async () => {
+              try {
+          setIsProcessing(true)
+          await requestOtp()
+          toast({ title: "OTP resent", description: `We sent a new code to ${email}` })
+          setResendDisabled(true)
+          setResendTimer(60) // 1 minute cooldown
+        } catch (err: any) {
+          setError(err.message)
+        } finally {
+          setIsProcessing(false)
+        }
+    })
+  }
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -67,29 +113,37 @@ export default function SignUpPage() {
       startTransition(async () => {
         try {
           if (!role) throw new Error("Please select a role")
+          setIsProcessing(true)
           await requestOtp()
           toast({ title: "OTP sent", description: `We sent a code to ${email}` })
           setStep("verify")
+          setResendDisabled(true)
+          setResendTimer(60) // 1 minute cooldown
         } catch (err: any) {
           setError(err.message)
+        } finally {
+          setIsProcessing(false)
         }
       })
     } else {
       startTransition(async () => {
         try {
+          setIsProcessing(true)
           await verifyOtp()
           setSuccessOpen(true)
           toast({ title: "Registration successful", description: "You can now sign in." })
           setTimeout(() => router.push("/auth/sign-in"), 2000)
         } catch (err: any) {
           setError(err.message)
+        } finally {
+          setIsProcessing(false)
         }
       })
     }
   }
 
   return (
-    <Card className="w-full max-w-5xl overflow-hidden shadow-xl border-0">
+    <Card className="w-full max-w-5xl overflow-hidden shadow-xl border-0 mx-4 sm:mx-6 lg:mx-8">
       <Loader 
         show={isPending} 
         message={step === "details" ? "Sending OTP to your email..." : "Creating your account..."}
@@ -98,7 +152,7 @@ export default function SignUpPage() {
       />
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* Left: Form */}
-        <CardContent className="p-8 md:p-10">
+        <CardContent className="p-4 sm:p-6 md:p-8 lg:p-10">
           <div className="mb-8">
             <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
               <Home className="h-4 w-4" />
@@ -107,7 +161,7 @@ export default function SignUpPage() {
           </div>
           <div className="mb-8">
             <h1 className="text-2xl font-bold">{step === "details" ? "Create account," : "Verify email"}</h1>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {step === "details" ? "Join us to continue" : `We sent a 6-digit code to ${email}`}
             </p>
           </div>
@@ -144,7 +198,21 @@ export default function SignUpPage() {
                 </div>
                 <div className="relative">
                   <LockKeyhole className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className="pl-9" required />
+                  <Input 
+                    type={showPassword ? "text" : "password"} 
+                    placeholder="Password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    className="pl-9 pr-10" 
+                    required 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </>
             ) : (
@@ -156,17 +224,27 @@ export default function SignUpPage() {
               </>
             )}
             {error && <div className="text-sm text-red-600">{error}</div>}
-            <div className="flex items-center justify-between text-sm">
-              <Link href="/auth/sign-in" className="text-amber-700 hover:underline">Have an account? Sign In</Link>
-            </div>
-            <Button type="submit" className="w-28" disabled={isPending}>
+            <Button type="submit" className="w-full" disabled={isPending || isProcessing}>
               <ButtonLoader 
-                show={isPending} 
-                loadingText={step === "details" ? "Sending..." : "Verifying..."}
+                show={isPending || isProcessing} 
+                loadingText={step === "details" ? "Sending OTP..." : "Creating Account..."}
               >
                 {step === "details" ? "Request OTP" : "Verify & Create"}
               </ButtonLoader>
             </Button>
+            <div className="flex items-center justify-between text-sm">
+              <Link href="/auth/sign-in" className="text-amber-700 hover:underline">Already have an account? Sign in</Link>
+              {step === "verify" && (
+                <button
+                  type="button"
+                  onClick={handleResendOtp}
+                  disabled={resendDisabled || isProcessing}
+                  className={`text-amber-700 hover:underline ${(resendDisabled || isProcessing) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  {isProcessing ? 'Sending...' : resendDisabled ? `Resend in ${formatTime(resendTimer)}` : 'Resend OTP'}
+                </button>
+              )}
+            </div>
           </form>
         </CardContent>
 
@@ -187,6 +265,8 @@ export default function SignUpPage() {
         confirmText="Go to Sign In"
         showIcon={true}
       />
+
+
     </Card>
   )
 }

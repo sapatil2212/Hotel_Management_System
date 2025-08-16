@@ -92,11 +92,11 @@ const Navigation = () => {
 
               {/* Phone Number Button - Desktop */}
               <a
-                href="tel:+918552982999"
+                href={`tel:${hotelInfo.primaryPhone || '+918552982999'}`}
                 className="relative overflow-hidden px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-700 rounded-full font-medium text-white text-sm tracking-wide flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
               >
                 <Phone className="h-4 w-4" />
-                <span className="font-medium">+91 85529 82999</span>
+                <span className="font-medium">{hotelInfo.primaryPhone || '+91 85529 82999'}</span>
               </a>
             </nav>
 
@@ -129,11 +129,11 @@ const Navigation = () => {
                 
                 {/* Phone Number Button - Mobile */}
                 <a
-                  href="tel:+918552982999"
+                  href={`tel:${hotelInfo.primaryPhone || '+918552982999'}`}
                   className="relative overflow-hidden px-5 py-3 bg-gradient-to-r from-amber-600 to-amber-700 rounded-full font-medium text-white text-sm tracking-wide flex items-center gap-2 justify-center mt-4 transition-transform duration-200 hover:scale-102"
                 >
                   <Phone className="h-4 w-4" />
-                  <span className="font-medium">+91 85529 82999</span>
+                  <span className="font-medium">{hotelInfo.primaryPhone || '+91 85529 82999'}</span>
                 </a>
               </nav>
             </div>

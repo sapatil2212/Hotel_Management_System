@@ -5,11 +5,7 @@ import { sendEmail } from "@/lib/email"
 import { createOTPEmail } from "@/lib/email-templates"
 
 const requestSchema = z.object({
-  name: z.string().min(2),
   email: z.string().email(),
-  phone: z.string().min(6),
-  role: z.enum(["OWNER", "ADMIN", "RECEPTION"]),
-  psk: z.string().min(1),
 })
 
 export async function POST(req: Request) {
@@ -29,15 +25,11 @@ export async function POST(req: Request) {
         { status: 422 }
       )
     }
-    const { name, email, phone, role, psk } = parsed.data
+    const { email } = parsed.data
 
-    if (!process.env.PSK || psk !== process.env.PSK) {
-      return NextResponse.json({ error: "Invalid security key" }, { status: 400 })
-    }
-
-    const existing = await prisma.user.findUnique({ where: { email } })
-    if (existing) {
-      return NextResponse.json({ error: "Email already registered" }, { status: 400 })
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user) {
+      return NextResponse.json({ error: "Email not found" }, { status: 400 })
     }
 
     const code = Math.floor(100000 + Math.random() * 900000).toString()
@@ -52,21 +44,19 @@ export async function POST(req: Request) {
         id: `otp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         email, 
         code, 
-        purpose: "register",
+        purpose: "reset_password",
         expiresAt,
         updatedAt: now
       },
       update: { code, expiresAt, attempts: 0, updatedAt: now },
     })
 
-    const html = await createOTPEmail(name, code)
-    await sendEmail({ to: email, subject: "Your HMS verification code", html })
+    const html = await createOTPEmail(user.name, code)
+    await sendEmail({ to: email, subject: "Your HMS password reset code", html })
 
     return NextResponse.json({ ok: true, message: "OTP sent to email" })
   } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "Failed to request OTP"
+    const message = typeof err?.message === "string" ? err.message : "Failed to send OTP"
     return NextResponse.json({ error: message }, { status: 400 })
   }
 }
-
-

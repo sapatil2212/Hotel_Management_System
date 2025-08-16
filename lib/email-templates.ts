@@ -124,7 +124,7 @@ export async function createOTPEmail(name: string, code: string): Promise<string
       <div style="background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 8px; padding: 24px; margin: 24px 0; display: inline-block;">
         <p style="font-size: 32px; font-weight: bold; color: #2563eb; margin: 0; letter-spacing: 4px;">${code}</p>
       </div>
-      <p style="color: #ef4444; font-size: 14px; margin-top: 24px;">This code will expire in 10 minutes.</p>
+      <p style="color: #ef4444; font-size: 14px; margin-top: 24px;">This code will expire in 5 minutes.</p>
     </div>
   `
   

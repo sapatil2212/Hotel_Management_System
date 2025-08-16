@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/toaster';
 import RootShell from '@/components/layout/root-shell';
@@ -9,6 +9,7 @@ import { AppSessionProvider } from '@/components/auth/session-provider';
 import { HotelProvider } from '@/contexts/hotel-context';
 
 const inter = Inter({ subsets: ['latin'] });
+const playfair = Playfair_Display({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Grand Luxe Hotel - Experience Luxury Redefined',
@@ -35,7 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${playfair.variable}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

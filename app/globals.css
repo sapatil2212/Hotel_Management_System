@@ -80,3 +80,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .font-luxury {
+    font-family: var(--font-playfair-display), 'Times New Roman', serif;
+  }
+}
