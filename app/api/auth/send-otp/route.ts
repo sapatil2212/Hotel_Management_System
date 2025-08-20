@@ -35,7 +35,8 @@ export async function POST(request: NextRequest) {
 
     // Generate and store OTP
     const otp = OTPService.generateOTP()
-    OTPService.storeOTP(email, type, otp)
+    console.log('Generated OTP:', { email, type, otp })
+    await OTPService.storeOTP(email, type, otp)
 
     // Send email with OTP
     const subject = type === 'email' 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         <div style="background-color: #f3f4f6; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
           <h1 style="color: #2563eb; font-size: 32px; margin: 0; letter-spacing: 4px;">${otp}</h1>
         </div>
-        <p>This code will expire in 10 minutes.</p>
+        <p>This code will expire in 5 minutes.</p>
         <p>If you didn't request this code, please ignore this email.</p>
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
         <p style="color: #6b7280; font-size: 14px;">

@@ -17,13 +17,20 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
+import { useAppSelector } from "@/lib/hooks"
 
 export default function Topbar() {
   const { data: session } = useSession()
-  const displayName = session?.user?.name || session?.user?.email || "User"
+  const { currentUser } = useAppSelector((state: any) => state.user)
+  
+  // Use Redux state if available, otherwise fall back to session
+  const userData = currentUser || session?.user
+  const displayName = userData?.name || userData?.email || "User"
+  const userImage = currentUser?.avatarUrl || session?.user?.image || "https://i.pravatar.cc/100?img=68"
+  
   const initials = (displayName || "U")
     .split(" ")
-    .map((p) => p[0])
+    .map((p: string) => p[0])
     .join("")
     .toUpperCase()
 
@@ -58,8 +65,11 @@ export default function Topbar() {
             <DropdownMenuTrigger asChild>
               <button aria-label="User menu" className="rounded-full focus:outline-none focus:ring-2 focus:ring-ring">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={"https://i.pravatar.cc/100?img=68"} alt={displayName} />
-                  <AvatarFallback>{initials}</AvatarFallback>
+                  <AvatarImage 
+                    src={userImage} 
+                    alt={displayName} 
+                  />
+                  <AvatarFallback className="bg-gray-200 text-gray-700">{initials}</AvatarFallback>
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
@@ -67,8 +77,10 @@ export default function Topbar() {
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium leading-tight">{displayName}</span>
-                  {session?.user?.email && (
-                    <span className="text-xs text-muted-foreground">{session.user.email}</span>
+                  {(currentUser?.email || session?.user?.email) && (
+                    <span className="text-xs text-muted-foreground">
+                      {currentUser?.email || session?.user?.email}
+                    </span>
                   )}
                 </div>
               </DropdownMenuLabel>

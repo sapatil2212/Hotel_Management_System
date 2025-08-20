@@ -37,19 +37,23 @@ export async function POST(req: Request) {
     const expiresAt = new Date(Date.now() + 2 * 60 * 1000)
     const now = new Date()
 
+    console.log('Creating OTP:', { email, code, purpose: "password" })
+    
     // upsert OTP
-    await prisma.emailotp.upsert({
+    const otpResult = await prisma.emailotp.upsert({
       where: { email },
       create: { 
         id: `otp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         email, 
         code, 
-        purpose: "reset_password",
+                 purpose: "reset_password",
         expiresAt,
         updatedAt: now
       },
       update: { code, expiresAt, attempts: 0, updatedAt: now },
     })
+    
+    console.log('OTP created/updated:', otpResult)
 
     const html = await createOTPEmail(user.name, code)
     await sendEmail({ to: email, subject: "Your HMS password reset code", html })

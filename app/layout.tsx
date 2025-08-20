@@ -7,6 +7,7 @@ import RootShell from '@/components/layout/root-shell';
 import ClientChrome from '@/components/layout/client-chrome';
 import { AppSessionProvider } from '@/components/auth/session-provider';
 import { HotelProvider } from '@/contexts/hotel-context';
+import { ReduxProvider } from '@/components/providers/redux-provider';
 
 const inter = Inter({ subsets: ['latin'] });
 const playfair = Playfair_Display({ 
@@ -46,17 +47,19 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange={false}
         >
-          <AppSessionProvider>
-            <HotelProvider>
-              {/* Hide header/footer conditionally via client wrapper */}
-              <ClientChrome>
-                {/* In non-dashboard/auth pages, show nav/footer shell */}
-              </ClientChrome>
-              <RootShell>
-                {children}
-              </RootShell>
-            </HotelProvider>
-          </AppSessionProvider>
+          <ReduxProvider>
+            <AppSessionProvider>
+              <HotelProvider>
+                {/* Hide header/footer conditionally via client wrapper */}
+                <ClientChrome>
+                  {/* In non-dashboard/auth pages, show nav/footer shell */}
+                </ClientChrome>
+                <RootShell>
+                  {children}
+                </RootShell>
+              </HotelProvider>
+            </AppSessionProvider>
+          </ReduxProvider>
           <Toaster />
         </ThemeProvider>
       </body>

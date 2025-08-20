@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { email, otp, type } = body
 
+    console.log('Verify OTP request:', { email, otp, type })
+
     if (!email || !otp || !type) {
       return NextResponse.json(
         { error: 'Email, OTP, and type are required' },
@@ -31,8 +33,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Debug: Show all stored OTPs
+    const allOTPs = await OTPService.getAllStoredOTPs()
+    console.log('All stored OTPs:', Array.from(allOTPs.entries()))
+
     // Verify OTP using the service
-    const isValid = OTPService.verifyOTP(email, type, otp)
+    const isValid = await OTPService.verifyOTP(email, type, otp)
+
+    console.log('OTP verification result:', isValid)
 
     if (!isValid) {
       return NextResponse.json(

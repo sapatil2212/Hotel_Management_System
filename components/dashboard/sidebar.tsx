@@ -21,7 +21,7 @@ const menuItems = [
   { href: "/dashboard/accounts", label: "Account Management", icon: Banknote },
   { href: "/dashboard/cms", label: "CMS(UI)", icon: Palette },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/enhanced-settings", label: "Settings", icon: Settings },
 ]
 
 export default function Sidebar({ isInDrawer = false }: { isInDrawer?: boolean }) {

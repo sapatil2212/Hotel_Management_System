@@ -38,12 +38,12 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { firstName, lastName, email, phone, bio } = body
+    const { name, email, phone, bio } = body
 
     // Basic validation
-    if (!firstName || !lastName || !email) {
+    if (!name || !email) {
       return NextResponse.json(
-        { error: 'First name, last name, and email are required' },
+        { error: 'Name and email are required' },
         { status: 400 }
       )
     }
@@ -67,7 +67,7 @@ export async function PUT(request: NextRequest) {
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        name: `${firstName} ${lastName}`.trim(),
+        name: name.trim(),
         email,
         phone: phone || null,
         updatedAt: new Date(),

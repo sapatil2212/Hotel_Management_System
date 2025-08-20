@@ -1,71 +1,76 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { z } from "zod"
-import bcrypt from "bcryptjs"
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { z } from 'zod'
 
-const verifySchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
-  code: z.string().length(6),
+const verifyOtpSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  otp: z.string().length(6, 'OTP must be 6 digits'),
 })
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json()
-    const parsed = verifySchema.safeParse(body)
+    console.log('OTP verification started')
+    
+    const body = await request.json()
+    console.log('Request body:', body)
+    
+    const parsed = verifyOtpSchema.safeParse(body)
+    
     if (!parsed.success) {
+      console.log('Validation failed:', parsed.error.errors)
       return NextResponse.json(
-        {
-          error: "Validation failed",
-          issues: parsed.error.issues.map((i) => ({
-            code: i.code,
-            path: i.path,
-            message: i.message,
-          })),
-        },
-        { status: 422 }
+        { error: 'Invalid input data', details: parsed.error.errors },
+        { status: 400 }
       )
     }
-    const { email, password, code } = parsed.data
 
-    const otp = await prisma.emailotp.findUnique({ where: { email } })
-    if (!otp) return NextResponse.json({ error: "No OTP requested" }, { status: 400 })
+    const { email, otp } = parsed.data
+    console.log('Looking for OTP:', { email, otp })
 
-    if (otp.expiresAt.getTime() < Date.now()) {
-      return NextResponse.json({ error: "OTP expired" }, { status: 400 })
+    // Check if prisma is available
+    if (!prisma) {
+      console.error('Prisma client is undefined')
+      return NextResponse.json(
+        { error: 'Database connection error' },
+        { status: 500 }
+      )
     }
 
-    if (otp.attempts >= 5) {
-      return NextResponse.json({ error: "Too many attempts" }, { status: 400 })
+    // Find the OTP record
+    const otpRecord = await prisma.emailotp.findFirst({
+             where: {
+         email,
+         code: otp,
+         purpose: 'reset_password',
+         expiresAt: {
+           gt: new Date()
+         }
+       }
+    })
+    
+    console.log('OTP record found:', otpRecord)
+
+    if (!otpRecord) {
+      return NextResponse.json(
+        { error: 'Invalid or expired OTP' },
+        { status: 400 }
+      )
     }
 
-    if (otp.code !== code) {
-      await prisma.emailotp.update({ 
-        where: { email }, 
-        data: { 
-          attempts: { increment: 1 },
-          updatedAt: new Date()
-        } 
-      })
-      return NextResponse.json({ error: "Invalid OTP" }, { status: 400 })
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10)
-    const now = new Date()
-
-    await prisma.user.update({
-      where: { email },
-      data: {
-        passwordHash,
-        updatedAt: now,
-      },
+    // Delete the OTP record after successful verification
+    await prisma.emailotp.delete({
+      where: { id: otpRecord.id }
     })
 
-    await prisma.emailotp.delete({ where: { email } })
-
-    return NextResponse.json({ ok: true })
-  } catch (err: any) {
-    const message = typeof err?.message === "string" ? err.message : "Failed to reset password"
-    return NextResponse.json({ error: message }, { status: 400 })
+    return NextResponse.json(
+      { message: 'OTP verified successfully' },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('OTP verification error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }
