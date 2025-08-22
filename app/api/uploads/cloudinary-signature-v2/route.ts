@@ -42,7 +42,7 @@ export async function POST(req: Request) {
     .update(sortedParams + apiSecret)
     .digest("hex")
 
-  console.log('Cloudinary signature generation:', {
+  console.log('Cloudinary signature generation v2:', {
     cloudName,
     apiKey: apiKey.substring(0, 8) + '...',
     timestamp,
@@ -60,5 +60,3 @@ export async function POST(req: Request) {
     paramsToSign: sortedParams // For debugging
   })
 }
-
-

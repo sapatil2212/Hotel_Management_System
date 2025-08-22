@@ -28,8 +28,8 @@ export function ImageUpload({
 
   const uploadToCloudinary = async (file: File): Promise<string> => {
     try {
-      // Get Cloudinary signature
-      const signatureResponse = await fetch('/api/uploads/cloudinary-signature', {
+      // Get Cloudinary signature using the new endpoint
+      const signatureResponse = await fetch('/api/uploads/cloudinary-signature-v3', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,13 +43,12 @@ export function ImageUpload({
         throw new Error(`Failed to get upload signature: ${errorData.error || 'Unknown error'}`)
       }
 
-      const { timestamp, signature, apiKey, cloudName, paramsToSign } = await signatureResponse.json()
+      const { timestamp, signature, apiKey, cloudName } = await signatureResponse.json()
       
       console.log('Cloudinary upload params:', { 
         cloudName, 
         timestamp, 
-        signature: signature.substring(0, 8) + '...',
-        paramsToSign 
+        signature: signature.substring(0, 8) + '...'
       })
 
       // Create form data for Cloudinary

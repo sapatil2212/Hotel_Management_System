@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import crypto from "crypto"
+import { v2 as cloudinary } from 'cloudinary'
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth-options"
 
@@ -22,31 +22,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cloudinary env not configured" }, { status: 500 })
   }
 
+  // Configure Cloudinary
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  })
+
   const timestamp = Math.floor(Date.now() / 1000)
   
-  // Create the parameters object for signing
-  const params = {
-    folder: folder,
-    timestamp: timestamp
-  }
-  
-  // Sort parameters alphabetically and create the string to sign
-  const sortedParams = Object.keys(params)
-    .sort()
-    .map(key => `${key}=${params[key as keyof typeof params]}`)
-    .join('&')
-  
-  // Generate signature using SHA1 - concatenate the string with the API secret
-  const signature = crypto
-    .createHash("sha1")
-    .update(sortedParams + apiSecret)
-    .digest("hex")
+  // Use Cloudinary's built-in signature generation
+  const signature = cloudinary.utils.api_sign_request(
+    {
+      folder: folder,
+      timestamp: timestamp
+    },
+    apiSecret
+  )
 
-  console.log('Cloudinary signature generation:', {
+  console.log('Cloudinary signature generation v3:', {
     cloudName,
     apiKey: apiKey.substring(0, 8) + '...',
     timestamp,
-    paramsToSign: sortedParams,
     signature: signature.substring(0, 8) + '...',
     apiSecretLength: apiSecret.length
   })
@@ -56,9 +53,6 @@ export async function POST(req: Request) {
     signature, 
     apiKey, 
     cloudName, 
-    folder,
-    paramsToSign: sortedParams // For debugging
+    folder
   })
 }
-
-
