@@ -130,12 +130,40 @@ export async function DELETE(
     // Calculate total payments for this invoice
     const totalPayments = invoice.payments.reduce((sum, payment) => sum + payment.amount, 0);
 
-    // Delete the invoice (this will cascade delete related payments)
-    await prisma.invoice.delete({
-      where: { id: params.id },
-    });
+    // Delete all related transactions and the invoice atomically
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete all transactions related to this invoice
+      console.log(`🗑️ Deleting transactions for invoice ${params.id}`);
+      const deletedInvoiceTransactions = await tx.transaction.deleteMany({
+        where: {
+          referenceId: params.id,
+          referenceType: 'invoice'
+        }
+      });
+      console.log(`✅ Deleted ${deletedInvoiceTransactions.count} invoice transactions`);
 
-    console.log(`🗑️ Invoice ${params.id} deleted successfully`);
+      // 2. Delete all transactions related to payments of this invoice
+      const paymentIds = invoice.payments.map(payment => payment.id);
+      if (paymentIds.length > 0) {
+        console.log(`🗑️ Deleting transactions for payments: ${paymentIds.join(', ')}`);
+        const deletedPaymentTransactions = await tx.transaction.deleteMany({
+          where: {
+            referenceId: {
+              in: paymentIds
+            },
+            referenceType: 'payment'
+          }
+        });
+        console.log(`✅ Deleted ${deletedPaymentTransactions.count} payment transactions`);
+      }
+
+      // 3. Delete the invoice (this will cascade delete related payments)
+      await tx.invoice.delete({
+        where: { id: params.id },
+      });
+
+      console.log(`✅ Invoice ${params.id} deleted successfully`);
+    });
 
     // If there were payments for this invoice, reverse the revenue
     if (totalPayments > 0) {
@@ -176,34 +204,35 @@ export async function DELETE(
       data: { paymentStatus },
     });
 
-         // Create audit log for invoice deletion
-     if (totalPayments > 0) {
-       // Get main account for audit log
-       const mainAccount = await AccountService.getMainAccount();
-       
-       await prisma.transaction.create({
-         data: {
-           accountId: mainAccount.id,
-           type: 'debit',
-           category: 'refunds',
-           amount: totalPayments,
-           description: `Invoice deletion: ${reason || 'Revenue reversal'}`,
-           referenceId: booking.id,
-           referenceType: 'booking',
-           processedBy: processedBy || session.user?.name || 'System',
-           notes: `Deleted invoice of ${invoiceAmount} with ${totalPayments} in payments for booking ${booking.id}. Reason: ${reason || 'Revenue reversal'}`,
-           isModification: true,
-           originalAmount: totalPayments,
-           modificationReason: reason || 'Revenue reversal',
-         },
-       });
-     }
+    // Create audit log for invoice deletion (only if there were payments)
+    if (totalPayments > 0) {
+      // Get main account for audit log
+      const mainAccount = await AccountService.getMainAccount();
+      
+      await prisma.transaction.create({
+        data: {
+          accountId: mainAccount.id,
+          type: 'debit',
+          category: 'refunds',
+          amount: totalPayments,
+          description: `Invoice deletion: ${reason || 'Revenue reversal'}`,
+          referenceId: booking.id,
+          referenceType: 'booking',
+          processedBy: processedBy || session.user?.name || 'System',
+          notes: `Deleted invoice of ${invoiceAmount} with ${totalPayments} in payments for booking ${booking.id}. Reason: ${reason || 'Revenue reversal'}`,
+          isModification: true,
+          originalAmount: totalPayments,
+          modificationReason: reason || 'Revenue reversal',
+        },
+      });
+    }
 
     return NextResponse.json({ 
       success: true, 
       message: 'Invoice deleted successfully',
       reversedAmount: totalPayments,
-      newPaymentStatus: paymentStatus
+      newPaymentStatus: paymentStatus,
+      deletedTransactions: totalPayments > 0 ? 'Revenue transactions also deleted' : 'No revenue transactions to delete'
     });
   } catch (error) {
     console.error('Error deleting invoice:', error);

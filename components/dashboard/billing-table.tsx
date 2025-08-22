@@ -164,6 +164,8 @@ interface BillGenerationData {
     description: string
     gstApplicable: boolean
     gstPercentage: number
+    gstAmount?: number
+    finalAmount?: number
   }>
 }
 
@@ -318,6 +320,7 @@ export default function BillingTable() {
   // View booking bill/invoice modal states
   const [isViewBookingModalOpen, setIsViewBookingModalOpen] = useState(false)
   const [viewBookingData, setViewBookingData] = useState<Booking | null>(null)
+  const [viewInvoiceData, setViewInvoiceData] = useState<Invoice | null>(null)
 
   // Fetch invoices and bookings
   useEffect(() => {
@@ -734,14 +737,22 @@ export default function BillingTable() {
       return
     }
     
-    // Auto-fetch existing extra charges from booking's billItems
-    const existingExtraCharges = booking.billItems?.map(item => ({
-      item: item.itemName,
-      amount: item.finalAmount,
-      description: item.description || '',
-      gstApplicable: true, // Default to true for existing items
-      gstPercentage: hotelInfo.gstPercentage || 18 // Use hotel GST percentage
-    })) || []
+    // Auto-fetch existing extra charges from booking's billItems with proper GST breakdown
+    const existingExtraCharges = booking.billItems?.map(item => {
+      // Calculate GST amount for each item based on the final amount
+      const itemBaseAmount = item.finalAmount / (1 + (hotelInfo.gstPercentage || 18) / 100)
+      const itemGSTAmount = item.finalAmount - itemBaseAmount
+      
+      return {
+        item: item.itemName,
+        amount: itemBaseAmount, // Store base amount (without GST)
+        description: item.description || '',
+        gstApplicable: true, // Default to true for existing items
+        gstPercentage: hotelInfo.gstPercentage || 18, // Use hotel GST percentage
+        gstAmount: itemGSTAmount, // Store calculated GST amount
+        finalAmount: item.finalAmount // Store final amount (with GST)
+      }
+    }) || []
     
     setSelectedBooking(booking)
     setCurrentStep(1)
@@ -771,7 +782,20 @@ export default function BillingTable() {
       return;
     }
     
+    // Get the latest invoice for this booking
+    const latestInvoice = booking.invoices?.[0]; // Assuming invoices are sorted by creation date
+    
+    if (!latestInvoice) {
+      toast({
+        title: "Error",
+        description: "No invoice found for this booking",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setViewBookingData(booking)
+    setViewInvoiceData(latestInvoice) // Add this state to store the actual invoice
     setIsViewBookingModalOpen(true)
   }
 
@@ -917,8 +941,8 @@ export default function BillingTable() {
   const calculateBillTotal = () => {
     if (!selectedBooking) return 0
     
-    // Base room amount (without taxes)
-    const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+    // Base room amount (without taxes) - use actual room price, not stored baseAmount
+    const roomBaseAmount = selectedBooking.room.roomType.price * selectedBooking.nights
     
     // GST on room base amount (always applicable)
     const roomGSTAmount = (roomBaseAmount * (hotelInfo.gstPercentage || 18)) / 100
@@ -927,7 +951,8 @@ export default function BillingTable() {
     const extraChargesWithGST = billGenerationData.extraCharges.reduce((sum, charge) => {
       const chargeAmount = charge.amount || 0
       if (charge.gstApplicable) {
-        const gstAmount = (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+        // Use pre-calculated GST amount if available (for existing items)
+        const gstAmount = charge.gstAmount || (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
         return sum + chargeAmount + gstAmount
       }
       return sum + chargeAmount
@@ -940,9 +965,10 @@ export default function BillingTable() {
 
   // Helper function to calculate GST breakdown
   const calculateGSTBreakdown = () => {
-    if (!selectedBooking) return { subtotal: 0, gstAmount: 0, total: 0 }
+    if (!selectedBooking) return { subtotal: 0, gstAmount: 0, total: 0, roomGSTAmount: 0, extraChargesGSTAmount: 0 }
     
-    const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+    // Use actual room price, not stored baseAmount which includes extra charges
+    const roomBaseAmount = (selectedBooking.room.roomType.price || 0) * selectedBooking.nights
     const extraChargesSubtotal = billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0)
     
     // Calculate GST on room base amount (always applicable)
@@ -951,7 +977,8 @@ export default function BillingTable() {
     // Calculate GST on applicable extra charges
     const extraChargesGSTAmount = billGenerationData.extraCharges.reduce((sum, charge) => {
       if (charge.gstApplicable) {
-        return sum + ((charge.amount || 0) * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+        // Use pre-calculated GST amount if available (for existing items)
+        return sum + (charge.gstAmount || ((charge.amount || 0) * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100)
       }
       return sum
     }, 0)
@@ -975,34 +1002,63 @@ export default function BillingTable() {
     try {
       setGeneratingEnhancedInvoice(true)
       
-      // Base room amount (without taxes)
-      const roomBaseAmount = (selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0
+      // Base room amount (without taxes) - use actual room price, not stored baseAmount
+      const roomBaseAmount = (selectedBooking.room.roomType.price || 0) * selectedBooking.nights
       
       // GST on room base amount (always applicable)
       const roomGSTAmount = (roomBaseAmount * (hotelInfo.gstPercentage || 18)) / 100
       
-      // Calculate extra charges with GST
-      const extraChargesWithGST = billGenerationData.extraCharges.reduce((sum, charge) => {
+      // Calculate extra charges base amounts and GST
+      const extraChargesBreakdown = billGenerationData.extraCharges.map(charge => {
         const chargeAmount = charge.amount || 0
-        if (charge.gstApplicable) {
-          const gstAmount = (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
-          return sum + chargeAmount + gstAmount
+        const gstAmount = charge.gstApplicable ? (charge.gstAmount || (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100) : 0
+        const finalAmount = chargeAmount + gstAmount
+        
+        return {
+          baseAmount: chargeAmount,
+          gstAmount: gstAmount,
+          finalAmount: finalAmount
         }
-        return sum + chargeAmount
-      }, 0)
+      })
       
-      // Total amount = Base Amount + GST on Base + Extra Charges (with GST if applicable)
-      const totalAmount = roomBaseAmount + roomGSTAmount + extraChargesWithGST
+      // Calculate overall totals
+      const extraChargesBaseTotal = extraChargesBreakdown.reduce((sum, item) => sum + item.baseAmount, 0)
+      const extraChargesGSTTotal = extraChargesBreakdown.reduce((sum, item) => sum + item.gstAmount, 0)
+      const extraChargesFinalTotal = extraChargesBreakdown.reduce((sum, item) => sum + item.finalAmount, 0)
       
-      // Total GST amount (room GST + extra charges GST)
-      const totalGSTAmount = roomGSTAmount + billGenerationData.extraCharges.reduce((sum, charge) => {
-        if (charge.gstApplicable) {
-          return sum + ((charge.amount || 0) * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
-        }
-        return sum
-      }, 0)
+      // Overall totals for the entire invoice
+      const overallSubtotal = roomBaseAmount + extraChargesBaseTotal
+      const overallGSTTotal = roomGSTAmount + extraChargesGSTTotal
+      const overallGrandTotal = roomBaseAmount + roomGSTAmount + extraChargesFinalTotal
       
       const status = billGenerationData.type === 'bill' ? 'paid' : 'pending'
+      
+      // Prepare extra charges details for the invoice
+      const extraChargesDetails = billGenerationData.extraCharges.map((charge, index) => {
+        const breakdown = extraChargesBreakdown[index]
+        
+        return {
+          itemName: charge.item,
+          description: charge.description,
+          quantity: 1,
+          unitPrice: charge.amount || 0,
+          totalPrice: breakdown.baseAmount,
+          discount: 0,
+          taxRate: charge.gstApplicable ? (charge.gstPercentage || hotelInfo.gstPercentage || 18) : 0,
+          taxAmount: breakdown.gstAmount,
+          finalAmount: breakdown.finalAmount
+        }
+      })
+      
+      // Prepare payment details if it's a bill
+      const paymentDetails = billGenerationData.type === 'bill' ? [{
+        amount: overallGrandTotal,
+        paymentMethod: billGenerationData.paymentMethod,
+        paymentDate: new Date().toISOString(),
+        status: 'completed',
+        paymentReference: billGenerationData.referenceId,
+        receivedBy: billGenerationData.collectedBy
+      }] : []
       
       const response = await fetch('/api/invoices', {
         method: 'POST',
@@ -1021,17 +1077,18 @@ export default function BillingTable() {
           children: selectedBooking.children,
           roomTypeName: selectedBooking.room.roomType.name,
           roomNumber: selectedBooking.room.roomNumber,
-          baseAmount: roomBaseAmount, // Room stay amount only
+          baseAmount: roomBaseAmount, // Room base amount only (not including extra charges)
           discountAmount: 0,
-          gstAmount: totalGSTAmount, // Total GST (room + extra charges)
+          gstAmount: overallGSTTotal, // Overall GST total (room + extra charges GST)
           serviceTaxAmount: 0,
           otherTaxAmount: 0,
-          totalTaxAmount: totalGSTAmount,
-          totalAmount: totalAmount, // Base + Extra Charges (with GST if applicable)
+          totalTaxAmount: overallGSTTotal,
+          totalAmount: overallGrandTotal, // Overall grand total
           status: status,
           dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           terms: billGenerationData.notes || 'Payment due upon receipt',
-          notes: `Extra Charges: ${formatCurrency(billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0))}\nPayment Mode: ${billGenerationData.paymentMethod}\nCollected By: ${billGenerationData.collectedBy}${billGenerationData.referenceId ? `\nReference ID: ${billGenerationData.referenceId}` : ''}\n\nExtra Charge Details:\n${billGenerationData.extraCharges.map(charge => `${charge.item}: ${formatCurrency(charge.amount)}${charge.gstApplicable ? ` + GST ${charge.gstPercentage}%` : ''} - ${charge.description}`).join('\n')}`
+          notes: `Extra Charges: ${formatCurrency(extraChargesBaseTotal)}\nPayment Mode: ${billGenerationData.paymentMethod}\nCollected By: ${billGenerationData.collectedBy}${billGenerationData.referenceId ? `\nReference ID: ${billGenerationData.referenceId}` : ''}\n\nExtra Charge Details:\n${billGenerationData.extraCharges.map(charge => `${charge.item}: ${formatCurrency(charge.amount)}${charge.gstApplicable ? ` + GST ${charge.gstPercentage}%` : ''} - ${charge.description}`).join('\n')}`,
+          invoiceItems: extraChargesDetails // Include extra charges as invoice items
         }),
       })
 
@@ -1039,7 +1096,8 @@ export default function BillingTable() {
         const newInvoice = await response.json()
         setGeneratedBill(newInvoice)
         setInvoices([newInvoice, ...invoices])
-        setCurrentStep(3)
+        // Show the generated bill immediately instead of staying on step 3
+        setCurrentStep(4) // New step to show generated bill
         toast({
           title: "Success",
           description: `${billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'} generated successfully!`,
@@ -1671,8 +1729,13 @@ export default function BillingTable() {
                         </div>
                       </TableCell>
                       <TableCell className="border-r border-gray-200 px-3 py-4">
-                        <div className="font-medium text-gray-900">{formatCurrency(booking.room.roomType.price * booking.nights)}</div>
+                        <div className="font-medium text-gray-900">{formatCurrency((booking as any).baseAmount || (booking.room.roomType.price * booking.nights))}</div>
                         <div className="text-xs text-gray-600">Base room rate</div>
+                        {((booking as any).gstAmount || 0) > 0 && (
+                          <div className="text-xs text-green-600">
+                            +{formatCurrency((booking as any).gstAmount || 0)} GST
+                          </div>
+                        )}
                       </TableCell>
                       <TableCell className="border-r border-gray-200 px-3 py-4">
                         <div className="space-y-1">
@@ -2199,6 +2262,37 @@ export default function BillingTable() {
                        <span className="text-sm text-gray-700">Accommodation charges (including applicable hotel taxes) collected on behalf of hotel</span>
                        <span className="font-semibold text-gray-900">{formatCurrency(selectedBillInvoice.baseAmount)}</span>
                      </div>
+                     
+                     {/* Extra Items Section */}
+                     {selectedBillInvoice.invoiceItems && selectedBillInvoice.invoiceItems.length > 0 && (
+                       <>
+                         <div className="border-t border-gray-300 pt-3">
+                           <h4 className="font-semibold text-gray-800 mb-2">Extra Items:</h4>
+                           {selectedBillInvoice.invoiceItems.map((item, index) => (
+                             <div key={index} className="space-y-1 mb-2 p-2 bg-white rounded border">
+                               <div className="flex justify-between items-center">
+                                 <span className="text-sm font-medium text-gray-700">{item.itemName}</span>
+                                 <span className="text-sm font-semibold text-gray-900">{formatCurrency(item.unitPrice)}</span>
+                               </div>
+                               {item.description && (
+                                 <div className="text-xs text-gray-600">{item.description}</div>
+                               )}
+                               {item.taxAmount > 0 && (
+                                 <div className="flex justify-between text-xs text-green-600">
+                                   <span>GST ({item.taxRate}%)</span>
+                                   <span>{formatCurrency(item.taxAmount)}</span>
+                                 </div>
+                               )}
+                               <div className="flex justify-between text-sm font-semibold border-t pt-1">
+                                 <span>Total</span>
+                                 <span className="text-blue-600">{formatCurrency(item.finalAmount)}</span>
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       </>
+                     )}
+                     
                      {selectedBillInvoice.discountAmount > 0 && (
                        <div className="flex justify-between items-center">
                          <span className="text-sm text-gray-700">Effective discount</span>
@@ -2797,7 +2891,7 @@ export default function BillingTable() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {billGenerationData.type === 'bill' ? 'Generate Bill' : 'Generate Invoice'} - Step {currentStep} of 3
+              {billGenerationData.type === 'bill' ? 'Generate Bill' : 'Generate Invoice'} - Step {currentStep} of 4
             </DialogTitle>
           </DialogHeader>
 
@@ -2805,7 +2899,7 @@ export default function BillingTable() {
             <div className="space-y-6">
               {/* Progress Indicator */}
               <div className="flex items-center justify-center space-x-4 mb-6">
-                {[1, 2, 3].map((step) => (
+                {[1, 2, 3, 4].map((step) => (
                   <div key={step} className="flex items-center">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                       currentStep >= step 
@@ -2814,7 +2908,7 @@ export default function BillingTable() {
                     }`}>
                       {step}
                     </div>
-                    {step < 3 && (
+                    {step < 4 && (
                       <div className={`w-12 h-0.5 mx-2 ${
                         currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
                       }`} />
@@ -2904,7 +2998,7 @@ export default function BillingTable() {
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">Base Amount</p>
-                          <p className="font-semibold">{formatCurrency((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0)}</p>
+                          <p className="font-semibold">{formatCurrency(selectedBooking.room.roomType.price * selectedBooking.nights)}</p>
                         </div>
                       </div>
                     </CardContent>
@@ -2924,55 +3018,111 @@ export default function BillingTable() {
                     <CardContent>
                       {billGenerationData.extraCharges.length > 0 ? (
                         <div className="space-y-4">
-                          {billGenerationData.extraCharges.map((charge, index) => (
-                            <div key={index} className="grid grid-cols-12 gap-4 items-center p-4 border rounded-lg">
-                              <div className="col-span-3">
-                                <Label>Item Name</Label>
-                                <Input
-                                  placeholder="Item name"
-                                  value={charge.item}
-                                  onChange={(e) => handleUpdateBillExtraCharge(index, 'item', e.target.value)}
-                                />
-                              </div>
-                              <div className="col-span-2">
-                                <Label>Amount</Label>
-                                <Input
-                                  type="number"
-                                  placeholder="Amount"
-                                  value={charge.amount}
-                                  onChange={(e) => handleUpdateBillExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)}
-                                />
-                              </div>
-                              <div className="col-span-4">
-                                <Label>Description</Label>
-                                <Input
-                                  placeholder="Description"
-                                  value={charge.description}
-                                  onChange={(e) => handleUpdateBillExtraCharge(index, 'description', e.target.value)}
-                                />
-                              </div>
-                              <div className="col-span-2">
-                                <Label>GST Applicable</Label>
-                                <div className="flex items-center space-x-2">
-                                  <Checkbox
-                                    checked={charge.gstApplicable}
-                                    onCheckedChange={(checked) => handleUpdateBillExtraCharge(index, 'gstApplicable', checked)}
+                          {billGenerationData.extraCharges.map((charge, index) => {
+                            const chargeAmount = charge.amount || 0
+                            const gstPercentage = charge.gstPercentage || hotelInfo.gstPercentage || 18
+                            const gstAmount = charge.gstApplicable ? (charge.gstAmount || (chargeAmount * gstPercentage / 100)) : 0
+                            const finalAmount = chargeAmount + gstAmount
+                            
+                            return (
+                              <div key={index} className="grid grid-cols-12 gap-4 items-center p-4 border rounded-lg bg-gray-50">
+                                <div className="col-span-3">
+                                  <Label>Item Name</Label>
+                                  <Input
+                                    placeholder="Item name"
+                                    value={charge.item}
+                                    onChange={(e) => handleUpdateBillExtraCharge(index, 'item', e.target.value)}
                                   />
-                                  <span className="text-sm">GST</span>
+                                </div>
+                                <div className="col-span-2">
+                                  <Label>Base Amount</Label>
+                                  <Input
+                                    type="number"
+                                    placeholder="Amount"
+                                    value={charge.amount}
+                                    onChange={(e) => handleUpdateBillExtraCharge(index, 'amount', parseFloat(e.target.value) || 0)}
+                                  />
+                                </div>
+                                <div className="col-span-2">
+                                  <Label>GST Amount</Label>
+                                  <div className="text-sm font-medium text-green-600">
+                                    {formatCurrency(gstAmount)}
+                                  </div>
+                                </div>
+                                <div className="col-span-2">
+                                  <Label>Total Amount</Label>
+                                  <div className="text-sm font-bold text-blue-600">
+                                    {formatCurrency(finalAmount)}
+                                  </div>
+                                </div>
+                                <div className="col-span-2">
+                                  <Label>Description</Label>
+                                  <Input
+                                    placeholder="Description"
+                                    value={charge.description}
+                                    onChange={(e) => handleUpdateBillExtraCharge(index, 'description', e.target.value)}
+                                  />
+                                </div>
+                                <div className="col-span-1">
+                                  <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                      checked={charge.gstApplicable}
+                                      onCheckedChange={(checked) => handleUpdateBillExtraCharge(index, 'gstApplicable', checked)}
+                                    />
+                                    <span className="text-sm">GST</span>
+                                  </div>
+                                </div>
+                                <div className="col-span-1">
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={() => handleRemoveBillExtraCharge(index)}
+                                    className="text-red-600 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
                                 </div>
                               </div>
-                              <div className="col-span-1">
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  onClick={() => handleRemoveBillExtraCharge(index)}
-                                  className="text-red-600 hover:text-red-700"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
+                            )
+                          })}
+                          
+                          {/* Extra Charges Summary */}
+                          <div className="border-t pt-4 bg-blue-50 p-4 rounded-lg">
+                            <div className="grid grid-cols-3 gap-4 text-center">
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700">Total Base Amount</Label>
+                                <div className="text-lg font-semibold text-gray-900">
+                                  {formatCurrency(billGenerationData.extraCharges.reduce((sum, charge) => sum + (charge.amount || 0), 0))}
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700">Total GST</Label>
+                                <div className="text-lg font-semibold text-green-600">
+                                  {formatCurrency(billGenerationData.extraCharges.reduce((sum, charge) => {
+                                    if (charge.gstApplicable) {
+                                      const chargeAmount = charge.amount || 0
+                                      const gstAmount = charge.gstAmount || (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+                                      return sum + gstAmount
+                                    }
+                                    return sum
+                                  }, 0))}
+                                </div>
+                              </div>
+                              <div>
+                                <Label className="text-sm font-medium text-gray-700">Total Extra Charges</Label>
+                                <div className="text-lg font-bold text-blue-600">
+                                  {formatCurrency(billGenerationData.extraCharges.reduce((sum, charge) => {
+                                    const chargeAmount = charge.amount || 0
+                                    if (charge.gstApplicable) {
+                                      const gstAmount = charge.gstAmount || (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100
+                                      return sum + chargeAmount + gstAmount
+                                    }
+                                    return sum + chargeAmount
+                                  }, 0))}
+                                </div>
                               </div>
                             </div>
-                          ))}
+                          </div>
                         </div>
                       ) : (
                         <p className="text-gray-500 text-center py-4">No extra charges added</p>
@@ -3082,39 +3232,79 @@ export default function BillingTable() {
                       <div className="space-y-4">
                         <div className="flex justify-between">
                           <span>Base Amount (Room Stay)</span>
-                          <span>{formatCurrency((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0)}</span>
+                          <span>{formatCurrency(selectedBooking.room.roomType.price * selectedBooking.nights)}</span>
                         </div>
                         
                         {billGenerationData.extraCharges.length > 0 && (
                           <>
                             <div className="border-t pt-2">
                               <p className="font-semibold mb-2">Extra Charges:</p>
-                              {billGenerationData.extraCharges.map((charge, index) => (
-                                <div key={index} className="flex justify-between text-sm">
-                                  <span>{charge.item} {charge.gstApplicable && '(+GST)'}</span>
-                                  <span>{formatCurrency(charge.amount)}</span>
-                                </div>
-                              ))}
+                              {billGenerationData.extraCharges.map((charge, index) => {
+                                const chargeAmount = charge.amount || 0
+                                const gstAmount = charge.gstApplicable ? (charge.gstAmount || (chargeAmount * (charge.gstPercentage || hotelInfo.gstPercentage || 18)) / 100) : 0
+                                const finalAmount = chargeAmount + gstAmount
+                                
+                                return (
+                                  <div key={index} className="space-y-1 mb-2 p-2 bg-gray-50 rounded">
+                                    <div className="flex justify-between text-sm">
+                                      <span className="font-medium">{charge.item}</span>
+                                      <span>{formatCurrency(chargeAmount)}</span>
+                                    </div>
+                                    {charge.gstApplicable && (
+                                      <div className="flex justify-between text-xs text-green-600">
+                                        <span>GST ({charge.gstPercentage || hotelInfo.gstPercentage || 18}%)</span>
+                                        <span>{formatCurrency(gstAmount)}</span>
+                                      </div>
+                                    )}
+                                    <div className="flex justify-between text-sm font-semibold border-t pt-1">
+                                      <span>Total</span>
+                                      <span>{formatCurrency(finalAmount)}</span>
+                                    </div>
+                                  </div>
+                                )
+                              })}
                             </div>
                           </>
                         )}
                         
                         <div className="border-t pt-2">
-                          <div className="flex justify-between">
-                            <span>Subtotal</span>
-                            <span>{formatCurrency(calculateTotalExtraCharges() + ((selectedBooking as any).baseAmount || (selectedBooking.room.roomType.price * selectedBooking.nights) || 0))}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>GST ({hotelInfo.gstPercentage || 18}%)</span>
-                            <span>{formatCurrency(calculateGSTBreakdown().gstAmount)}</span>
-                          </div>
+                          {(() => {
+                            const breakdown = calculateGSTBreakdown()
+                            return (
+                              <>
+                                <div className="flex justify-between">
+                                  <span>Subtotal</span>
+                                  <span>{formatCurrency(breakdown.subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>GST on Room ({hotelInfo.gstPercentage || 18}%)</span>
+                                  <span>{formatCurrency(breakdown.roomGSTAmount)}</span>
+                                </div>
+                                {billGenerationData.extraCharges.length > 0 && (
+                                  <div className="flex justify-between">
+                                    <span>GST on Extra Items ({hotelInfo.gstPercentage || 18}%)</span>
+                                    <span>{formatCurrency(breakdown.extraChargesGSTAmount)}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between font-semibold">
+                                  <span>Total GST</span>
+                                  <span>{formatCurrency(breakdown.gstAmount)}</span>
+                                </div>
+                              </>
+                            )
+                          })()}
                         </div>
                         
                         <div className="border-t pt-2 font-semibold text-lg">
-                          <div className="flex justify-between">
-                            <span>Total Amount</span>
-                            <span>{formatCurrency(calculateGSTBreakdown().total)}</span>
-                          </div>
+                          {(() => {
+                            const breakdown = calculateGSTBreakdown()
+                            return (
+                              <div className="flex justify-between">
+                                <span>Total Amount</span>
+                                <span>{formatCurrency(breakdown.total)}</span>
+                              </div>
+                            )
+                          })()}
                         </div>
 
                         {billGenerationData.type === 'bill' && (
@@ -3156,6 +3346,376 @@ export default function BillingTable() {
                   </div>
                 </div>
               )}
+
+              {/* Step 4: Generated Bill/Invoice Display */}
+              {currentStep === 4 && generatedBill && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold mb-2 text-green-600">
+                      {billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'} Generated Successfully!
+                    </h3>
+                    <p className="text-gray-600">Your {billGenerationData.type === 'bill' ? 'bill' : 'invoice'} has been created and is ready for download or sharing.</p>
+                  </div>
+
+                  {/* Detailed GST and Total Calculation Breakdown */}
+                  <Card className="border-2 border-green-200 bg-green-50">
+                    <CardHeader>
+                      <CardTitle className="text-green-800 flex items-center gap-2">
+                        <Check className="h-5 w-5" />
+                        Detailed GST & Total Calculation Breakdown
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-6">
+                        {/* Room Stay Details */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
+                            Room Stay Details
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Nights:</span>
+                              <span className="font-medium">{generatedBill.nights} nights</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Rate/Night:</span>
+                              <span className="font-medium">{formatCurrency(selectedBooking?.room.roomType.price || 0)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Base Amount:</span>
+                              <span className="font-medium">{formatCurrency((selectedBooking?.room.roomType.price || 0) * generatedBill.nights)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">GST ({hotelInfo.gstPercentage || 18}%):</span>
+                              <span className="font-medium text-green-600">{formatCurrency(((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Total Amount:</span>
+                              <span className="font-medium text-blue-600 font-semibold">{formatCurrency(((selectedBooking?.room.roomType.price || 0) * generatedBill.nights) + (((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100))}</span>
+                            </div>
+                          </div>
+                          <div className="mt-3 text-xs text-gray-500">
+                            <div>Room Type: {generatedBill.roomTypeName}</div>
+                            <div>Room Number: {generatedBill.roomNumber}</div>
+                            <div>Stay Period: {formatDate(generatedBill.checkIn)} to {formatDate(generatedBill.checkOut)}</div>
+                          </div>
+                        </div>
+
+                        {/* Extra Services & Charges */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-purple-600 rounded-full"></span>
+                            Extra Services & Charges
+                          </h4>
+                          {generatedBill.invoiceItems && generatedBill.invoiceItems.length > 1 ? (
+                            <>
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                  <thead>
+                                    <tr className="border-b border-gray-200">
+                                      <th className="text-left py-2 px-2 font-medium text-gray-700">Quantity</th>
+                                      <th className="text-left py-2 px-2 font-medium text-gray-700">Unit Price</th>
+                                      <th className="text-left py-2 px-2 font-medium text-gray-700">Base Amount</th>
+                                      <th className="text-left py-2 px-2 font-medium text-gray-700">GST Amount</th>
+                                      <th className="text-left py-2 px-2 font-medium text-gray-700">Total Amount</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {generatedBill.invoiceItems.slice(1).map((item, index) => {
+                                      const baseAmount = item.totalPrice;
+                                      return (
+                                        <tr key={index} className="border-b border-gray-100">
+                                          <td className="py-2 px-2">{item.quantity} pcs</td>
+                                          <td className="py-2 px-2">{formatCurrency(item.unitPrice)}</td>
+                                          <td className="py-2 px-2">{formatCurrency(baseAmount)}</td>
+                                          <td className="py-2 px-2 text-green-600">{formatCurrency(item.taxAmount)}</td>
+                                          <td className="py-2 px-2 text-blue-600 font-semibold">{formatCurrency(item.finalAmount)}</td>
+                                        </tr>
+                                      );
+                                    })}
+                                  </tbody>
+                                </table>
+                              </div>
+                              <div className="mt-3 text-xs text-gray-500">
+                                {generatedBill.invoiceItems.slice(1).map((item, index) => (
+                                  <div key={index}>Item: {item.itemName}</div>
+                                ))}
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-center py-6 text-gray-500">
+                              <div className="text-sm">No extra services or charges</div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* GST Calculation Summary */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-green-600 rounded-full"></span>
+                            GST Calculation Summary
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Room Stay Base Amount:</span>
+                              <span className="font-medium">{formatCurrency((selectedBooking?.room.roomType.price || 0) * generatedBill.nights)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Room Stay GST ({hotelInfo.gstPercentage || 18}%):</span>
+                              <span className="font-medium text-green-600">{formatCurrency(((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100)}</span>
+                            </div>
+                            {generatedBill.invoiceItems && generatedBill.invoiceItems.length > 1 && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Extra Charges Base Amount:</span>
+                                  <span className="font-medium">{formatCurrency(generatedBill.invoiceItems.slice(1).reduce((sum, item) => sum + item.totalPrice, 0))}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Extra Charges GST:</span>
+                                  <span className="font-medium text-green-600">{formatCurrency(generatedBill.invoiceItems.slice(1).reduce((sum, item) => sum + item.taxAmount, 0))}</span>
+                                </div>
+                              </>
+                            )}
+                            <div className="border-t pt-2">
+                              <div className="flex justify-between font-semibold">
+                                <span className="text-gray-900">Total GST Amount:</span>
+                                <span className="text-green-600">{formatCurrency((generatedBill.invoiceItems?.[0]?.taxAmount || 0) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.taxAmount, 0) || 0))}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Final Total Calculation */}
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border-2 border-blue-200">
+                          <h4 className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                            <span className="w-3 h-3 bg-blue-600 rounded-full"></span>
+                            Final Total Calculation
+                          </h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-700">Sub Total (Base Amounts):</span>
+                              <span className="font-medium">{formatCurrency((generatedBill.invoiceItems?.[0]?.totalPrice || 0) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.totalPrice, 0) || 0))}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-700">Total GST Amount:</span>
+                              <span className="font-medium text-green-600">{formatCurrency((generatedBill.invoiceItems?.[0]?.taxAmount || 0) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.taxAmount, 0) || 0))}</span>
+                            </div>
+                            <div className="border-t-2 border-blue-300 pt-2">
+                              <div className="flex justify-between text-lg font-bold text-blue-900">
+                                <span>Total Amount:</span>
+                                <span>{formatCurrency(generatedBill.totalAmount)}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Invoice Summary */}
+                        <div className="bg-white p-4 rounded-lg border border-gray-200">
+                          <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <span className="w-2 h-2 bg-orange-600 rounded-full"></span>
+                            Invoice Summary
+                          </h4>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600">Invoice Number:</span>
+                              <span className="font-medium ml-2">{generatedBill.invoiceNumber}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Status:</span>
+                              <span className="font-medium ml-2 capitalize">{generatedBill.status}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Generated Date:</span>
+                              <span className="font-medium ml-2">{new Date(generatedBill.issuedDate).toLocaleDateString()}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-600">Due Date:</span>
+                              <span className="font-medium ml-2">{new Date(generatedBill.dueDate).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Generated Bill/Invoice Preview */}
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <h4 className="font-semibold text-gray-900 mb-3">Final Invoice Preview</h4>
+                                          <InvoicePDF 
+                      invoiceData={{
+                        invoiceNumber: generatedBill.invoiceNumber,
+                        invoiceDate: generatedBill.issuedDate,
+                        dueDate: generatedBill.dueDate,
+                        terms: generatedBill.terms,
+                        company: {
+                          name: hotelInfo.name,
+                          address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                            'Hotel Address Line 1',
+                            'Hotel Address Line 2',
+                            'City, State ZIP',
+                            'Country'
+                          ],
+                          logo: hotelInfo.logo || undefined,
+                          contact: hotelInfo.primaryPhone || undefined
+                        },
+                        billTo: {
+                          name: generatedBill.guestName,
+                          address: [
+                            generatedBill.guestEmail,
+                            generatedBill.guestPhone,
+                            `Room: ${generatedBill.roomNumber}`,
+                            `${generatedBill.roomTypeName}`
+                          ]
+                        },
+                        shipTo: {
+                          address: [
+                            generatedBill.guestEmail,
+                            generatedBill.guestPhone,
+                            `Room: ${generatedBill.roomNumber}`,
+                            `${generatedBill.roomTypeName}`
+                          ]
+                        },
+                        items: generatedBill.invoiceItems?.map((item, index) => ({
+                          id: index + 1,
+                          name: item.itemName,
+                          description: item.description || '',
+                          quantity: item.quantity,
+                          unit: 'pcs',
+                          rate: item.unitPrice,
+                          amount: item.finalAmount
+                        })) || [],
+                        subtotal: ((selectedBooking?.room.roomType.price || 0) * generatedBill.nights) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.totalPrice, 0) || 0),
+                        taxRate: (((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.taxAmount, 0) || 0),
+                        total: generatedBill.totalAmount,
+                        currency: 'INR',
+                        paymentInfo: generatedBill.payments?.[0] ? {
+                          method: generatedBill.payments[0].paymentMethod,
+                          referenceId: generatedBill.payments[0].paymentReference || undefined,
+                          collectedBy: generatedBill.payments[0].receivedBy || 'Staff',
+                          status: generatedBill.payments[0].status
+                        } : undefined
+                      }}
+                      filename={`${billGenerationData.type === 'bill' ? 'bill' : 'invoice'}-${generatedBill.invoiceNumber}.pdf`}
+                    >
+                      <Invoice data={{
+                        invoiceNumber: generatedBill.invoiceNumber,
+                        invoiceDate: generatedBill.issuedDate,
+                        dueDate: generatedBill.dueDate,
+                        terms: generatedBill.terms,
+                        company: {
+                          name: hotelInfo.name,
+                          address: hotelInfo.address ? hotelInfo.address.split('\n') : [
+                            'Hotel Address Line 1',
+                            'Hotel Address Line 2',
+                            'City, State ZIP',
+                            'Country'
+                          ],
+                          logo: hotelInfo.logo || undefined,
+                          contact: hotelInfo.primaryPhone || undefined
+                        },
+                        billTo: {
+                          name: generatedBill.guestName,
+                          address: [
+                            generatedBill.guestEmail,
+                            generatedBill.guestPhone,
+                            `Room: ${generatedBill.roomNumber}`,
+                            `${generatedBill.roomTypeName}`
+                          ]
+                        },
+                        shipTo: {
+                          address: [
+                            generatedBill.guestEmail,
+                            generatedBill.guestPhone,
+                            `Room: ${generatedBill.roomNumber}`,
+                            `${generatedBill.roomTypeName}`
+                          ]
+                        },
+                        items: generatedBill.invoiceItems?.map((item, index) => ({
+                          id: index + 1,
+                          name: item.itemName,
+                          description: item.description || '',
+                          quantity: item.quantity,
+                          unit: 'pcs',
+                          rate: item.unitPrice,
+                          amount: item.finalAmount
+                        })) || [],
+                        subtotal: ((selectedBooking?.room.roomType.price || 0) * generatedBill.nights) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.totalPrice, 0) || 0),
+                        taxRate: (((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.taxAmount, 0) || 0),
+                        total: generatedBill.totalAmount,
+                        currency: 'INR',
+                        paymentInfo: generatedBill.payments?.[0] ? {
+                          method: generatedBill.payments[0].paymentMethod,
+                          referenceId: generatedBill.payments[0].paymentReference || undefined,
+                          collectedBy: generatedBill.payments[0].receivedBy || 'Staff',
+                          status: generatedBill.payments[0].status
+                        } : undefined,
+                        breakdown: {
+                          roomDetails: {
+                            roomType: generatedBill.roomTypeName,
+                            roomNumber: generatedBill.roomNumber,
+                            nights: generatedBill.nights,
+                            ratePerNight: selectedBooking?.room.roomType.price || 0,
+                            baseAmount: (selectedBooking?.room.roomType.price || 0) * generatedBill.nights,
+                            gstAmount: ((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100,
+                            gstPercentage: hotelInfo.gstPercentage || 18,
+                            checkIn: generatedBill.checkIn,
+                            checkOut: generatedBill.checkOut
+                          },
+                          extraCharges: {
+                            items: generatedBill.invoiceItems && generatedBill.invoiceItems.length > 1 
+                              ? generatedBill.invoiceItems.slice(1).map(item => ({
+                                  name: item.itemName,
+                                  description: item.description || '',
+                                  quantity: item.quantity,
+                                  unitPrice: item.unitPrice,
+                                  baseAmount: item.totalPrice,
+                                  taxAmount: item.taxAmount,
+                                  finalAmount: item.finalAmount
+                                }))
+                              : [],
+                            totalExtraCharges: generatedBill.invoiceItems && generatedBill.invoiceItems.length > 1
+                              ? generatedBill.invoiceItems.slice(1).reduce((sum, item) => sum + item.finalAmount, 0)
+                              : 0
+                          }
+                        }
+                      }} />
+                    </InvoicePDF>
+                  </div>
+
+                  <div className="flex justify-center space-x-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setIsMultiStepModalOpen(false)
+                        setGeneratedBill(null)
+                        setCurrentStep(1)
+                      }}
+                    >
+                      Close
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        // Reset and start over
+                        setGeneratedBill(null)
+                        setCurrentStep(1)
+                        setBillGenerationData({
+                          type: 'bill',
+                          extraCharges: [],
+                          paymentMethod: 'cash',
+                          collectedBy: '',
+                          referenceId: '',
+                          notes: ''
+                        })
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Generate Another {billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'}
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -3165,16 +3725,26 @@ export default function BillingTable() {
       <Dialog open={isViewBookingModalOpen} onOpenChange={setIsViewBookingModalOpen}>
          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
            
-           {viewBookingData && (
+           {viewBookingData && viewInvoiceData && (
              <div className="space-y-6">
 
-               {/* Bill/Invoice Preview */}
+               {/* Generated Bill/Invoice Display */}
+               <div className="text-center mb-4">
+                 <h3 className="text-lg font-semibold mb-2 text-green-600">
+                   Generated {viewInvoiceData.status === 'paid' ? 'Bill' : 'Invoice'}
+                 </h3>
+                 <p className="text-gray-600">Invoice #{viewInvoiceData.invoiceNumber} - {viewInvoiceData.status}</p>
+               </div>
+
+
+
+               {/* Bill/Invoice Display */}
                <InvoicePDF 
                  invoiceData={{
-                   invoiceNumber: `PREVIEW-${viewBookingData.id}`,
-                   invoiceDate: new Date().toISOString().split('T')[0],
-                   dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                   terms: 'Due on Receipt',
+                   invoiceNumber: viewInvoiceData.invoiceNumber,
+                   invoiceDate: viewInvoiceData.issuedDate,
+                   dueDate: viewInvoiceData.dueDate,
+                   terms: viewInvoiceData.terms,
                    company: {
                      name: hotelInfo.name,
                      address: hotelInfo.address ? hotelInfo.address.split('\n') : [
@@ -3203,44 +3773,33 @@ export default function BillingTable() {
                        `${viewBookingData.room.roomType.name}`
                      ]
                    },
-                   items: [
-                     {
-                       id: 1,
-                       name: `Room Stay - ${viewBookingData.room.roomType.name}`,
-                       description: `${formatDate(viewBookingData.checkIn)} to ${formatDate(viewBookingData.checkOut)} (${viewBookingData.nights} nights)`,
-                       quantity: viewBookingData.nights,
-                       unit: 'nights',
-                       rate: viewBookingData.room.roomType.price,
-                       amount: viewBookingData.room.roomType.price * viewBookingData.nights
-                     },
-                     ...(viewBookingData.billItems || []).map((item, index) => ({
-                       id: index + 2,
-                       name: item.itemName,
-                       description: item.description || '',
-                       quantity: item.quantity,
-                       unit: 'pcs',
-                       rate: item.unitPrice,
-                       amount: item.finalAmount
-                     }))
-                   ],
-                   subtotal: viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0),
-                   taxRate: 18, // 18% GST
-                   total: (viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0)) * 1.18,
+                   items: viewInvoiceData.invoiceItems?.map((item, index) => ({
+                     id: index + 1,
+                     name: item.itemName,
+                     description: item.description || '',
+                     quantity: item.quantity,
+                     unit: 'pcs',
+                     rate: item.unitPrice,
+                     amount: item.finalAmount
+                   })) || [],
+                   subtotal: viewInvoiceData.baseAmount,
+                   taxRate: viewInvoiceData.gstAmount / viewInvoiceData.baseAmount * 100,
+                   total: viewInvoiceData.totalAmount,
                    currency: 'INR',
-                   paymentInfo: viewBookingData.invoices?.[0]?.payments?.[0] ? {
-                   method: viewBookingData.invoices[0].payments[0].paymentMethod,
-                   referenceId: viewBookingData.invoices[0].payments[0].paymentReference || undefined,
-                   collectedBy: viewBookingData.invoices[0].payments[0].receivedBy || 'Staff',
-                   status: viewBookingData.invoices[0].payments[0].status
-                 } : undefined
-               }}
-               filename={`booking-preview-${viewBookingData.id}.pdf`}
+                   paymentInfo: viewInvoiceData.payments?.[0] ? {
+                     method: viewInvoiceData.payments[0].paymentMethod,
+                     referenceId: viewInvoiceData.payments[0].paymentReference || undefined,
+                     collectedBy: viewInvoiceData.payments[0].receivedBy || 'Staff',
+                     status: viewInvoiceData.payments[0].status
+                   } : undefined
+                 }}
+                 filename={`${viewInvoiceData.status === 'paid' ? 'bill' : 'invoice'}-${viewInvoiceData.invoiceNumber}.pdf`}
                >
                  <Invoice data={{
-                   invoiceNumber: `PREVIEW-${viewBookingData.id}`,
-                   invoiceDate: new Date().toISOString().split('T')[0],
-                   dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-                   terms: 'Due on Receipt',
+                   invoiceNumber: viewInvoiceData.invoiceNumber,
+                   invoiceDate: viewInvoiceData.issuedDate,
+                   dueDate: viewInvoiceData.dueDate,
+                   terms: viewInvoiceData.terms,
                    company: {
                      name: hotelInfo.name,
                      address: hotelInfo.address ? hotelInfo.address.split('\n') : [
@@ -3269,36 +3828,53 @@ export default function BillingTable() {
                        `${viewBookingData.room.roomType.name}`
                      ]
                    },
-                   items: [
-                     {
-                       id: 1,
-                       name: `Room Stay - ${viewBookingData.room.roomType.name}`,
-                       description: `${formatDate(viewBookingData.checkIn)} to ${formatDate(viewBookingData.checkOut)} (${viewBookingData.nights} nights)`,
-                       quantity: viewBookingData.nights,
-                       unit: 'nights',
-                       rate: viewBookingData.room.roomType.price,
-                       amount: viewBookingData.room.roomType.price * viewBookingData.nights
-                     },
-                     ...(viewBookingData.billItems || []).map((item, index) => ({
-                       id: index + 2,
-                       name: item.itemName,
-                       description: item.description || '',
-                       quantity: item.quantity,
-                       unit: 'pcs',
-                       rate: item.unitPrice,
-                       amount: item.finalAmount
-                     }))
-                   ],
-                   subtotal: viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0),
-                   taxRate: 18, // 18% GST
-                   total: (viewBookingData.totalAmount + (viewBookingData.billItems || []).reduce((sum, item) => sum + item.finalAmount, 0)) * 1.18,
+                   items: viewInvoiceData.invoiceItems?.map((item, index) => ({
+                     id: index + 1,
+                     name: item.itemName,
+                     description: item.description || '',
+                     quantity: item.quantity,
+                     unit: 'pcs',
+                     rate: item.unitPrice,
+                     amount: item.finalAmount
+                   })) || [],
+                   subtotal: viewInvoiceData.baseAmount,
+                   taxRate: viewInvoiceData.gstAmount / viewInvoiceData.baseAmount * 100,
+                   total: viewInvoiceData.totalAmount,
                    currency: 'INR',
-                   paymentInfo: viewBookingData.invoices?.[0]?.payments?.[0] ? {
-                     method: viewBookingData.invoices[0].payments[0].paymentMethod,
-                     referenceId: viewBookingData.invoices[0].payments[0].paymentReference || undefined,
-                     collectedBy: viewBookingData.invoices[0].payments[0].receivedBy || 'Staff',
-                     status: viewBookingData.invoices[0].payments[0].status
-                   } : undefined
+                   paymentInfo: viewInvoiceData.payments?.[0] ? {
+                     method: viewInvoiceData.payments[0].paymentMethod,
+                     referenceId: viewInvoiceData.payments[0].paymentReference || undefined,
+                     collectedBy: viewInvoiceData.payments[0].receivedBy || 'Staff',
+                     status: viewInvoiceData.payments[0].status
+                   } : undefined,
+                   breakdown: {
+                     roomDetails: {
+                       roomType: viewInvoiceData.roomTypeName,
+                       roomNumber: viewInvoiceData.roomNumber,
+                       nights: viewInvoiceData.nights,
+                       ratePerNight: viewInvoiceData.baseAmount / viewInvoiceData.nights,
+                       baseAmount: viewInvoiceData.baseAmount,
+                       gstAmount: viewInvoiceData.gstAmount,
+                       gstPercentage: hotelInfo.gstPercentage || 18,
+                       checkIn: viewInvoiceData.checkIn,
+                       checkOut: viewInvoiceData.checkOut
+                     },
+                     extraCharges: {
+                       items: viewInvoiceData.invoiceItems && viewInvoiceData.invoiceItems.length > 1 
+                         ? viewInvoiceData.invoiceItems.slice(1).map(item => ({
+                             name: item.itemName,
+                             description: item.description || '',
+                             quantity: item.quantity,
+                             unitPrice: item.unitPrice,
+                             taxAmount: item.taxAmount,
+                             finalAmount: item.finalAmount
+                           }))
+                         : [],
+                       totalExtraCharges: viewInvoiceData.invoiceItems && viewInvoiceData.invoiceItems.length > 1
+                         ? viewInvoiceData.invoiceItems.slice(1).reduce((sum, item) => sum + item.finalAmount, 0)
+                         : 0
+                     }
+                   }
                  }} />
                </InvoicePDF>
 
@@ -3315,10 +3891,10 @@ export default function BillingTable() {
                      setSelectedBooking(viewBookingData)
                      setIsMultiStepModalOpen(true)
                    }}
-                   className="bg-green-600 hover:bg-green-700"
+                   className="bg-blue-600 hover:bg-blue-700"
                  >
-                   <Receipt className="h-4 w-4 mr-2" />
-                   Generate Bill/Invoice
+                   <Plus className="h-4 w-4 mr-2" />
+                   Generate New Bill/Invoice
                  </Button>
                </div>
              </div>
@@ -3342,3 +3918,4 @@ export default function BillingTable() {
      </div>
    )
  }
+

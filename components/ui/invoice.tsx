@@ -40,6 +40,31 @@ export interface InvoiceData {
     collectedBy: string;
     status: string;
   };
+  // Add breakdown information
+  breakdown?: {
+    roomDetails?: {
+      roomType: string;
+      roomNumber: string;
+      nights: number;
+      ratePerNight: number;
+      baseAmount: number;
+      gstAmount: number;
+      gstPercentage: number;
+      checkIn?: string; // Added for display
+      checkOut?: string; // Added for display
+    };
+    extraCharges?: {
+      items: {
+        name: string;
+        description?: string;
+        quantity: number;
+        unitPrice: number;
+        taxAmount: number;
+        finalAmount: number;
+      }[];
+      totalExtraCharges: number;
+    };
+  };
 }
 
 interface InvoiceProps {
@@ -67,7 +92,26 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
   };
 
   const calculateTaxAmount = () => {
+    if (data.breakdown) {
+      // Calculate total GST from room and extra charges
+      const roomGST = data.breakdown.roomDetails?.gstAmount || 0;
+      const extraChargesGST = data.breakdown.extraCharges?.items?.reduce((sum, item) => sum + (item.taxAmount || 0), 0) || 0;
+      return roomGST + extraChargesGST;
+    }
     return data.total - data.subtotal;
+  };
+
+  const calculateSubTotal = () => {
+    if (data.breakdown) {
+      // Calculate base amounts (without GST)
+      const roomBaseAmount = data.breakdown.roomDetails?.baseAmount || 0;
+      const extraChargesBaseAmount = data.breakdown.extraCharges?.items?.reduce((sum, item) => {
+        const baseAmount = (item.finalAmount || 0) - (item.taxAmount || 0);
+        return sum + baseAmount;
+      }, 0) || 0;
+      return roomBaseAmount + extraChargesBaseAmount;
+    }
+    return data.subtotal;
   };
 
   return (
@@ -144,7 +188,7 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
             <div className="flex items-center justify-center space-x-3 mb-4">
               <div className="text-center">
                 <span className="text-xs font-medium text-gray-600 block">Check In</span>
-                <span className="text-sm font-bold text-gray-900">14 Aug 2025</span>
+                <span className="text-sm font-bold text-gray-900">{data.breakdown?.roomDetails?.checkIn ? formatDate(data.breakdown.roomDetails.checkIn) : formatDate(data.invoiceDate)}</span>
               </div>
               <div className="flex items-center">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +197,7 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
               </div>
               <div className="text-center">
                 <span className="text-xs font-medium text-gray-600 block">Check Out</span>
-                <span className="text-sm font-bold text-gray-900">15 Aug 2025</span>
+                <span className="text-sm font-bold text-gray-900">{data.breakdown?.roomDetails?.checkOut ? formatDate(data.breakdown.roomDetails.checkOut) : formatDate(data.invoiceDate)}</span>
               </div>
             </div>
             
@@ -161,88 +205,118 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
             <div className="border-t border-gray-200 pt-3">
               <div className="text-center">
                 <span className="text-xs font-medium text-gray-600 block">Invoice Date</span>
-                <span className="text-sm font-bold text-gray-900">14 Aug 2025</span>
+                <span className="text-sm font-bold text-gray-900">{formatDate(data.invoiceDate)}</span>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Items Section - Allow page breaks between items */}
-      <div className="px-8" style={{ pageBreakInside: 'auto', pageBreakAfter: 'auto' }}>
-        {/* Room Stay and Extra Charges Sections - Side by Side */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          {/* Room Stay Section */}
-          <div style={{ pageBreakInside: 'avoid' }}>
-            <div className="bg-gray-400 text-white p-2 rounded-t-lg">
-              <div className="grid grid-cols-12 gap-3 font-semibold text-xs">
-                <div className="col-span-1">#</div>
-                <div className="col-span-4">Room Stay Details</div>
-                <div className="col-span-2 text-center">Nights</div>
-                <div className="col-span-2 text-right">Rate/Night</div>
-                <div className="col-span-3 text-right">Amount</div>
-              </div>
-            </div>
-            
-            <div className="border border-gray-200 rounded-b-lg overflow-hidden">
-              {data.items.filter(item => item.name.includes('Room Stay')).map((item, index) => (
-                <div key={item.id} className={`grid grid-cols-12 gap-3 p-2 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-b border-gray-200 last:border-b-0`}>
-                  <div className="col-span-1 font-medium text-gray-900 text-xs">{item.id}</div>
-                  <div className="col-span-4">
-                    <p className="font-semibold text-gray-900 text-xs">{item.name}</p>
-                    <p className="text-xs text-gray-600 mt-1">{item.description}</p>
-                  </div>
-                  <div className="col-span-2 text-center text-gray-900 text-xs">
-                    {item.quantity} {item.unit}
-                  </div>
-                  <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
-                    {formatCurrency(item.rate)}
-                  </div>
-                  <div className="col-span-3 text-right text-gray-900 font-bold text-xs">
-                    {formatCurrency(item.amount)}
+        {/* Calculation Breakdown Tables */}
+        {data.breakdown && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            {/* Room Stay Details Table */}
+            {data.breakdown.roomDetails && (
+              <div style={{ pageBreakInside: 'avoid' }}>
+                <div className="bg-gray-400 text-white p-2 rounded-t-lg">
+                  <div className="grid grid-cols-14 gap-2 font-semibold text-xs">
+                    <div className="col-span-1">#</div>
+                    <div className="col-span-3">Room Stay Details</div>
+                    <div className="col-span-2 text-center">Nights</div>
+                    <div className="col-span-2 text-right">Rate/Night</div>
+                    <div className="col-span-2 text-right">Base Amount</div>
+                    <div className="col-span-2 text-right">GST ({data.breakdown.roomDetails.gstPercentage}%)</div>
+                    <div className="col-span-2 text-right">Total Amount</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                
+                <div className="border border-gray-200 rounded-b-lg overflow-hidden">
+                  <div className="grid grid-cols-14 gap-2 p-2 bg-white border-b border-gray-200">
+                    <div className="col-span-1 font-medium text-gray-900 text-xs">1</div>
+                    <div className="col-span-3">
+                      <p className="font-semibold text-gray-900 text-xs">Room Stay - {data.breakdown.roomDetails.roomType}</p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {data.breakdown.roomDetails.checkIn ? formatDate(data.breakdown.roomDetails.checkIn) : ''} to {data.breakdown.roomDetails.checkOut ? formatDate(data.breakdown.roomDetails.checkOut) : ''} ({data.breakdown.roomDetails.nights} nights)
+                      </p>
+                    </div>
+                    <div className="col-span-2 text-center text-gray-900 text-xs">
+                      {data.breakdown.roomDetails.nights} nights
+                    </div>
+                    <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                      {formatCurrency(data.breakdown.roomDetails.ratePerNight)}
+                    </div>
+                    <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                      {formatCurrency(data.breakdown.roomDetails.baseAmount)}
+                    </div>
+                    <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                      {formatCurrency(data.breakdown.roomDetails.gstAmount)}
+                    </div>
+                    <div className="col-span-2 text-right text-gray-900 font-bold text-xs">
+                      {formatCurrency(data.breakdown.roomDetails.baseAmount + data.breakdown.roomDetails.gstAmount)}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
-          {/* Extra Charges Section */}
-          {data.items.filter(item => !item.name.includes('Room Stay')).length > 0 && (
+            {/* Extra Services & Charges Table */}
             <div style={{ pageBreakInside: 'avoid' }}>
               <div className="bg-gray-400 text-white p-2 rounded-t-lg">
-                <div className="grid grid-cols-12 gap-3 font-semibold text-xs">
+                <div className="grid grid-cols-14 gap-2 font-semibold text-xs">
                   <div className="col-span-1">#</div>
-                  <div className="col-span-4">Extra Services & Charges</div>
+                  <div className="col-span-3">Extra Services & Charges</div>
                   <div className="col-span-2 text-center">Quantity</div>
-                  <div className="col-span-2 text-right">Rate</div>
-                  <div className="col-span-3 text-right">Amount</div>
+                  <div className="col-span-2 text-right">Unit Price</div>
+                  <div className="col-span-2 text-right">Base Amount</div>
+                  <div className="col-span-2 text-right">GST Amount</div>
+                  <div className="col-span-2 text-right">Total Amount</div>
                 </div>
               </div>
               
               <div className="border border-gray-200 rounded-b-lg overflow-hidden">
-                {data.items.filter(item => !item.name.includes('Room Stay')).map((item, index) => (
-                  <div key={item.id} className={`grid grid-cols-12 gap-3 p-2 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-b border-gray-200 last:border-b-0`}>
-                    <div className="col-span-1 font-medium text-gray-900 text-xs">{item.id}</div>
-                    <div className="col-span-4">
-                      <p className="font-semibold text-gray-900 text-xs">{item.name}</p>
-                      <p className="text-xs text-gray-600 mt-1">{item.description}</p>
-                    </div>
-                    <div className="col-span-2 text-center text-gray-900 text-xs">
-                      {item.quantity} {item.unit}
-                    </div>
-                    <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
-                      {formatCurrency(item.rate)}
-                    </div>
-                    <div className="col-span-3 text-right text-gray-900 font-bold text-xs">
-                      {formatCurrency(item.amount)}
+                {data.breakdown.extraCharges?.items && data.breakdown.extraCharges.items.length > 0 ? (
+                  data.breakdown.extraCharges.items.map((item, index) => {
+                    const baseAmount = (item.finalAmount || 0) - (item.taxAmount || 0);
+                    return (
+                      <div key={index} className={`grid grid-cols-14 gap-2 p-2 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} border-b border-gray-200 last:border-b-0`}>
+                        <div className="col-span-1 font-medium text-gray-900 text-xs">{index + 2}</div>
+                        <div className="col-span-3">
+                          <p className="font-semibold text-gray-900 text-xs">{item.name}</p>
+                          {item.description && (
+                            <p className="text-xs text-gray-600 mt-1">{item.description}</p>
+                          )}
+                        </div>
+                        <div className="col-span-2 text-center text-gray-900 text-xs">
+                          {item.quantity || 1} pcs
+                        </div>
+                        <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                          {formatCurrency(item.unitPrice)}
+                        </div>
+                        <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                          {formatCurrency(baseAmount)}
+                        </div>
+                        <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                          {formatCurrency(item.taxAmount || 0)}
+                        </div>
+                        <div className="col-span-2 text-right text-gray-900 font-bold text-xs">
+                          {formatCurrency(item.finalAmount)}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="grid grid-cols-14 gap-2 p-4 bg-white">
+                    <div className="col-span-14 text-center text-gray-500 text-xs">
+                      No extra services or charges
                     </div>
                   </div>
-                ))}
+                )}
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
+
+
 
       {/* Totals and Payment Section - Keep together */}
       <div className="px-8 mb-6" style={{ pageBreakInside: 'avoid', pageBreakAfter: 'auto' }}>
@@ -253,10 +327,10 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
                 <div className="space-y-2">
                   <div className="flex justify-between text-gray-600">
                     <span className="text-xs">Sub Total</span>
-                    <span className="font-medium text-xs">{formatCurrency(data.subtotal)}</span>
+                    <span className="font-medium text-xs">{formatCurrency(calculateSubTotal())}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
-                    <span className="text-xs">Tax Rate ({data.taxRate}%)</span>
+                    <span className="text-xs">Tax Amount</span>
                     <span className="font-medium text-xs">{formatCurrency(calculateTaxAmount())}</span>
                   </div>
                   <div className="border-t border-gray-300 pt-2">

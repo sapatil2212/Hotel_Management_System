@@ -155,9 +155,24 @@ export async function DELETE(
     const paymentAmount = payment.amount;
     const booking = payment.booking;
 
-    // Delete the payment
-    await prisma.payment.delete({
-      where: { id: paymentId },
+    // Delete the payment and related transactions atomically
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete all transactions related to this payment
+      console.log(`🗑️ Deleting transactions for payment ${paymentId}`);
+      const deletedPaymentTransactions = await tx.transaction.deleteMany({
+        where: {
+          referenceId: paymentId,
+          referenceType: 'payment'
+        }
+      });
+      console.log(`✅ Deleted ${deletedPaymentTransactions.count} payment transactions`);
+
+      // 2. Delete the payment
+      await tx.payment.delete({
+        where: { id: paymentId },
+      });
+
+      console.log(`✅ Payment ${paymentId} deleted successfully`);
     });
 
     // Reverse revenue for this payment
@@ -185,31 +200,32 @@ export async function DELETE(
       data: { paymentStatus },
     });
 
-         // Get main account for audit log
-     const mainAccount = await AccountService.getMainAccount();
-     
-     // Create audit log for payment deletion
-     await prisma.transaction.create({
-       data: {
-         accountId: mainAccount.id,
-         type: 'debit',
-         category: 'refunds',
-         amount: paymentAmount,
-         description: `Payment deletion: ${reason || 'Revenue reversal'}`,
-         referenceId: booking.id,
-         referenceType: 'booking',
-         processedBy: processedBy || session.user?.name || 'System',
-         notes: `Deleted payment of ${paymentAmount} for booking ${booking.id}. Reason: ${reason || 'Revenue reversal'}`,
-         isModification: true,
-         originalAmount: paymentAmount,
-         modificationReason: reason || 'Revenue reversal',
-       },
-     });
+    // Get main account for audit log
+    const mainAccount = await AccountService.getMainAccount();
+    
+    // Create audit log for payment deletion
+    await prisma.transaction.create({
+      data: {
+        accountId: mainAccount.id,
+        type: 'debit',
+        category: 'refunds',
+        amount: paymentAmount,
+        description: `Payment deletion: ${reason || 'Revenue reversal'}`,
+        referenceId: booking.id,
+        referenceType: 'booking',
+        processedBy: processedBy || session.user?.name || 'System',
+        notes: `Deleted payment of ${paymentAmount} for booking ${booking.id}. Reason: ${reason || 'Revenue reversal'}`,
+        isModification: true,
+        originalAmount: paymentAmount,
+        modificationReason: reason || 'Revenue reversal',
+      },
+    });
 
     return NextResponse.json({ 
       message: 'Payment deleted successfully',
       reversedAmount: paymentAmount,
-      newPaymentStatus: paymentStatus
+      newPaymentStatus: paymentStatus,
+      deletedTransactions: 'Payment transactions also deleted'
     });
   } catch (error: any) {
     console.error('Error deleting payment:', error);

@@ -52,7 +52,14 @@ export async function GET() {
         gstPercentage: 18.0,
         serviceTaxPercentage: 0.0,
         otherTaxes: [],
-        taxEnabled: true
+        taxEnabled: true,
+        socialMediaLinks: [
+          { platform: "facebook", url: "", enabled: false },
+          { platform: "instagram", url: "", enabled: false },
+          { platform: "twitter", url: "", enabled: false },
+          { platform: "linkedin", url: "", enabled: false },
+          { platform: "youtube", url: "", enabled: false }
+        ]
       })
     }
 
@@ -113,6 +120,7 @@ export async function POST(request: NextRequest) {
       serviceTaxPercentage,
       otherTaxes,
       taxEnabled,
+      socialMediaLinks,
     } = data
 
     const updateData = {
@@ -158,6 +166,7 @@ export async function POST(request: NextRequest) {
       serviceTaxPercentage,
       otherTaxes,
       taxEnabled,
+      socialMediaLinks,
       updatedAt: new Date(),
     } as any
     

@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-options';
 import { NotificationService } from '@/lib/notification-service';
+import { RevenueHooks } from '@/lib/revenue-hooks';
 
 const prisma = new PrismaClient();
 
@@ -248,9 +249,17 @@ export async function DELETE(
       where: { email: session.user?.email || '' }
     });
 
-    // Check if booking exists
+    // Check if booking exists and get its details
     const booking = await prisma.booking.findUnique({
       where: { id: params.id },
+      include: {
+        invoices: {
+          include: {
+            payments: true
+          }
+        },
+        payments: true
+      }
     });
 
     if (!booking) {
@@ -264,20 +273,84 @@ export async function DELETE(
       roomId: booking.roomId
     };
 
-    // Free up the room and delete the booking atomically
-    await prisma.$transaction([
-      prisma.rooms.update({
+    // Calculate total payments for this booking
+    const totalPayments = booking.payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const totalInvoicePayments = booking.invoices.reduce((sum, invoice) => 
+      sum + invoice.payments.reduce((invoiceSum, payment) => invoiceSum + payment.amount, 0), 0
+    );
+
+    // Free up the room, delete related transactions, and delete the booking atomically
+    await prisma.$transaction(async (tx) => {
+      // 1. Update room status
+      await tx.rooms.update({
         where: { id: booking.roomId },
         data: {
           status: 'available',
           availableForBooking: true,
           updatedAt: new Date(),
         },
-      }),
-      prisma.booking.delete({
+      });
+
+      // 2. Delete all transactions related to this booking
+      console.log(`🗑️ Deleting transactions for booking ${booking.id}`);
+      const deletedTransactions = await tx.transaction.deleteMany({
+        where: {
+          referenceId: booking.id,
+          referenceType: 'booking'
+        }
+      });
+      console.log(`✅ Deleted ${deletedTransactions.count} transactions for booking ${booking.id}`);
+
+      // 3. Delete all transactions related to invoices of this booking
+      const invoiceIds = booking.invoices.map(invoice => invoice.id);
+      if (invoiceIds.length > 0) {
+        console.log(`🗑️ Deleting transactions for invoices: ${invoiceIds.join(', ')}`);
+        const deletedInvoiceTransactions = await tx.transaction.deleteMany({
+          where: {
+            referenceId: {
+              in: invoiceIds
+            },
+            referenceType: 'invoice'
+          }
+        });
+        console.log(`✅ Deleted ${deletedInvoiceTransactions.count} invoice transactions`);
+      }
+
+      // 4. Delete all transactions related to payments of this booking
+      const paymentIds = booking.payments.map(payment => payment.id);
+      if (paymentIds.length > 0) {
+        console.log(`🗑️ Deleting transactions for payments: ${paymentIds.join(', ')}`);
+        const deletedPaymentTransactions = await tx.transaction.deleteMany({
+          where: {
+            referenceId: {
+              in: paymentIds
+            },
+            referenceType: 'payment'
+          }
+        });
+        console.log(`✅ Deleted ${deletedPaymentTransactions.count} payment transactions`);
+      }
+
+      // 5. Delete the booking (this will cascade delete related invoices, payments, etc.)
+      await tx.booking.delete({
         where: { id: params.id },
-      }),
-    ]);
+      });
+
+      console.log(`✅ Booking ${booking.id} deleted successfully`);
+    });
+
+    // If there were payments, reverse the revenue
+    if (totalPayments > 0 || totalInvoicePayments > 0) {
+      const totalAmount = totalPayments + totalInvoicePayments;
+      console.log(`💰 Reversing revenue for deleted booking: ${totalAmount} for booking ${booking.id}`);
+      try {
+        await RevenueHooks.onPaymentReversed(booking.id, totalAmount);
+        console.log(`✅ Revenue reversed successfully for deleted booking`);
+      } catch (revenueError) {
+        console.error(`❌ Error reversing revenue for deleted booking ${booking.id}:`, revenueError);
+        // Continue with the deletion process even if revenue reversal fails
+      }
+    }
 
     // Create notification for booking deletion
     try {
@@ -296,7 +369,11 @@ export async function DELETE(
       // Don't fail the deletion if notification fails
     }
 
-    return NextResponse.json({ success: true, message: 'Booking deleted successfully and room made available' });
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Booking deleted successfully and room made available',
+      deletedTransactions: totalPayments + totalInvoicePayments > 0 ? 'Revenue transactions also deleted' : 'No revenue transactions to delete'
+    });
   } catch (error) {
     console.error('Error deleting booking:', error);
     return NextResponse.json(

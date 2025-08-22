@@ -3,9 +3,16 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Container } from "@/components/ui/container"
-import { Facebook, Instagram, Twitter, Linkedin, MapPin, Phone, Mail } from "lucide-react"
+import { MapPin, Phone, Mail, Star } from "lucide-react"
 import { useHotel } from "@/contexts/hotel-context"
 import { usePolicyModal } from "@/components/ui/policy-modal"
+import dynamic from 'next/dynamic'
+
+// Dynamically import SocialIcon to avoid hydration issues
+const SocialIcon = dynamic(() => import('react-social-icons').then(mod => ({ default: mod.SocialIcon })), {
+  ssr: false,
+  loading: () => <div className="w-6 h-6 bg-gray-200 rounded animate-pulse" />
+})
 
 const Footer = () => {
   const { hotelInfo } = useHotel()
@@ -25,22 +32,40 @@ const Footer = () => {
                 />
               ) : null}
             </Link>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {hotelInfo.tagline || "Experience unparalleled luxury and comfort at Grand Luxe Hotel. Where every detail is crafted for your perfect stay."}
             </p>
-            <div className="flex space-x-4">
-              <Link href="#" className="text-muted-foreground hover:text-amber-600 transition-colors">
-                <Facebook className="h-5 w-5" />
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-amber-600 transition-colors">
-                <Instagram className="h-5 w-5" />
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-amber-600 transition-colors">
-                <Twitter className="h-5 w-5" />
-              </Link>
-              <Link href="#" className="text-muted-foreground hover:text-amber-600 transition-colors">
-                <Linkedin className="h-5 w-5" />
-              </Link>
+            <div className="space-y-4">
+              {/* Social Media Icons */}
+              <div className="flex space-x-3">
+                {hotelInfo.socialMediaLinks?.filter(social => social.enabled && social.url).map((social, index) => (
+                  <SocialIcon 
+                    key={social.platform}
+                    url={social.url} 
+                    style={{ width: 24, height: 24 }}
+                    className="hover:scale-110 transition-transform duration-200"
+                  />
+                ))}
+              </div>
+              
+              {/* Rate us on Google */}
+              <div className="pt-2">
+                <Link 
+                  href="#" 
+                  className="inline-flex items-center gap-3 bg-white rounded-lg px-3 py-2 shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 group"
+                  title="Review us on Google"
+                >
+                  <SocialIcon 
+                    url="https://maps.google.com" 
+                    style={{ width: 20, height: 20 }}
+                    className="group-hover:scale-105 transition-transform duration-200"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-xs text-gray-500 leading-none">review us</span>
+                    <span className="text-sm text-gray-700 font-medium leading-none">on Google</span>
+                  </div>
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -128,16 +153,24 @@ const Footer = () => {
 
         <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
-            © 2024 {hotelInfo.name || "Grand Luxe Hotel"}. All rights reserved.
+            © 2025 {hotelInfo.name || "Grand Luxe Hotel"}. All rights reserved.
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/auth/sign-in">
-              <Button size="sm" variant="outline">Login</Button>
-            </Link>
-            <Link href="/auth/sign-up">
-              <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white">Sign Up</Button>
-            </Link>
+          
+          {/* Credit Section */}
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              Made with ❤️ by{' '}
+              <a 
+                href="https://digiworldtechnologies.com/" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground hover:text-foreground underline hover:no-underline transition-all duration-200 font-medium"
+              >
+                Digiworld Infotech
+              </a>
+            </p>
           </div>
+          
           <div className="flex gap-6">
             <button 
               onClick={openPrivacy}

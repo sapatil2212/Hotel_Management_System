@@ -197,6 +197,7 @@ model hotelinfo {
   logoDisplayType       String?  @default("image") // "image" or "text"
   brandText             String?  @db.Text
   brandTextStyle        String?  @default("default") // "default", "abbreviation", "custom"
+  socialMediaLinks      Json?    // Array of social media links
 }
 
 model room {
@@ -268,6 +269,9 @@ model user {
   bankAccounts    bank_account[]
   expenses        expense[]
   notifications   notification[]
+  inventoryTransactions inventory_transaction[]
+  inventoryAlerts inventory_alert[]
+  supplierBills   supplier_bill[]
   accounts        Account[]
   sessions        Session[]
 }
@@ -617,6 +621,44 @@ enum reference_type {
   refund
 }
 
+model enquiry {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String   @db.Text
+  status      enquiry_status @default(new)
+  priority    enquiry_priority @default(medium)
+  source      String   @default("website") // website, phone, email, etc.
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  assignedTo  String?  // User ID of assigned admin
+  notes       String?  @db.Text
+  resolvedAt  DateTime?
+
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+  @@index([email])
+}
+
+enum enquiry_status {
+  new
+  in_progress
+  resolved
+  closed
+}
+
+enum enquiry_priority {
+  low
+  medium
+  high
+  urgent
+}
+
 model notification {
   id          String              @id @default(cuid())
   title       String
@@ -648,6 +690,171 @@ enum notification_type {
   revenue
   expense
   system
+  inventory
+}
+
+// Inventory Management System
+model inventory_category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  createdBy   String?   // User who created this category
+  items       inventory_item[]
+
+  @@index([isActive])
+  @@index([name])
+}
+
+model inventory_item {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?             @db.Text
+  categoryId        String
+  sku               String?             @unique // Stock Keeping Unit
+  barcode           String?             @unique
+  unit              String              // e.g., pieces, kg, liters, etc.
+  currentStock      Float               @default(0)
+  minimumStock      Float               @default(0) // Reorder level
+  maximumStock      Float?              // Maximum stock level
+  costPrice         Float               @default(0) // Cost per unit
+  sellingPrice      Float?              // Selling price per unit (if applicable)
+  supplier          String?             // Supplier name
+  supplierContact   String?             // Supplier contact info
+  location          String?             // Storage location
+  expiryDate        DateTime?           // For perishable items
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  createdBy         String?             // User who created this item
+  category          inventory_category  @relation(fields: [categoryId], references: [id])
+  transactions      inventory_transaction[]
+  lowStockAlerts    inventory_alert[]
+
+  @@index([categoryId])
+  @@index([sku])
+  @@index([barcode])
+  @@index([isActive])
+  @@index([currentStock])
+  @@index([expiryDate])
+}
+
+model inventory_transaction {
+  id                String                    @id @default(cuid())
+  itemId            String
+  transactionType   inventory_transaction_type
+  quantity          Float
+  unitPrice         Float                     // Price per unit at time of transaction
+  totalAmount       Float                     // Total amount for this transaction
+  previousStock     Float                     // Stock before transaction
+  newStock          Float                     // Stock after transaction
+  referenceNumber   String?                   // Invoice/PO number
+  supplier          String?                   // Supplier name
+  notes             String?                   @db.Text
+  transactionDate   DateTime                  @default(now())
+  processedBy       String                    // User who processed this transaction
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+  item              inventory_item            @relation(fields: [itemId], references: [id])
+  user              user                      @relation(fields: [processedBy], references: [id])
+
+  @@index([itemId])
+  @@index([transactionType])
+  @@index([transactionDate])
+  @@index([processedBy])
+}
+
+model inventory_alert {
+  id                String              @id @default(cuid())
+  itemId            String
+  alertType         inventory_alert_type
+  message           String              @db.Text
+  isRead            Boolean             @default(false)
+  isResolved        Boolean             @default(false)
+  resolvedBy        String?             // User who resolved the alert
+  resolvedAt        DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  item              inventory_item      @relation(fields: [itemId], references: [id])
+  user              user?               @relation(fields: [resolvedBy], references: [id])
+
+  @@index([itemId])
+  @@index([alertType])
+  @@index([isRead])
+  @@index([isResolved])
+  @@index([createdAt])
+}
+
+enum inventory_transaction_type {
+  purchase
+  sale
+  adjustment
+  return
+  damage
+  expiry
+  transfer
+}
+
+enum inventory_alert_type {
+  low_stock
+  out_of_stock
+  expiry_warning
+  overstock
+}
+
+// Billing Models
+model supplier_bill {
+  id               String      @id @default(cuid())
+  billNumber       String      @unique
+  supplierName     String
+  supplierContact  String?
+  gstNumber        String?
+  billDate         DateTime
+  dueDate          DateTime
+  subtotal         Float
+  gstAmount        Float       @default(0)
+  totalAmount      Float
+  paymentTerms     String      @default("30 days")
+  paymentMethod    String      @default("Bank Transfer")
+  status           bill_status @default(pending)
+  notes            String?     @db.Text
+  createdBy        String
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            supplier_bill_item[]
+  user             user        @relation(fields: [createdBy], references: [id])
+
+  @@index([billNumber])
+  @@index([supplierName])
+  @@index([status])
+  @@index([billDate])
+  @@index([dueDate])
+  @@index([createdBy])
+}
+
+model supplier_bill_item {
+  id          String        @id @default(cuid())
+  billId      String
+  itemName    String
+  sku         String?
+  unit        String
+  quantity    Float
+  unitPrice   Float
+  totalPrice  Float
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  bill        supplier_bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+
+  @@index([billId])
+}
+
+enum bill_status {
+  pending
+  paid
+  overdue
+  cancelled
 }
 
 // NextAuth Session Tables

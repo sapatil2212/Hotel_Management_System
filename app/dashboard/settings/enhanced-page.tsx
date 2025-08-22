@@ -677,10 +677,10 @@ export default function EnhancedSettingsPage() {
       <div className="max-w-7xl mx-auto p-6 lg:p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">
+          <h1 className="text-3xl font-bold text-gray-900 mb-3">
             Account Settings
           </h1>
-          <p className="text-gray-600 text-lg">Manage your account information and security settings</p>
+          <p className="text-gray-600 text-base">Manage your account information and security settings</p>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">

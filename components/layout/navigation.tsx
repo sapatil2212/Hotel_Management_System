@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, Phone } from 'lucide-react';
 import { useHotel } from "@/contexts/hotel-context";
 import { QuickBanner } from "./quick-banner";
+import { Button } from "@/components/ui/button";
 
 const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -90,6 +91,13 @@ const Navigation = () => {
                 </div>
               ))}
 
+              {/* Login Button - Desktop */}
+              <Link href="/auth/sign-in">
+                <Button size="sm" variant="outline" className="transition-all duration-200 hover:scale-105">
+                  Login
+                </Button>
+              </Link>
+
               {/* Phone Number Button - Desktop */}
               <a
                 href={`tel:${hotelInfo.primaryPhone || '+918552982999'}`}
@@ -127,6 +135,17 @@ const Navigation = () => {
                   </div>
                 ))}
                 
+                {/* Login Button - Mobile */}
+                <Link
+                  href="/auth/sign-in"
+                  onClick={() => setIsMenuOpen(false)}
+                  className="mt-4"
+                >
+                  <Button size="sm" variant="outline" className="w-full transition-all duration-200">
+                    Login
+                  </Button>
+                </Link>
+
                 {/* Phone Number Button - Mobile */}
                 <a
                   href={`tel:${hotelInfo.primaryPhone || '+918552982999'}`}

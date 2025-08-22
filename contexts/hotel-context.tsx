@@ -47,6 +47,7 @@ interface HotelInfo {
   serviceTaxPercentage?: number
   otherTaxes?: Array<{ name: string; percentage: number; description?: string }>
   taxEnabled?: boolean
+  socialMediaLinks?: Array<{ platform: string; url: string; enabled: boolean }>
   updatedAt?: string
 }
 
@@ -100,7 +101,15 @@ const defaultHotelInfo: HotelInfo = {
   gstPercentage: 18.0,
   serviceTaxPercentage: 0.0,
   otherTaxes: [],
-  taxEnabled: true
+  taxEnabled: true,
+  // Social Media Links
+  socialMediaLinks: [
+    { platform: "facebook", url: "", enabled: false },
+    { platform: "instagram", url: "", enabled: false },
+    { platform: "twitter", url: "", enabled: false },
+    { platform: "linkedin", url: "", enabled: false },
+    { platform: "youtube", url: "", enabled: false }
+  ]
 }
 
 const HotelContext = createContext<HotelContextType | undefined>(undefined)
@@ -110,6 +119,17 @@ export function HotelProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchHotelInfo = async () => {
+    // Check if user is actively editing - if so, don't refresh
+    const lastActivity = localStorage.getItem('hotel-info-last-activity')
+    const now = Date.now()
+    const timeSinceActivity = lastActivity ? now - parseInt(lastActivity) : Infinity
+    
+    // If user has been active in the last 5 minutes, skip the refresh
+    if (timeSinceActivity < 300000) {
+      console.log('Skipping hotel info refresh - user is actively editing')
+      return
+    }
+
     try {
       const response = await fetch('/api/hotel-info')
       if (response.ok) {
@@ -128,6 +148,7 @@ export function HotelProvider({ children }: { children: ReactNode }) {
           services: data.services || [],
           faqs: data.faqs || [],
           otherTaxes: data.otherTaxes || [],
+          socialMediaLinks: data.socialMediaLinks || defaultHotelInfo.socialMediaLinks,
           // Ensure text fields are empty strings if not provided, not dummy data
           name: data.name || "",
           tagline: data.tagline || "",
@@ -169,9 +190,21 @@ export function HotelProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Poll for updates every 30 seconds to catch backend changes
+  // But only if the user is not actively editing
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchHotelInfo()
+      // Only auto-refresh if we haven't had recent user activity
+      const lastActivity = localStorage.getItem('hotel-info-last-activity')
+      const now = Date.now()
+      const timeSinceActivity = lastActivity ? now - parseInt(lastActivity) : Infinity
+      
+      // Only refresh if no activity in the last 5 minutes (increased from 2 minutes)
+      if (timeSinceActivity > 300000) {
+        console.log('Auto-refreshing hotel info - no recent user activity')
+        fetchHotelInfo()
+      } else {
+        console.log('Skipping auto-refresh - user activity detected within last 5 minutes')
+      }
     }, 30000) // 30 seconds
 
     return () => clearInterval(interval)
@@ -181,7 +214,15 @@ export function HotelProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'hotel-info-updated') {
-        refreshHotelInfo()
+        // Check if user is actively editing before refreshing
+        const lastActivity = localStorage.getItem('hotel-info-last-activity')
+        const now = Date.now()
+        const timeSinceActivity = lastActivity ? now - parseInt(lastActivity) : Infinity
+        
+        // Only refresh if user hasn't been active in the last 5 minutes
+        if (timeSinceActivity > 300000) {
+          refreshHotelInfo()
+        }
       }
     }
 
