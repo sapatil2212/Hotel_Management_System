@@ -91,21 +91,24 @@ const Navigation = () => {
                 </div>
               ))}
 
-              {/* Login Button - Desktop */}
-              <Link href="/auth/sign-in">
-                <Button size="sm" variant="outline" className="transition-all duration-200 hover:scale-105">
-                  Login
-                </Button>
-              </Link>
+              {/* Contact and Login Section - Desktop */}
+              <div className="flex items-center space-x-3">
+                {/* Phone Number Button - Desktop */}
+                <a
+                  href={`tel:${hotelInfo.primaryPhone || '+918552982999'}`}
+                  className="relative overflow-hidden px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-700 rounded-full font-medium text-white text-sm tracking-wide flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
+                >
+                  <Phone className="h-4 w-4" />
+                  <span className="font-medium">{hotelInfo.primaryPhone || '+91 85529 82999'}</span>
+                </a>
 
-              {/* Phone Number Button - Desktop */}
-              <a
-                href={`tel:${hotelInfo.primaryPhone || '+918552982999'}`}
-                className="relative overflow-hidden px-5 py-2 bg-gradient-to-r from-amber-600 to-amber-700 rounded-full font-medium text-white text-sm tracking-wide flex items-center gap-2 transition-all duration-200 hover:scale-105 hover:shadow-lg"
-              >
-                <Phone className="h-4 w-4" />
-                <span className="font-medium">{hotelInfo.primaryPhone || '+91 85529 82999'}</span>
-              </a>
+                {/* Login Button - Desktop */}
+                <Link href="/auth/sign-in">
+                  <Button size="sm" variant="outline" className="transition-all duration-200 hover:scale-105">
+                    Login
+                  </Button>
+                </Link>
+              </div>
             </nav>
 
             {/* Mobile menu button */}

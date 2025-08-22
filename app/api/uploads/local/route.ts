@@ -13,6 +13,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
+    // Check if we're on Vercel (serverless environment)
+    const isVercel = process.env.VERCEL === '1'
+    if (isVercel) {
+      return NextResponse.json({ 
+        error: "Local upload is not supported on Vercel. Please configure Cloudinary properly.",
+        requiresCloudinary: true
+      }, { status: 400 })
+    }
+
     const formData = await req.formData()
     const file = formData.get("file") as File
     

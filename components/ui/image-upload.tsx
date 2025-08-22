@@ -84,8 +84,11 @@ export function ImageUpload({
     })
 
     if (!uploadResponse.ok) {
-      const errorData = await uploadResponse.text()
-      throw new Error(`Local upload failed: ${errorData}`)
+      const errorData = await uploadResponse.json()
+      if (errorData.requiresCloudinary) {
+        throw new Error('Cloudinary configuration required. Please contact administrator.')
+      }
+      throw new Error(`Local upload failed: ${errorData.error || 'Unknown error'}`)
     }
 
     const result = await uploadResponse.json()
