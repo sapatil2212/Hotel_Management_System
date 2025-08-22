@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // GET /api/room-types/with-available-rooms - Get all room types with their available rooms
 export async function GET(request: NextRequest) {
   try {

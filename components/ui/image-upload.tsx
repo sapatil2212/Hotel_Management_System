@@ -38,10 +38,19 @@ export function ImageUpload({
       })
 
       if (!signatureResponse.ok) {
-        throw new Error('Failed to get upload signature')
+        const errorData = await signatureResponse.json()
+        console.error('Signature generation failed:', errorData)
+        throw new Error(`Failed to get upload signature: ${errorData.error || 'Unknown error'}`)
       }
 
-      const { timestamp, signature, apiKey, cloudName } = await signatureResponse.json()
+      const { timestamp, signature, apiKey, cloudName, paramsToSign } = await signatureResponse.json()
+      
+      console.log('Cloudinary upload params:', { 
+        cloudName, 
+        timestamp, 
+        signature: signature.substring(0, 8) + '...',
+        paramsToSign 
+      })
 
       // Create form data for Cloudinary
       const formData = new FormData()
@@ -62,13 +71,15 @@ export function ImageUpload({
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.text()
+        console.error('Cloudinary upload failed:', errorData)
         throw new Error(`Cloudinary upload failed: ${errorData}`)
       }
 
       const result = await uploadResponse.json()
+      console.log('Cloudinary upload successful:', result.secure_url)
       return result.secure_url
     } catch (error) {
-      console.warn('Cloudinary upload failed, falling back to local upload:', error)
+      console.error('Cloudinary upload failed, falling back to local upload:', error)
       // Fallback to local upload
       return await uploadToLocal(file)
     }

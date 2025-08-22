@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
 // GET - Fetch featured/recent active promo codes for banner
 export async function GET(request: NextRequest) {
   try {
