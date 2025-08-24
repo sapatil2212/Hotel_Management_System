@@ -381,14 +381,8 @@ export default function DashboardPage() {
 
       {/* Recent Bookings Table */}
       <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Bookings</h2>
-          <Button variant="outline" size="sm" asChild className="w-full sm:w-auto h-8 w-8 sm:h-auto sm:w-auto sm:px-3">
-            <a href="/dashboard/bookings">
-              <Eye className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">View All Bookings</span>
-            </a>
-          </Button>
         </div>
         <BookingsTable />
       </div>

@@ -77,72 +77,73 @@ export default function DashboardBookingsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          {/* Bookings Management heading removed */}
-          <p className="text-muted-foreground">
+          <h1 className="text-lg sm:text-2xl font-semibold text-gray-900">Booking Management</h1>
+          <p className="text-[10px] sm:text-sm text-muted-foreground">
             Manage hotel bookings, view guest information, and track reservations
           </p>
         </div>
         <Button 
-          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+          variant="outline"
+          className="border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex items-center justify-center"
           onClick={() => setIsNewBookingModalOpen(true)}
         >
-          <Plus className="h-4 w-4 mr-2" />
-          New Booking
+          <Plus className="h-4 w-4 text-gray-600 sm:mr-2" />
+          <span className="hidden sm:inline text-gray-600">New Booking</span>
         </Button>
       </div>
 
       {/* Booking Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-2 sm:px-3 pt-2 sm:pt-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Total Bookings</CardTitle>
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-0 px-2 sm:px-3 pb-2 sm:pb-3">
+            <div className="text-xs sm:text-base font-bold">{loading ? '...' : stats.totalBookings}</div>
+            <p className="text-[7px] sm:text-xs text-muted-foreground hidden sm:block">
               {stats.confirmedBookings} confirmed, {stats.pendingBookings} pending
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-2 sm:px-3 pt-2 sm:pt-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : formatCurrency(stats.totalRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-0 px-2 sm:px-3 pb-2 sm:pb-3">
+            <div className="text-xs sm:text-base font-bold">{loading ? '...' : formatCurrency(stats.totalRevenue)}</div>
+            <p className="text-[7px] sm:text-xs text-muted-foreground hidden sm:block">
               From all confirmed bookings
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today&apos;s Check-ins</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-2 sm:px-3 pt-2 sm:pt-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Today&apos;s Check-ins</CardTitle>
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.todayCheckIns}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-0 px-2 sm:px-3 pb-2 sm:pb-3">
+            <div className="text-xs sm:text-base font-bold">{loading ? '...' : stats.todayCheckIns}</div>
+            <p className="text-[7px] sm:text-xs text-muted-foreground hidden sm:block">
               Guests arriving today
             </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today&apos;s Check-outs</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 px-2 sm:px-3 pt-2 sm:pt-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Today&apos;s Check-outs</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{loading ? '...' : stats.todayCheckOuts}</div>
-            <p className="text-xs text-muted-foreground">
+          <CardContent className="pt-0 px-2 sm:px-3 pb-2 sm:pb-3">
+            <div className="text-xs sm:text-base font-bold">{loading ? '...' : stats.todayCheckOuts}</div>
+            <p className="text-[7px] sm:text-xs text-muted-foreground hidden sm:block">
               Guests departing today
             </p>
           </CardContent>

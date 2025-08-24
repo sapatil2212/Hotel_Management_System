@@ -324,56 +324,56 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Create New Booking</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-0 p-4 sm:p-6 rounded-lg">
+        <DialogHeader className="mb-4 sm:mb-6">
+          <DialogTitle className="text-lg sm:text-xl">Create New Booking</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Create a new booking for a guest. Fill in all required information below.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {/* Left Column - Guest Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium border-b pb-2">Guest Information</h3>
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-medium border-b pb-2">Guest Information</h3>
             
             <div>
-              <Label htmlFor="guestName" className="text-sm">Guest Name *</Label>
+              <Label htmlFor="guestName" className="text-xs sm:text-sm">Guest Name *</Label>
               <Input
                 id="guestName"
                 value={formData.guestName}
                 onChange={(e) => setFormData(prev => ({ ...prev, guestName: e.target.value }))}
                 placeholder="Enter guest name"
-                className="h-9"
+                className="h-10 sm:h-9 text-sm rounded-md"
               />
             </div>
 
             <div>
-              <Label htmlFor="guestEmail" className="text-sm">Email Address *</Label>
+              <Label htmlFor="guestEmail" className="text-xs sm:text-sm">Email Address *</Label>
               <Input
                 id="guestEmail"
                 type="email"
                 value={formData.guestEmail}
                 onChange={(e) => setFormData(prev => ({ ...prev, guestEmail: e.target.value }))}
                 placeholder="Enter email address"
-                className="h-9"
+                className="h-10 sm:h-9 text-sm rounded-md"
               />
             </div>
 
             <div>
-              <Label htmlFor="guestPhone" className="text-sm">Phone Number *</Label>
+              <Label htmlFor="guestPhone" className="text-xs sm:text-sm">Phone Number *</Label>
               <Input
                 id="guestPhone"
                 value={formData.guestPhone}
                 onChange={(e) => setFormData(prev => ({ ...prev, guestPhone: e.target.value }))}
                 placeholder="Enter phone number"
-                className="h-9"
+                className="h-10 sm:h-9 text-sm rounded-md"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="adults" className="text-sm">Adults</Label>
+                <Label htmlFor="adults" className="text-xs sm:text-sm">Adults</Label>
                 <Input
                   id="adults"
                   type="number"
@@ -381,11 +381,11 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
                   max="10"
                   value={formData.adults}
                   onChange={(e) => setFormData(prev => ({ ...prev, adults: parseInt(e.target.value) || 1 }))}
-                  className="h-9"
+                  className="h-10 sm:h-9 text-sm rounded-md"
                 />
               </div>
               <div>
-                <Label htmlFor="children" className="text-sm">Children</Label>
+                <Label htmlFor="children" className="text-xs sm:text-sm">Children</Label>
                 <Input
                   id="children"
                   type="number"
@@ -393,36 +393,36 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
                   max="10"
                   value={formData.children}
                   onChange={(e) => setFormData(prev => ({ ...prev, children: parseInt(e.target.value) || 0 }))}
-                  className="h-9"
+                  className="h-10 sm:h-9 text-sm rounded-md"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="specialRequests" className="text-sm">Special Requests</Label>
+              <Label htmlFor="specialRequests" className="text-xs sm:text-sm">Special Requests</Label>
               <Textarea
                 id="specialRequests"
                 value={formData.specialRequests}
                 onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
                 placeholder="Enter any special requests or notes..."
                 rows={3}
-                className="resize-none"
+                className="resize-none text-sm rounded-md"
               />
             </div>
           </div>
 
           {/* Right Column - Room & Booking Details */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium border-b pb-2">Room & Booking Details</h3>
+          <div className="space-y-3 sm:space-y-4">
+            <h3 className="text-base sm:text-lg font-medium border-b pb-2">Room & Booking Details</h3>
             
             <div>
-              <Label htmlFor="roomTypeId" className="text-sm">Room Type *</Label>
+              <Label htmlFor="roomTypeId" className="text-xs sm:text-sm">Room Type *</Label>
               <Select 
                 value={formData.roomTypeId} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, roomTypeId: value, roomId: '' }))}
                 disabled={loadingRoomTypes}
               >
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-10 sm:h-9 text-sm rounded-md">
                   <SelectValue placeholder={loadingRoomTypes ? "Loading room types..." : "Select room type"} />
                 </SelectTrigger>
                 <SelectContent>
@@ -442,24 +442,24 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
             </div>
 
             {selectedRoomType && (
-              <Card className="bg-blue-50">
+              <Card className="bg-blue-50 rounded-lg">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Selected Room Type</CardTitle>
+                  <CardTitle className="text-xs sm:text-sm">Selected Room Type</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="flex items-center gap-2">
                     <Bed className="h-4 w-4" />
-                    <span className="font-medium">{selectedRoomType.name}</span>
+                    <span className="font-medium text-sm">{selectedRoomType.name}</span>
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     {selectedRoomType.size} • {selectedRoomType.bedType} • Max {selectedRoomType.maxGuests} guests
                   </div>
                   <div className="flex flex-wrap gap-1">
                     {selectedRoomType.amenities?.slice(0, 3).map((amenity, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">{amenity}</Badge>
+                      <Badge key={index} variant="outline" className="text-[10px] sm:text-xs">{amenity}</Badge>
                     ))}
                     {selectedRoomType.amenities?.length > 3 && (
-                      <Badge variant="outline" className="text-xs">+{selectedRoomType.amenities.length - 3} more</Badge>
+                      <Badge variant="outline" className="text-[10px] sm:text-xs">+{selectedRoomType.amenities.length - 3} more</Badge>
                     )}
                   </div>
                 </CardContent>
@@ -468,13 +468,13 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
 
             {formData.roomTypeId && (
               <div>
-                <Label htmlFor="roomId" className="text-sm">Select Room *</Label>
+                <Label htmlFor="roomId" className="text-xs sm:text-sm">Select Room *</Label>
                 <Select 
                   value={formData.roomId} 
                   onValueChange={(value) => setFormData(prev => ({ ...prev, roomId: value }))}
                   disabled={loadingRooms || availableRooms.length === 0}
                 >
-                  <SelectTrigger className="h-9">
+                  <SelectTrigger className="h-10 sm:h-9 text-sm rounded-md">
                     <SelectValue placeholder={loadingRooms ? "Loading rooms..." : availableRooms.length === 0 ? "No rooms available" : "Select a room"} />
                   </SelectTrigger>
                   <SelectContent>
@@ -492,43 +492,43 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="checkIn" className="text-sm">Check-in Date *</Label>
+                <Label htmlFor="checkIn" className="text-xs sm:text-sm">Check-in Date *</Label>
                 <Input
                   id="checkIn"
                   type="date"
                   value={formData.checkIn}
                   onChange={(e) => handleDateChange('checkIn', e.target.value)}
-                  className="h-9"
+                  className="h-10 sm:h-9 text-sm rounded-md"
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div>
-                <Label htmlFor="checkOut" className="text-sm">Check-out Date *</Label>
+                <Label htmlFor="checkOut" className="text-xs sm:text-sm">Check-out Date *</Label>
                 <Input
                   id="checkOut"
                   type="date"
                   value={formData.checkOut}
                   onChange={(e) => handleDateChange('checkOut', e.target.value)}
-                  className="h-9"
+                  className="h-10 sm:h-9 text-sm rounded-md"
                   min={formData.checkIn || new Date().toISOString().split('T')[0]}
                 />
               </div>
             </div>
 
             <div className="text-center">
-              <span className="text-sm font-medium">
+              <span className="text-xs sm:text-sm font-medium">
                 Duration: {formData.nights} night{formData.nights > 1 ? 's' : ''}
               </span>
             </div>
 
             <div>
-              <Label htmlFor="promoCode" className="text-sm">Promo Code (Optional)</Label>
+              <Label htmlFor="promoCode" className="text-xs sm:text-sm">Promo Code (Optional)</Label>
               <Input
                 id="promoCode"
                 value={formData.promoCode}
                 onChange={(e) => setFormData(prev => ({ ...prev, promoCode: e.target.value }))}
                 placeholder="Enter promo code"
-                className="h-9"
+                className="h-10 sm:h-9 text-sm"
               />
             </div>
 
@@ -536,10 +536,10 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
             {pricingBreakdown && (
               <Card className="bg-green-50 border-green-200">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Pricing Breakdown</CardTitle>
+                  <CardTitle className="text-xs sm:text-sm">Pricing Breakdown</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-xs sm:text-sm">
                     <span>Base Amount ({formData.nights} nights):</span>
                     <span>{formatCurrency(pricingBreakdown.baseAmount, selectedRoomType?.currency || 'INR')}</span>
                   </div>
@@ -549,7 +549,7 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
                       {pricingBreakdown.taxes
                         .filter(tax => tax.percentage > 0 && tax.amount > 0)
                         .map((tax, index) => (
-                          <div key={index} className="flex justify-between text-sm text-slate-600">
+                          <div key={index} className="flex justify-between text-xs sm:text-sm text-slate-600">
                             <span>{tax.name} ({tax.percentage}%):</span>
                             <span>{formatCurrency(tax.amount, selectedRoomType?.currency || 'INR')}</span>
                           </div>
@@ -557,7 +557,7 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
                     </>
                   )}
                   
-                  <div className="border-t pt-2 flex justify-between font-semibold">
+                  <div className="border-t pt-2 flex justify-between font-semibold text-xs sm:text-sm">
                     <span>Total Amount:</span>
                     <span>{formatCurrency(pricingBreakdown.totalAmount, selectedRoomType?.currency || 'INR')}</span>
                   </div>
@@ -567,12 +567,13 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
           </div>
         </div>
 
-        <div className="flex justify-end space-x-3 pt-4 border-t">
+        <div className="flex justify-end gap-3 pt-4 border-t">
           <Button 
             variant="outline" 
             onClick={handleClose}
             disabled={loading}
             size="sm"
+            className="h-10 sm:h-9"
           >
             <X className="h-4 w-4 mr-2" />
             Cancel
@@ -581,6 +582,7 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
             onClick={handleSubmit}
             disabled={loading || !formData.guestName || !formData.guestEmail || !formData.guestPhone || !formData.roomTypeId || !formData.roomId || !formData.checkIn || !formData.checkOut}
             size="sm"
+            className="h-10 sm:h-9"
           >
             {loading ? (
               <Loader className="h-4 w-4 mr-2 animate-spin" />

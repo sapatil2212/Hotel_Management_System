@@ -886,35 +886,41 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input 
-            value={query} 
-            onChange={(e) => setQuery(e.target.value)} 
-            placeholder="Search by guest, booking ID, or room number" 
-            className="pl-10" 
-          />
-        </div>
-        <div className="flex gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-          >
-            <option value="all">All Status</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="pending">Pending</option>
-            <option value="cancelled">Cancelled</option>
-            <option value="checked_in">Checked In</option>
-            <option value="checked_out">Checked Out</option>
-          </select>
-          <Button onClick={fetchBookings} variant="outline" size="sm" className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3">
-            <Filter className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
-        </div>
-      </div>
+             <div className="flex items-center gap-2 sm:gap-3 w-full">
+         <div className="relative flex-1 min-w-0">
+           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 sm:h-5 sm:w-5" />
+           <Input 
+             value={query} 
+             onChange={(e) => setQuery(e.target.value)} 
+             placeholder="Search by guest, booking ID, or room number" 
+             className="pl-8 sm:pl-10 h-9 sm:h-9 text-xs sm:text-sm" 
+           />
+         </div>
+         <select
+           value={statusFilter}
+           onChange={(e) => setStatusFilter(e.target.value)}
+           className="px-2 sm:px-3 py-2 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent h-9 sm:h-9 min-w-[80px] sm:min-w-[100px]"
+         >
+           <option value="all">All Status</option>
+           <option value="confirmed">Confirmed</option>
+           <option value="pending">Pending</option>
+           <option value="cancelled">Cancelled</option>
+           <option value="checked_in">Checked In</option>
+           <option value="checked_out">Checked Out</option>
+         </select>
+         <div className="flex items-center gap-1">
+           <Button onClick={fetchBookings} variant="outline" size="sm" className="h-9 w-9 sm:h-auto sm:w-auto sm:px-3 flex-shrink-0">
+             <Filter className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
+             <span className="hidden sm:inline">Refresh</span>
+           </Button>
+           <Button variant="outline" size="sm" asChild className="h-9 w-9 sm:h-auto sm:w-auto sm:px-3 flex-shrink-0">
+             <a href="/dashboard/bookings">
+               <Eye className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
+               <span className="hidden sm:inline">View All</span>
+             </a>
+           </Button>
+         </div>
+       </div>
 
       {/* Checkout Alerts Summary */}
       {(() => {
