@@ -83,49 +83,52 @@ function PromoForm({
   submitting = false,
 }: PromoFormProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={onSubmit} className="space-y-3 sm:space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <Label htmlFor="code">Promo Code *</Label>
+          <Label htmlFor="code" className="text-[10px] sm:text-sm">Promo Code *</Label>
           <Input
             id="code"
             value={formData.code}
             onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
             placeholder="SAVE20"
             required
+            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
           />
         </div>
         <div>
-          <Label htmlFor="title">Title *</Label>
+          <Label htmlFor="title" className="text-[10px] sm:text-sm">Title *</Label>
           <Input
             id="title"
             value={formData.title}
             onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
             placeholder="Save 20% on all rooms"
             required
+            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className="text-[10px] sm:text-sm">Description</Label>
         <Textarea
           id="description"
           value={formData.description}
           onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
           placeholder="Optional description for the promo code"
-          rows={3}
+          rows={2}
+          className="text-xs sm:text-sm rounded-md"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <Label htmlFor="discountType">Discount Type *</Label>
+          <Label htmlFor="discountType" className="text-[10px] sm:text-sm">Discount Type *</Label>
           <Select
             value={formData.discountType}
             onValueChange={(value) => setFormData(prev => ({ ...prev, discountType: value as DiscountType }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -135,7 +138,7 @@ function PromoForm({
           </Select>
         </div>
         <div>
-          <Label htmlFor="discountValue">
+          <Label htmlFor="discountValue" className="text-[10px] sm:text-sm">
             Discount Value * {formData.discountType === 'percentage' ? '(%)' : '(₹)'}
           </Label>
           <Input
@@ -148,13 +151,14 @@ function PromoForm({
             onChange={(e) => setFormData(prev => ({ ...prev, discountValue: e.target.value }))}
             placeholder={formData.discountType === 'percentage' ? '20' : '500'}
             required
+            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <Label htmlFor="minOrderAmount">Minimum Order Amount (₹)</Label>
+          <Label htmlFor="minOrderAmount" className="text-[10px] sm:text-sm">Minimum Order Amount (₹)</Label>
           <Input
             id="minOrderAmount"
             type="number"
@@ -162,10 +166,11 @@ function PromoForm({
             value={formData.minOrderAmount}
             onChange={(e) => setFormData(prev => ({ ...prev, minOrderAmount: e.target.value }))}
             placeholder="1000"
+            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
           />
         </div>
         <div>
-          <Label htmlFor="maxDiscountAmount">Maximum Discount Amount (₹)</Label>
+          <Label htmlFor="maxDiscountAmount" className="text-[10px] sm:text-sm">Maximum Discount Amount (₹)</Label>
           <Input
             id="maxDiscountAmount"
             type="number"
@@ -173,12 +178,13 @@ function PromoForm({
             value={formData.maxDiscountAmount}
             onChange={(e) => setFormData(prev => ({ ...prev, maxDiscountAmount: e.target.value }))}
             placeholder="500"
+            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
           />
         </div>
       </div>
 
       <div>
-        <Label htmlFor="usageLimit">Usage Limit</Label>
+        <Label htmlFor="usageLimit" className="text-[10px] sm:text-sm">Usage Limit</Label>
         <Input
           id="usageLimit"
           type="number"
@@ -186,22 +192,23 @@ function PromoForm({
           value={formData.usageLimit}
           onChange={(e) => setFormData(prev => ({ ...prev, usageLimit: e.target.value }))}
           placeholder="100"
+          className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <Label>Valid From *</Label>
+          <Label className="text-[10px] sm:text-sm">Valid From *</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal',
+                  'w-full justify-start text-left font-normal h-8 sm:h-9 text-xs sm:text-sm rounded-md',
                   !formData.validFrom && 'text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 {formData.validFrom ? format(formData.validFrom, 'PPP') : 'Pick a date'}
               </Button>
             </PopoverTrigger>
@@ -216,17 +223,17 @@ function PromoForm({
           </Popover>
         </div>
         <div>
-          <Label>Valid Until *</Label>
+          <Label className="text-[10px] sm:text-sm">Valid Until *</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal',
+                  'w-full justify-start text-left font-normal h-8 sm:h-9 text-xs sm:text-sm rounded-md',
                   !formData.validUntil && 'text-muted-foreground'
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
+                <CalendarIcon className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                 {formData.validUntil ? format(formData.validUntil, 'PPP') : 'Pick a date'}
               </Button>
             </PopoverTrigger>
@@ -243,7 +250,7 @@ function PromoForm({
       </div>
 
       <div>
-        <Label>Applicable Rooms</Label>
+        <Label className="text-[10px] sm:text-sm">Applicable Rooms</Label>
         <Select
           value={formData.applicableRooms.includes('all') ? 'all' : formData.applicableRooms[0] || ''}
           onValueChange={(value) => {
@@ -254,7 +261,7 @@ function PromoForm({
             }
           }}
         >
-          <SelectTrigger>
+          <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
             <SelectValue placeholder="Select applicable rooms" />
           </SelectTrigger>
           <SelectContent>
@@ -273,7 +280,7 @@ function PromoForm({
           </SelectContent>
         </Select>
         {roomTypes.length === 0 && (
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
             No room types found. Please create room types first.
           </p>
         )}
@@ -285,21 +292,22 @@ function PromoForm({
           checked={formData.isActive}
           onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked }))}
         />
-        <Label htmlFor="isActive">Active</Label>
+        <Label htmlFor="isActive" className="text-[10px] sm:text-sm">Active</Label>
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end gap-3 pt-3 border-t">
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
+          className="h-8 sm:h-9 text-xs sm:text-sm"
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={submitting}>
+        <Button type="submit" disabled={submitting} className="h-8 sm:h-9 text-xs sm:text-sm">
           {submitting ? (
             <>
-              <Loader className="h-4 w-4 animate-spin mr-2" />
+              <Loader className="h-3 w-3 sm:h-4 sm:w-4 animate-spin mr-1 sm:mr-2" />
               {isEdit ? 'Updating...' : 'Creating...'}
             </>
           ) : (
@@ -577,8 +585,6 @@ export default function PromoCodesPage() {
     }
   }
 
-  
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -590,64 +596,66 @@ export default function PromoCodesPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Promo Codes & Offers</h1>
-          <p className="text-muted-foreground">Manage promotional codes and special offers</p>
+    <div className="p-2 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+          <div>
+            <h1 className="text-lg sm:text-3xl font-bold">Promo Codes & Offers</h1>
+            <p className="text-[10px] sm:text-sm text-muted-foreground">Manage promotional codes and special offers</p>
+          </div>
+          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { resetForm(); setCreateDialogOpen(true) }} className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex items-center justify-center">
+                <Plus className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4 text-gray-600" />
+                <span className="hidden sm:inline text-gray-600">Create Promo Code</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg max-h-[90vh] overflow-y-auto">
+              <DialogHeader className="mb-3 sm:mb-6">
+                <DialogTitle className="text-base sm:text-xl">Create New Promo Code</DialogTitle>
+                <DialogDescription className="text-[10px] sm:text-sm">
+                  Fill in the details to create a new promotional code.
+                </DialogDescription>
+              </DialogHeader>
+              <PromoForm
+                formData={formData}
+                setFormData={setFormData}
+                roomTypes={roomTypes}
+                isEdit={false}
+                onSubmit={handleSubmit}
+                onCancel={() => {
+                  setCreateDialogOpen(false)
+                  resetForm()
+                }}
+                submitting={submitting}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { resetForm(); setCreateDialogOpen(true) }}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Promo Code
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Create New Promo Code</DialogTitle>
-              <DialogDescription>
-                Fill in the details to create a new promotional code.
-              </DialogDescription>
-            </DialogHeader>
-            <PromoForm
-              formData={formData}
-              setFormData={setFormData}
-              roomTypes={roomTypes}
-              isEdit={false}
-              onSubmit={handleSubmit}
-              onCancel={() => {
-                setCreateDialogOpen(false)
-                resetForm()
-              }}
-              submitting={submitting}
-            />
-          </DialogContent>
-        </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      <Card className="rounded-lg">
+        <CardHeader className="pb-3 sm:pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
             <div>
-              <CardTitle>Promo Codes</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-sm sm:text-base">Promo Codes</CardTitle>
+              <CardDescription className="text-[10px] sm:text-xs">
                 Manage all your promotional codes and special offers
               </CardDescription>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:items-center sm:space-x-2">
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 sm:left-3 top-2.5 sm:top-2.5 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search promo codes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-64"
+                  className="pl-6 sm:pl-8 w-full sm:w-64 h-8 sm:h-9 text-[10px] sm:text-sm"
                 />
               </div>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-32">
-                  <Filter className="mr-2 h-4 w-4" />
+                <SelectTrigger className="h-8 sm:h-9 min-w-[120px] sm:w-32 text-[10px] sm:text-sm">
+                  <Filter className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -660,76 +668,82 @@ export default function PromoCodesPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Title</TableHead>
-                <TableHead>Discount</TableHead>
-                <TableHead>Usage</TableHead>
-                <TableHead>Valid Period</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <CardContent className="p-0 sm:p-6">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-gray-50">
+                  <TableHead className="text-xs sm:text-sm font-semibold py-3 sm:py-4 px-3 sm:px-4 text-gray-700">Code</TableHead>
+                  <TableHead className="text-xs sm:text-sm font-semibold py-3 sm:py-4 px-3 sm:px-4 text-gray-700">Title</TableHead>
+                  <TableHead className="text-xs sm:text-sm font-semibold py-3 sm:py-4 px-3 sm:px-4 text-gray-700">Discount</TableHead>
+                  <TableHead className="text-xs sm:text-sm font-semibold py-3 sm:py-4 px-3 sm:px-4 text-gray-700">Usage</TableHead>
+                  <TableHead className="text-xs sm:text-sm font-semibold py-3 sm:py-4 px-3 sm:px-4 text-gray-700">Valid Period</TableHead>
+                  <TableHead className="text-xs sm:text-sm font-semibold py-3 sm:py-4 px-3 sm:px-4 text-gray-700">Status</TableHead>
+                  <TableHead className="text-xs sm:text-sm font-semibold py-3 sm:py-4 px-3 sm:px-4 text-gray-700">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12">
+                  <TableCell colSpan={7} className="text-center py-8 sm:py-12">
                     <div className="flex items-center justify-center">
-                      <Loader className="h-8 w-8 animate-spin text-blue-600" />
+                      <Loader className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-blue-600" />
                     </div>
                   </TableCell>
                 </TableRow>
               ) : promoCodes.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8">
-                    No promo codes found
+                  <TableCell colSpan={7} className="text-center py-6 sm:py-8">
+                    <p className="text-[10px] sm:text-sm text-muted-foreground">No promo codes found</p>
                   </TableCell>
                 </TableRow>
               ) : (
                 promoCodes.map((promo) => (
-                  <TableRow key={promo.id}>
-                    <TableCell>
+                  <TableRow key={promo.id} className="hover:bg-gray-50 transition-colors">
+                    <TableCell className="px-3 sm:px-4 py-3 sm:py-4">
                       <div className="flex items-center space-x-2">
-                        <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
+                        <code className="bg-gray-100 px-2 py-1 rounded text-xs sm:text-sm font-mono border">
                           {promo.code}
                         </code>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => copyToClipboard(promo.code)}
-                          className="h-6 w-6 p-0"
+                          className="h-6 w-6 p-0 hover:bg-gray-200"
+                          title="Copy code"
                         >
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-3 sm:px-4 py-3 sm:py-4">
                       <div>
-                        <p className="font-medium">{promo.title}</p>
+                        <p className="font-medium text-xs sm:text-sm">{promo.title}</p>
                         {promo.description && (
-                          <p className="text-sm text-muted-foreground truncate max-w-48">
+                          <p className="text-xs text-muted-foreground truncate max-w-32 sm:max-w-48">
                             {promo.description}
                           </p>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {promo.discountType === 'percentage' 
-                        ? `${promo.discountValue}%` 
-                        : `₹${promo.discountValue}`
-                      }
-                      {promo.maxDiscountAmount && (
-                        <p className="text-xs text-muted-foreground">
-                          Max: ₹{promo.maxDiscountAmount}
+                    <TableCell className="px-3 sm:px-4 py-3 sm:py-4">
+                      <div className="text-xs sm:text-sm">
+                        <p className="font-medium">
+                          {promo.discountType === 'percentage' 
+                            ? `${promo.discountValue}%` 
+                            : `₹${promo.discountValue}`
+                          }
                         </p>
-                      )}
+                        {promo.maxDiscountAmount && (
+                          <p className="text-xs text-muted-foreground">
+                            Max: ₹{promo.maxDiscountAmount}
+                          </p>
+                        )}
+                      </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <p>{promo._count.bookings} used</p>
+                    <TableCell className="px-3 sm:px-4 py-3 sm:py-4">
+                      <div className="text-xs sm:text-sm">
+                        <p className="font-medium">{promo._count.bookings} used</p>
                         {promo.usageLimit && (
                           <p className="text-muted-foreground">
                             / {promo.usageLimit} limit
@@ -737,38 +751,41 @@ export default function PromoCodesPage() {
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
+                    <TableCell className="px-3 sm:px-4 py-3 sm:py-4">
+                      <div className="text-xs sm:text-sm">
                         <p>{format(new Date(promo.validFrom), 'MMM dd, yyyy')}</p>
                         <p className="text-muted-foreground">
                           to {format(new Date(promo.validUntil), 'MMM dd, yyyy')}
                         </p>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-2 sm:px-3 py-3 sm:py-4">
                       {getStatusBadge(promo)}
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
+                    <TableCell className="px-3 sm:px-4 py-3 sm:py-4">
+                      <div className="flex items-center space-x-1 sm:space-x-2">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleEdit(promo)}
                           disabled={toggling === promo.id || deleting === promo.id}
+                          className="h-8 w-8 p-0 hover:bg-gray-200"
+                          title="Edit promo code"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => toggleStatus(promo)}
                           disabled={toggling === promo.id || deleting === promo.id}
-                          className={promo.isActive ? 'text-orange-600' : 'text-green-600'}
+                          className={`h-8 w-8 p-0 hover:bg-gray-200 ${promo.isActive ? 'text-orange-600' : 'text-green-600'}`}
+                          title={promo.isActive ? 'Deactivate promo code' : 'Activate promo code'}
                         >
                           {toggling === promo.id ? (
-                            <Loader className="h-4 w-4 animate-spin" />
+                            <Loader className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                           ) : (
-                            promo.isActive ? 'Deactivate' : 'Activate'
+                            <span className="text-xs">{promo.isActive ? 'Deactivate' : 'Activate'}</span>
                           )}
                         </Button>
                         <AlertDialog>
@@ -776,13 +793,14 @@ export default function PromoCodesPage() {
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="text-red-600"
+                              className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
                               disabled={toggling === promo.id || deleting === promo.id}
+                              title="Delete promo code"
                             >
                               {deleting === promo.id ? (
-                                <Loader className="h-4 w-4 animate-spin" />
+                                <Loader className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                               ) : (
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                               )}
                             </Button>
                           </AlertDialogTrigger>
@@ -812,6 +830,7 @@ export default function PromoCodesPage() {
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 

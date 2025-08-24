@@ -296,42 +296,42 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Expense Management</h2>
+    <div className="flex-1 space-y-3 sm:space-y-4 p-2 sm:p-4 md:p-8 pt-3 sm:pt-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+        <h2 className="text-lg sm:text-3xl font-bold tracking-tight">Expense Management</h2>
         <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={loadExpenses}>
-            <RefreshCw className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={loadExpenses} className="h-8 sm:h-9 text-xs sm:text-sm">
+            <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Refresh
           </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="expenses" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="expenses">Expenses</TabsTrigger>
-          {canManageExpenseTypes && <TabsTrigger value="expense-types">Expense Types</TabsTrigger>}
+      <Tabs defaultValue="expenses" className="space-y-3 sm:space-y-4">
+        <TabsList className="h-8 sm:h-9">
+          <TabsTrigger value="expenses" className="text-xs sm:text-sm">Expenses</TabsTrigger>
+          {canManageExpenseTypes && <TabsTrigger value="expense-types" className="text-xs sm:text-sm">Expense Types</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="expenses" className="space-y-4">
+        <TabsContent value="expenses" className="space-y-3 sm:space-y-4">
           {/* Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
+          <Card className="rounded-lg">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Filter className="h-3 w-3 sm:h-4 sm:w-4" />
                 Filters
               </CardTitle>
             </CardHeader>
             <CardContent>
               {/* Horizontal filter layout */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-4 items-end">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4 items-end">
                 <div>
-                  <Label>Expense Type</Label>
+                  <Label className="text-[10px] sm:text-sm">Expense Type</Label>
                   <Select 
                     value={filters.expenseTypeId} 
                     onValueChange={(value) => setFilters(prev => ({ ...prev, expenseTypeId: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -347,12 +347,12 @@ export default function ExpensesPage() {
 
                 {canExpenseFromAnyAccount && (
                   <div>
-                    <Label>User</Label>
+                    <Label className="text-[10px] sm:text-sm">User</Label>
                     <Select 
                       value={filters.userId} 
                       onValueChange={(value) => setFilters(prev => ({ ...prev, userId: value }))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                         <SelectValue placeholder="All users" />
                       </SelectTrigger>
                       <SelectContent>
@@ -368,12 +368,12 @@ export default function ExpensesPage() {
                 )}
 
                 <div>
-                  <Label>Approval Status</Label>
+                  <Label className="text-[10px] sm:text-sm">Approval Status</Label>
                   <Select 
                     value={filters.isApproved} 
                     onValueChange={(value) => setFilters(prev => ({ ...prev, isApproved: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue placeholder="All statuses" />
                     </SelectTrigger>
                     <SelectContent>
@@ -385,8 +385,8 @@ export default function ExpensesPage() {
                 </div>
 
                 <div className="flex items-end">
-                  <Button className="w-full" onClick={loadExpenses}>
-                    <Eye className="h-4 w-4 mr-2" />
+                  <Button className="w-full h-8 sm:h-9 text-xs sm:text-sm" onClick={loadExpenses}>
+                    <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Apply Filters
                   </Button>
                 </div>
@@ -394,8 +394,8 @@ export default function ExpensesPage() {
                 <div className="flex items-end">
                   <Dialog open={showAddExpense} onOpenChange={setShowAddExpense}>
                     <DialogTrigger asChild>
-                      <Button className="w-full">
-                        <Plus className="h-4 w-4 mr-2" />
+                      <Button className="w-full h-8 sm:h-9 text-xs sm:text-sm">
+                        <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Add Expense
                       </Button>
                     </DialogTrigger>

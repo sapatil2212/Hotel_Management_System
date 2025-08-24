@@ -1180,7 +1180,12 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
 
              {/* Booking Details Modal */}
        <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-         <DialogContent className="max-w-2xl sm:max-w-4xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-8 p-4 sm:p-6 rounded-lg">
+       <DialogContent 
+  className="max-w-[95vw] sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto 
+             p-3 sm:p-6 rounded-lg 
+             flex flex-col mx-auto"
+>
+
            {selectedBooking && (
              <>
                <DialogHeader className="mb-3 sm:mb-6">
@@ -1419,7 +1424,12 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
 
       {/* Edit Booking Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent 
+  className="max-w-[95vw] sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto 
+             p-3 sm:p-6 rounded-lg 
+             flex flex-col mx-auto"
+>
+
           {editingBooking && (
             <>
               <DialogHeader>
@@ -1757,7 +1767,12 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
 
       {/* Extra Charges Modal */}
       <Dialog open={isExtraChargesModalOpen} onOpenChange={setIsExtraChargesModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent 
+  className="max-w-[95vw] sm:max-w-4xl w-full max-h-[90vh] overflow-y-auto 
+             p-3 sm:p-6 rounded-lg 
+             flex flex-col mx-auto"
+>
+
           {selectedBookingForCharges && (
             <>
               <DialogHeader className="pb-3">

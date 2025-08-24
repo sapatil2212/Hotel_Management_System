@@ -55,28 +55,28 @@ export function DeleteConfirmationModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
-            <AlertTriangle className={`h-8 w-8 ${getIconColor()}`} />
+      <DialogContent className="max-w-[95vw] sm:max-w-md w-full max-h-[90vh] overflow-y-auto p-3 sm:p-6 rounded-lg flex flex-col mx-auto">
+        <DialogHeader className="text-center mb-3 sm:mb-6">
+          <div className="mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-red-100">
+            <AlertTriangle className={`h-6 w-6 sm:h-8 sm:w-8 ${getIconColor()}`} />
           </div>
-          <DialogTitle className="text-xl font-semibold text-gray-900">
+          <DialogTitle className="text-base sm:text-xl font-semibold text-gray-900">
             {title}
           </DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogDescription className="text-[10px] sm:text-sm text-gray-600">
             {description}
             {itemName && (
-              <span className="block mt-2 font-medium text-gray-900">
+              <span className="block mt-2 font-medium text-gray-900 text-xs sm:text-sm">
                 "{itemName}"
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
 
-        <div className={`mt-4 rounded-lg p-4 ${getBackgroundColor()} ${getBorderColor()} border`}>
-          <div className="flex items-start space-x-3">
-            <Trash2 className={`h-5 w-5 mt-0.5 ${getIconColor()}`} />
-            <div className="text-sm text-gray-700">
+        <div className={`mt-3 sm:mt-4 rounded-lg p-3 sm:p-4 ${getBackgroundColor()} ${getBorderColor()} border`}>
+          <div className="flex items-start space-x-2 sm:space-x-3">
+            <Trash2 className={`h-4 w-4 sm:h-5 sm:w-5 mt-0.5 ${getIconColor()}`} />
+            <div className="text-xs sm:text-sm text-gray-700">
               <p className="font-medium">This action will permanently delete the selected item.</p>
               <p className="mt-1 text-gray-600">
                 All associated data will be removed and cannot be recovered.
@@ -85,13 +85,13 @@ export function DeleteConfirmationModal({
           </div>
         </div>
 
-        <DialogFooter className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+        <DialogFooter className="mt-4 sm:mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 gap-2 sm:gap-0">
           <Button
             type="button"
             variant="outline"
             onClick={onClose}
             disabled={isLoading}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto h-8 sm:h-9 text-xs sm:text-sm"
           >
             Cancel
           </Button>
@@ -100,7 +100,7 @@ export function DeleteConfirmationModal({
             variant={getButtonVariant()}
             onClick={handleConfirm}
             disabled={isLoading}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto h-8 sm:h-9 text-xs sm:text-sm"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">

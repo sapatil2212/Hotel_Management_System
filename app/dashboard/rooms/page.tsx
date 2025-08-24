@@ -310,41 +310,42 @@ export default function RoomsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="p-2 sm:p-6 space-y-4 sm:space-y-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Room Type Management</h1>
-          <p className="text-muted-foreground">Manage your hotel room types ahere</p>
+          <h1 className="text-lg sm:text-3xl font-bold tracking-tight">Room Type Management</h1>
+          <p className="text-[10px] sm:text-sm text-muted-foreground">Manage your hotel room types here</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={() => resetForm()}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add New Room Type
+            <Button onClick={() => resetForm()} className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex items-center justify-center">
+              <Plus className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4 text-gray-600" />
+              <span className="hidden sm:inline text-gray-600">Add New Room Type</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{editingRoom ? "Edit Room" : "Add New Room Type"}</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="mb-3 sm:mb-6">
+              <DialogTitle className="text-base sm:text-xl">{editingRoom ? "Edit Room" : "Add New Room Type"}</DialogTitle>
+              <DialogDescription className="text-[10px] sm:text-sm">
                 {editingRoom ? "Update room information" : "Create a new room type for your hotel"}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label htmlFor="name">Room Name</Label>
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="sm:col-span-2">
+                  <Label htmlFor="name" className="text-[10px] sm:text-sm">Room Name</Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="e.g., Super Deluxe Room"
                     required
+                    className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="price">Price per Night (₹)</Label>
+                  <Label htmlFor="price" className="text-[10px] sm:text-sm">Price per Night (₹)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -352,35 +353,38 @@ export default function RoomsPage() {
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
                     placeholder="4500"
                     required
+                    className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="originalPrice">Original Price (₹)</Label>
+                  <Label htmlFor="originalPrice" className="text-[10px] sm:text-sm">Original Price (₹)</Label>
                   <Input
                     id="originalPrice"
                     type="number"
                     value={formData.originalPrice}
                     onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
                     placeholder="5000"
+                    className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="size">Room Size</Label>
+                  <Label htmlFor="size" className="text-[10px] sm:text-sm">Room Size</Label>
                   <Input
                     id="size"
                     value={formData.size}
                     onChange={(e) => setFormData({...formData, size: e.target.value})}
                     placeholder="180 sq.ft (17 sq.mt)"
                     required
+                    className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="bedType">Bed Configuration</Label>
+                  <Label htmlFor="bedType" className="text-[10px] sm:text-sm">Bed Configuration</Label>
                   <Select value={formData.bedType} onValueChange={(value) => setFormData({...formData, bedType: value})}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue placeholder="Select bed type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -394,9 +398,9 @@ export default function RoomsPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="bathroomCount">Bathrooms</Label>
+                  <Label htmlFor="bathroomCount" className="text-[10px] sm:text-sm">Bathrooms</Label>
                   <Select value={formData.bathroomCount} onValueChange={(value) => setFormData({...formData, bathroomCount: value})}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -408,9 +412,9 @@ export default function RoomsPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="maxGuests">Max Guests</Label>
+                  <Label htmlFor="maxGuests" className="text-[10px] sm:text-sm">Max Guests</Label>
                   <Select value={formData.maxGuests} onValueChange={(value) => setFormData({...formData, maxGuests: value})}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -425,7 +429,7 @@ export default function RoomsPage() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="totalRooms">Total Rooms Available</Label>
+                  <Label htmlFor="totalRooms" className="text-[10px] sm:text-sm">Total Rooms Available</Label>
                   <Input
                     id="totalRooms"
                     type="number"
@@ -433,105 +437,112 @@ export default function RoomsPage() {
                     onChange={(e) => setFormData({...formData, totalRooms: e.target.value})}
                     min="1"
                     required
+                    className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                   />
                 </div>
                 
                 <div>
-                                     <Label htmlFor="discountPercent">Discount Percentage</Label>
-                   <Input
-                     id="discountPercent"
-                     type="number"
-                     value={formData.discountPercent}
-                     onChange={(e) => setFormData({...formData, discountPercent: e.target.value})}
-                     placeholder="No discount"
-                     min="0"
-                     max="100"
-                   />
-                   <p className="text-sm text-muted-foreground mt-1">Leave empty for no discount</p>
+                  <Label htmlFor="discountPercent" className="text-[10px] sm:text-sm">Discount Percentage</Label>
+                  <Input
+                    id="discountPercent"
+                    type="number"
+                    value={formData.discountPercent}
+                    onChange={(e) => setFormData({...formData, discountPercent: e.target.value})}
+                    placeholder="No discount"
+                    min="0"
+                    max="100"
+                    className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
+                  />
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">Leave empty for no discount</p>
                 </div>
                 
-                <div className="md:col-span-2">
-                  <Label htmlFor="shortDescription">Short Description</Label>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="shortDescription" className="text-[10px] sm:text-sm">Short Description</Label>
                   <Textarea
                     id="shortDescription"
                     value={formData.shortDescription}
                     onChange={(e) => setFormData({...formData, shortDescription: e.target.value})}
                     placeholder="Brief description of the room"
-                    rows={3}
+                    rows={2}
                     required
+                    className="text-xs sm:text-sm rounded-md"
                   />
                 </div>
                 
-                <div className="md:col-span-2">
-                  <Label htmlFor="description">Full Description</Label>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="description" className="text-[10px] sm:text-sm">Full Description</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     placeholder="Detailed room description for the room details page"
-                    rows={4}
+                    rows={3}
                     required
+                    className="text-xs sm:text-sm rounded-md"
                   />
                 </div>
                 
-                <div className="md:col-span-2">
-                  <Label htmlFor="highlights">Key Features/Highlights</Label>
+                <div className="sm:col-span-2">
+                  <Label htmlFor="highlights" className="text-[10px] sm:text-sm">Key Features/Highlights</Label>
                   <Textarea
                     id="highlights"
                     value={formData.highlights || ''}
                     onChange={(e) => setFormData({...formData, highlights: e.target.value})}
                     placeholder="• Premium Egyptian cotton bedding&#10;• Panoramic city views&#10;• Marble bathroom with rainfall shower&#10;• Complimentary high-speed WiFi"
-                    rows={4}
+                    rows={3}
+                    className="text-xs sm:text-sm rounded-md"
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                     Use bullet points (•) to highlight key room features
                   </p>
                 </div>
                 
                 {/* Room Amenities Section */}
-                <div className="md:col-span-2">
-                  <Label>Room Amenities</Label>
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="Add amenity (e.g., Free WiFi, Air Conditioning)"
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault()
-                            const value = e.currentTarget.value.trim()
-                            if (value && !formData.amenities?.includes(value)) {
-                              setFormData({
-                                ...formData,
-                                amenities: [...(formData.amenities || []), value]
-                              })
-                              e.currentTarget.value = ''
+                <div className="sm:col-span-2">
+                  <Label className="text-[10px] sm:text-sm">Room Amenities</Label>
+                                      <div className="space-y-2 sm:space-y-3">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Add amenity (e.g., Free WiFi, Air Conditioning)"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault()
+                              const value = e.currentTarget.value.trim()
+                              if (value && !formData.amenities?.includes(value)) {
+                                setFormData({
+                                  ...formData,
+                                  amenities: [...(formData.amenities || []), value]
+                                })
+                                e.currentTarget.value = ''
+                              }
                             }
-                          }
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        onClick={(e) => {
-                          const input = e.currentTarget.parentElement?.querySelector('input')
-                          if (input) {
-                            const value = input.value.trim()
-                            if (value && !formData.amenities?.includes(value)) {
-                              setFormData({
-                                ...formData,
-                                amenities: [...(formData.amenities || []), value]
-                              })
-                              input.value = ''
+                          }}
+                          className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
+                        />
+                        <Button
+                          type="button"
+                          onClick={(e) => {
+                            const input = e.currentTarget.parentElement?.querySelector('input')
+                            if (input) {
+                              const value = input.value.trim()
+                              if (value && !formData.amenities?.includes(value)) {
+                                setFormData({
+                                  ...formData,
+                                  amenities: [...(formData.amenities || []), value]
+                                })
+                                input.value = ''
+                              }
                             }
-                          }
-                        }}
-                      >
-                        Add
-                      </Button>
-                    </div>
+                          }}
+                          className="h-8 sm:h-9 text-xs sm:text-sm"
+                        >
+                          Add
+                        </Button>
+                      </div>
                     
                     {/* Quick Add Common Amenities */}
                     <div>
-                      <p className="text-sm text-muted-foreground mb-2">Quick add common amenities:</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">Quick add common amenities:</p>
                       <div className="flex flex-wrap gap-1">
                         {["Free WiFi", "Air Conditioning", "Mini Bar", "Room Service", "TV", "Safe", "Hair Dryer", "Coffee/Tea Maker", "Telephone", "Daily Housekeeping"].map((amenity) => (
                           <Button
@@ -539,7 +550,7 @@ export default function RoomsPage() {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-6 sm:h-7 px-1.5 sm:px-2 text-[9px] sm:text-xs"
                             onClick={() => {
                               if (!formData.amenities?.includes(amenity)) {
                                 setFormData({
@@ -556,9 +567,9 @@ export default function RoomsPage() {
                       </div>
                     </div>
                     
-                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    <div className="flex flex-wrap gap-1 sm:gap-2 max-h-24 sm:max-h-32 overflow-y-auto">
                       {formData.amenities?.map((amenity, index) => (
-                        <Badge key={index} variant="secondary" className="cursor-pointer">
+                        <Badge key={index} variant="secondary" className="cursor-pointer text-[9px] sm:text-xs px-1.5 py-0.5">
                           {amenity}
                           <button
                             type="button"
@@ -568,7 +579,7 @@ export default function RoomsPage() {
                                 amenities: (formData.amenities || []).filter((_, i) => i !== index)
                               })
                             }}
-                            className="ml-2 text-red-500 hover:text-red-700"
+                            className="ml-1 sm:ml-2 text-red-500 hover:text-red-700"
                           >
                             ×
                           </button>
@@ -579,9 +590,9 @@ export default function RoomsPage() {
                 </div>
                 
                 {/* Room Features Section */}
-                <div className="md:col-span-2">
-                  <Label>Room Features</Label>
-                  <div className="space-y-3">
+                <div className="sm:col-span-2">
+                  <Label className="text-[10px] sm:text-sm">Room Features</Label>
+                  <div className="space-y-2 sm:space-y-3">
                     <div className="flex gap-2">
                       <Input
                         placeholder="Add feature (e.g., City View, Non-Smoking, Balcony)"
@@ -598,6 +609,7 @@ export default function RoomsPage() {
                             }
                           }
                         }}
+                        className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                       />
                       <Button
                         type="button"
@@ -614,6 +626,7 @@ export default function RoomsPage() {
                             }
                           }
                         }}
+                        className="h-8 sm:h-9 text-xs sm:text-sm"
                       >
                         Add
                       </Button>
@@ -621,7 +634,7 @@ export default function RoomsPage() {
                     
                     {/* Quick Add Common Features */}
                     <div>
-                      <p className="text-sm text-muted-foreground mb-2">Quick add common features:</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mb-2">Quick add common features:</p>
                       <div className="flex flex-wrap gap-1">
                         {["City View", "Ocean View", "Mountain View", "Non-Smoking", "Soundproof", "Balcony", "Modern Décor", "Premium Bedding", "Work Desk", "Sitting Area"].map((feature) => (
                           <Button
@@ -629,7 +642,7 @@ export default function RoomsPage() {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-6 sm:h-7 px-1.5 sm:px-2 text-[9px] sm:text-xs"
                             onClick={() => {
                               if (!formData.features?.includes(feature)) {
                                 setFormData({
@@ -646,9 +659,9 @@ export default function RoomsPage() {
                       </div>
                     </div>
                     
-                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                    <div className="flex flex-wrap gap-1 sm:gap-2 max-h-24 sm:max-h-32 overflow-y-auto">
                       {formData.features?.map((feature, index) => (
-                        <Badge key={index} variant="outline" className="cursor-pointer">
+                        <Badge key={index} variant="outline" className="cursor-pointer text-[9px] sm:text-xs px-1.5 py-0.5">
                           {feature}
                           <button
                             type="button"
@@ -658,7 +671,7 @@ export default function RoomsPage() {
                                 features: (formData.features || []).filter((_, i) => i !== index)
                               })
                             }}
-                            className="ml-2 text-red-500 hover:text-red-700"
+                            className="ml-1 sm:ml-2 text-red-500 hover:text-red-700"
                           >
                             ×
                           </button>
@@ -668,8 +681,8 @@ export default function RoomsPage() {
                   </div>
                 </div>
                 
-                <div className="md:col-span-2">
-                    <Label>Room Images</Label>
+                <div className="sm:col-span-2">
+                    <Label className="text-[10px] sm:text-sm">Room Images</Label>
                     <ImageUpload
                       value={formData.images}
                       onChange={(images) => setFormData({...formData, images})}
@@ -680,14 +693,14 @@ export default function RoomsPage() {
               
               <Separator />
               
-              <div className="flex items-center space-x-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="available"
                     checked={formData.available}
                     onCheckedChange={(checked) => setFormData({...formData, available: checked as boolean})}
                   />
-                  <Label htmlFor="available">Available for booking</Label>
+                  <Label htmlFor="available" className="text-[10px] sm:text-sm">Available for booking</Label>
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -696,15 +709,15 @@ export default function RoomsPage() {
                     checked={formData.isPromoted}
                     onCheckedChange={(checked) => setFormData({...formData, isPromoted: checked as boolean})}
                   />
-                  <Label htmlFor="isPromoted">Promoted room</Label>
+                  <Label htmlFor="isPromoted" className="text-[10px] sm:text-sm">Promoted room</Label>
                 </div>
               </div>
               
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
+              <div className="flex justify-end gap-3 pt-3 border-t">
+                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="h-8 sm:h-9 text-xs sm:text-sm">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={submitting}>
+                <Button type="submit" disabled={submitting} className="h-8 sm:h-9 text-xs sm:text-sm">
                   {submitting ? "Saving..." : (editingRoom ? "Update Room" : "Create Room")}
                 </Button>
               </div>
@@ -714,48 +727,48 @@ export default function RoomsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Room Types</CardTitle>
-            <Bed className="h-4 w-4 text-muted-foreground" />
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Total Room Types</CardTitle>
+            <Bed className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{rooms.length}</div>
+            <div className="text-sm sm:text-2xl font-bold">{rooms.length}</div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
-            <Square className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Total Rooms</CardTitle>
+            <Square className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-sm sm:text-2xl font-bold">
               {rooms.reduce((sum, room) => sum + room.totalRooms, 0)}
             </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Types</CardTitle>
-            <Eye className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Available Types</CardTitle>
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-sm sm:text-2xl font-bold">
               {rooms.filter(room => room.available).length}
             </div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Price</CardTitle>
-            <IndianRupee className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-3">
+            <CardTitle className="text-[8px] sm:text-xs font-medium">Avg. Price</CardTitle>
+            <IndianRupee className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-sm sm:text-2xl font-bold">
               {formatPrice(rooms.reduce((sum, room) => sum + room.price, 0) / rooms.length || 0)}
             </div>
           </CardContent>
@@ -763,10 +776,10 @@ export default function RoomsPage() {
       </div>
 
       {/* Rooms Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Room Types</CardTitle>
-          <div className="text-sm text-muted-foreground bg-blue-50 p-3 rounded-lg border border-blue-200">
+      <Card className="rounded-lg">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-sm sm:text-base">Room Types</CardTitle>
+          <div className="text-[10px] sm:text-xs text-muted-foreground bg-blue-50 p-2 sm:p-3 rounded-lg border border-blue-200">
             <strong>Status Explanation:</strong> Room types show as "Available" only when individual rooms exist and are in available status. 
             If a room type shows "Unavailable", check if individual rooms have been created in the{" "}
             <a href="/dashboard/room-manage" className="text-blue-600 hover:underline" target="_blank">Room Management</a> section.

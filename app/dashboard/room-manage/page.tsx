@@ -447,44 +447,46 @@ export default function RoomManagePage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-2 sm:p-6 space-y-3 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Room Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-lg sm:text-3xl font-bold tracking-tight">Room Management</h1>
+          <p className="text-[10px] sm:text-sm text-muted-foreground">
             Manage your hotel room types and inventory
           </p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Room
+            <Button className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex items-center justify-center">
+              <Plus className="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4 text-gray-600" />
+              <span className="hidden sm:inline text-gray-600">Add Room</span>
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add New Room</DialogTitle>
-              <DialogDescription>
+          <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg">
+            <DialogHeader className="mb-3 sm:mb-6">
+              <DialogTitle className="text-base sm:text-xl">Add New Room</DialogTitle>
+              <DialogDescription className="text-[10px] sm:text-sm">
                 Add a new individual room to the hotel inventory
               </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="roomNumber">Room Number *</Label>
-                <Input 
-                  id="roomNumber" 
-                  placeholder="e.g., 101" 
-                  value={formData.roomNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="roomType">Room Type *</Label>
-                <Select value={formData.roomTypeId} onValueChange={(value) => setFormData(prev => ({ ...prev, roomTypeId: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select room type" />
-                  </SelectTrigger>
+            <div className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="roomNumber" className="text-[10px] sm:text-sm">Room Number *</Label>
+                  <Input 
+                    id="roomNumber" 
+                    placeholder="e.g., 101" 
+                    value={formData.roomNumber}
+                    onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
+                    className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="roomType" className="text-[10px] sm:text-sm">Room Type *</Label>
+                  <Select value={formData.roomTypeId} onValueChange={(value) => setFormData(prev => ({ ...prev, roomTypeId: value }))}>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
                   <SelectContent>
                     {roomTypes.filter(rt => rt.canAddMore).length === 0 ? (
                       <div className="p-4 text-center text-gray-500">
@@ -501,44 +503,48 @@ export default function RoomManagePage() {
                   </SelectContent>
                 </Select>
                 {roomTypes.length === 0 && (
-                  <p className="text-sm text-red-600 mt-1">
+                  <p className="text-xs sm:text-sm text-red-600 mt-1">
                     No room types found. Please create room types first.
                   </p>
                 )}
               </div>
-              <div>
-                <Label htmlFor="floor">Floor Number</Label>
-                <Input 
-                  id="floor" 
-                  type="number" 
-                  placeholder="e.g., 1" 
-                  value={formData.floorNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, floorNumber: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea 
-                  id="notes" 
-                  placeholder="Additional notes about this room..." 
-                  value={formData.notes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="availableForBooking"
-                  checked={formData.availableForBooking}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, availableForBooking: checked as boolean }))}
-                />
-                <Label htmlFor="availableForBooking">Available for booking</Label>
-              </div>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <div>
+              <Label htmlFor="floor" className="text-[10px] sm:text-sm">Floor Number</Label>
+              <Input 
+                id="floor" 
+                type="number" 
+                placeholder="e.g., 1" 
+                value={formData.floorNumber}
+                onChange={(e) => setFormData(prev => ({ ...prev, floorNumber: e.target.value }))}
+                className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
+              />
+            </div>
+            <div>
+              <Label htmlFor="notes" className="text-[10px] sm:text-sm">Notes</Label>
+              <Textarea 
+                id="notes" 
+                placeholder="Additional notes about this room..." 
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                className="text-xs sm:text-sm rounded-md"
+                rows={2}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="availableForBooking"
+                checked={formData.availableForBooking}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, availableForBooking: checked as boolean }))}
+              />
+              <Label htmlFor="availableForBooking" className="text-[10px] sm:text-sm">Available for booking</Label>
+            </div>
+          </div>
+            <div className="flex justify-end gap-3 pt-3 border-t">
+              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="h-8 sm:h-9 text-xs sm:text-sm">
                 Cancel
               </Button>
-              <Button onClick={handleAddRoom} disabled={loading}>
+              <Button onClick={handleAddRoom} disabled={loading} className="h-8 sm:h-9 text-xs sm:text-sm">
                 {loading ? "Adding..." : "Add Room"}
               </Button>
             </div>
@@ -547,59 +553,60 @@ export default function RoomManagePage() {
       </div>
 
       {/* Room Types Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
+      <Card className="rounded-lg">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Building2 className="h-3 w-3 sm:h-4 sm:w-4" />
             Room Types Overview
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-[10px] sm:text-xs">
             Current room inventory status by type
           </CardDescription>
         </CardHeader>
         <CardContent>
           {roomTypes.length === 0 ? (
-            <div className="text-center py-8">
-              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Room Types Found</h3>
-              <p className="text-gray-600 mb-4">
+            <div className="text-center py-6 sm:py-8">
+              <Building2 className="h-8 w-8 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+              <h3 className="text-sm sm:text-lg font-semibold text-gray-900 mb-2">No Room Types Found</h3>
+              <p className="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
                 No room types have been created yet. You need to create room types first before adding individual rooms.
               </p>
-              <div className="space-y-2 text-sm text-gray-500">
+              <div className="space-y-1 sm:space-y-2 text-[10px] sm:text-sm text-gray-500">
                 <p>• Go to the <strong>Rooms</strong> page to create room types</p>
                 <p>• Or run the database seed script to create sample room types</p>
                 <p>• Check the database connection if the issue persists</p>
               </div>
-              <div className="mt-4">
+              <div className="mt-3 sm:mt-4">
                 <Button 
                   onClick={() => window.location.href = '/dashboard/rooms'}
                   variant="outline"
+                  className="h-8 sm:h-9 text-xs sm:text-sm"
                 >
                   Go to Rooms Page
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {roomTypes.map((roomType) => (
-                <div key={roomType.id} className="p-4 border rounded-lg">
-                  <h3 className="font-semibold">{roomType.name}</h3>
-                  <p className="text-sm text-muted-foreground">
+                <div key={roomType.id} className="p-3 sm:p-4 border rounded-lg">
+                  <h3 className="font-semibold text-xs sm:text-sm">{roomType.name}</h3>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground">
                     {roomType.currentRoomsCount} of {roomType.totalRooms} rooms created
                   </p>
                   <div className="mt-2">
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-[10px] sm:text-xs">
                       <span>Progress</span>
                       <span>{Math.round((roomType.currentRoomsCount / roomType.totalRooms) * 100)}%</span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                    <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2 mt-1">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full" 
+                        className="bg-blue-600 h-1.5 sm:h-2 rounded-full" 
                         style={{ width: `${(roomType.currentRoomsCount / roomType.totalRooms) * 100}%` }}
                       ></div>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-[9px] sm:text-xs text-muted-foreground mt-2">
                     {roomType.availableSlots} slots available
                   </p>
                 </div>
@@ -610,69 +617,69 @@ export default function RoomManagePage() {
       </Card>
 
       {/* Room Availability Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Eye className="h-5 w-5" />
+      <Card className="rounded-lg">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
             Room Availability Statistics
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-[10px] sm:text-xs">
             Overview of rooms available for booking
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 border rounded-lg bg-green-50">
-              <h3 className="font-semibold text-green-800">Available for Booking</h3>
-              <p className="text-2xl font-bold text-green-600">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            <div className="p-3 sm:p-4 border rounded-lg bg-green-50">
+              <h3 className="font-semibold text-green-800 text-xs sm:text-sm">Available for Booking</h3>
+              <p className="text-lg sm:text-2xl font-bold text-green-600">
                 {rooms.filter(room => room.availableForBooking).length}
               </p>
-              <p className="text-sm text-green-600">
+              <p className="text-[10px] sm:text-xs text-green-600">
                 {rooms.length > 0 ? Math.round((rooms.filter(room => room.availableForBooking).length / rooms.length) * 100) : 0}% of total rooms
               </p>
             </div>
-            <div className="p-4 border rounded-lg bg-red-50">
-              <h3 className="font-semibold text-red-800">Not Available for Booking</h3>
-              <p className="text-2xl font-bold text-red-600">
+            <div className="p-3 sm:p-4 border rounded-lg bg-red-50">
+              <h3 className="font-semibold text-red-800 text-xs sm:text-sm">Not Available for Booking</h3>
+              <p className="text-lg sm:text-2xl font-bold text-red-600">
                 {rooms.filter(room => !room.availableForBooking).length}
               </p>
-              <p className="text-sm text-red-600">
+              <p className="text-[10px] sm:text-xs text-red-600">
                 {rooms.length > 0 ? Math.round((rooms.filter(room => !room.availableForBooking).length / rooms.length) * 100) : 0}% of total rooms
               </p>
             </div>
-            <div className="p-4 border rounded-lg bg-blue-50">
-              <h3 className="font-semibold text-blue-800">Total Rooms</h3>
-              <p className="text-2xl font-bold text-blue-600">{rooms.length}</p>
-              <p className="text-sm text-blue-600">Individual rooms in inventory</p>
+            <div className="p-3 sm:p-4 border rounded-lg bg-blue-50 sm:col-span-2 lg:col-span-1">
+              <h3 className="font-semibold text-blue-800 text-xs sm:text-sm">Total Rooms</h3>
+              <p className="text-lg sm:text-2xl font-bold text-blue-600">{rooms.length}</p>
+              <p className="text-[10px] sm:text-xs text-blue-600">Individual rooms in inventory</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Individual Rooms</CardTitle>
-          <CardDescription>
+      <Card className="rounded-lg">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-sm sm:text-base">Individual Rooms</CardTitle>
+          <CardDescription className="text-[10px] sm:text-xs">
             View and manage all individual rooms in the hotel
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-6">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-2 sm:left-3 top-2.5 sm:top-3 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search rooms..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-6 sm:pl-10 h-8 sm:h-9 text-[10px] sm:text-sm"
                 />
               </div>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by status" />
+              <SelectTrigger className="h-8 sm:h-9 min-w-[120px] sm:w-48 text-[10px] sm:text-sm">
+                <Filter className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
@@ -684,9 +691,9 @@ export default function RoomManagePage() {
               </SelectContent>
             </Select>
             <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-              <SelectTrigger className="w-48">
-                <Eye className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Filter by availability" />
+              <SelectTrigger className="h-8 sm:h-9 min-w-[120px] sm:w-48 text-[10px] sm:text-sm">
+                <Eye className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <SelectValue placeholder="All Availability" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Availability</SelectItem>
@@ -698,9 +705,9 @@ export default function RoomManagePage() {
 
           {/* Bulk Actions */}
           {selectedRooms.length > 0 && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-800">
+            <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                <span className="text-xs sm:text-sm text-blue-800">
                   {selectedRooms.length} room(s) selected
                 </span>
                 <div className="flex gap-2">
@@ -709,18 +716,20 @@ export default function RoomManagePage() {
                     variant="outline"
                     onClick={() => handleBulkToggleAvailableForBooking(true)}
                     disabled={loading}
+                    className="h-7 sm:h-8 text-xs"
                   >
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Activate for Booking
+                    <CheckCircle className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Activate</span>
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleBulkToggleAvailableForBooking(false)}
                     disabled={loading}
+                    className="h-7 sm:h-8 text-xs"
                   >
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Deactivate for Booking
+                    <XCircle className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline">Deactivate</span>
                   </Button>
                 </div>
               </div>
@@ -729,15 +738,15 @@ export default function RoomManagePage() {
 
           <div className="grid gap-4">
             {/* Header row with select all checkbox */}
-            <div className="flex items-center p-4 border rounded-lg bg-gray-50">
+            <div className="flex items-center p-3 sm:p-4 border rounded-lg bg-gray-50">
               <Checkbox
                 checked={selectedRooms.length === filteredRooms.length && filteredRooms.length > 0}
                 onCheckedChange={handleSelectAllRooms}
-                className="mr-4"
+                className="mr-3 sm:mr-4"
               />
               <div className="flex-1">
-                <h4 className="font-medium">Select All Rooms</h4>
-                <p className="text-sm text-muted-foreground">
+                <h4 className="font-medium text-xs sm:text-sm">Select All Rooms</h4>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">
                   {selectedRooms.length} of {filteredRooms.length} rooms selected
                 </p>
               </div>
@@ -746,49 +755,50 @@ export default function RoomManagePage() {
             {filteredRooms.map((room) => (
               <div
                 key={room.id}
-                className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                className="flex items-center justify-between p-3 sm:p-4 border rounded-lg hover:bg-gray-50"
               >
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 sm:space-x-4">
                   <Checkbox
                     checked={selectedRooms.includes(room.id)}
                     onCheckedChange={() => handleSelectRoom(room.id)}
                   />
                   <div>
-                    <h3 className="font-semibold">Room {room.roomNumber}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold text-xs sm:text-sm">Room {room.roomNumber}</h3>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
                       {room.floorNumber ? `Floor ${room.floorNumber}` : 'No floor'} • {room.roomType.name}
                     </p>
                     {room.notes && (
-                      <p className="text-xs text-muted-foreground mt-1">{room.notes}</p>
+                      <p className="text-[9px] sm:text-xs text-muted-foreground mt-1">{room.notes}</p>
                     )}
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <Badge className={getStatusColor(room.status)}>
+                  <div className="flex flex-col gap-1 sm:gap-2">
+                    <Badge className={`${getStatusColor(room.status)} text-[9px] sm:text-xs px-1.5 py-0.5`}>
                       {room.status.charAt(0).toUpperCase() + room.status.slice(1)}
                     </Badge>
                     <Badge 
                       variant={room.availableForBooking ? "default" : "secondary"}
-                      className={room.availableForBooking ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                      className={`${room.availableForBooking ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"} text-[9px] sm:text-xs px-1.5 py-0.5`}
                     >
-                      {room.availableForBooking ? "Available for Booking" : "Not Available for Booking"}
+                      {room.availableForBooking ? "Available" : "Not Available"}
                     </Badge>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-semibold">{room.roomType.currency} {room.roomType.price}/night</span>
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <span className="font-semibold text-xs sm:text-sm">{room.roomType.currency} {room.roomType.price}/night</span>
                   <Button 
                     variant="ghost" 
                     size="sm" 
                     onClick={() => handleToggleAvailableForBooking(room.id, room.availableForBooking)}
                     title={room.availableForBooking ? "Deactivate for booking" : "Activate for booking"}
+                    className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                   >
-                    {room.availableForBooking ? <XCircle className="h-4 w-4" /> : <CheckCircle className="h-4 w-4" />}
+                    {room.availableForBooking ? <XCircle className="h-3 w-3 sm:h-4 sm:w-4" /> : <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleEditRoom(room)}>
-                    <Edit className="h-4 w-4" />
+                  <Button variant="ghost" size="sm" onClick={() => handleEditRoom(room)} className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                    <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteRoom(room.id)}>
-                    <Trash2 className="h-4 w-4 text-red-600 hover:text-red-700" />
+                  <Button variant="ghost" size="sm" onClick={() => handleDeleteRoom(room.id)} className="h-7 w-7 sm:h-8 sm:w-8 p-0">
+                    <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 hover:text-red-700" />
                   </Button>
                 </div>
               </div>
@@ -796,8 +806,8 @@ export default function RoomManagePage() {
           </div>
 
           {filteredRooms.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No rooms found matching your criteria</p>
+            <div className="text-center py-6 sm:py-8">
+              <p className="text-[10px] sm:text-sm text-muted-foreground">No rooms found matching your criteria</p>
             </div>
           )}
         </CardContent>
@@ -805,55 +815,61 @@ export default function RoomManagePage() {
 
       {/* Edit Room Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Room</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg">
+          <DialogHeader className="mb-3 sm:mb-6">
+            <DialogTitle className="text-base sm:text-xl">Edit Room</DialogTitle>
+            <DialogDescription className="text-[10px] sm:text-sm">
               Update room details and status
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="editRoomNumber">Room Number *</Label>
-              <Input 
-                id="editRoomNumber" 
-                placeholder="e.g., 101" 
-                value={formData.roomNumber}
-                onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
-              />
+          <div className="space-y-3 sm:space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="editRoomNumber" className="text-[10px] sm:text-sm">Room Number *</Label>
+                <Input 
+                  id="editRoomNumber" 
+                  placeholder="e.g., 101" 
+                  value={formData.roomNumber}
+                  onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
+                  className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
+                />
+              </div>
+              <div>
+                <Label htmlFor="editStatus" className="text-[10px] sm:text-sm">Status</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                  <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="occupied">Occupied</SelectItem>
+                    <SelectItem value="maintenance">Maintenance</SelectItem>
+                    <SelectItem value="reserved">Reserved</SelectItem>
+                    <SelectItem value="cleaning">Cleaning</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div>
-              <Label htmlFor="editStatus">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="occupied">Occupied</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="reserved">Reserved</SelectItem>
-                  <SelectItem value="cleaning">Cleaning</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="editFloor">Floor Number</Label>
+              <Label htmlFor="editFloor" className="text-[10px] sm:text-sm">Floor Number</Label>
               <Input 
                 id="editFloor" 
                 type="number" 
                 placeholder="e.g., 1" 
                 value={formData.floorNumber}
                 onChange={(e) => setFormData(prev => ({ ...prev, floorNumber: e.target.value }))}
+                className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
               />
             </div>
             <div>
-              <Label htmlFor="editNotes">Notes</Label>
+              <Label htmlFor="editNotes" className="text-[10px] sm:text-sm">Notes</Label>
               <Textarea 
                 id="editNotes" 
                 placeholder="Additional notes about this room..." 
                 value={formData.notes}
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                className="text-xs sm:text-sm rounded-md"
+                rows={2}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -862,14 +878,14 @@ export default function RoomManagePage() {
                 checked={formData.availableForBooking}
                 onCheckedChange={(checked) => setFormData(prev => ({ ...prev, availableForBooking: checked as boolean }))}
               />
-              <Label htmlFor="editAvailableForBooking">Available for booking</Label>
+              <Label htmlFor="editAvailableForBooking" className="text-[10px] sm:text-sm">Available for booking</Label>
             </div>
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <div className="flex justify-end gap-3 pt-3 border-t">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="h-8 sm:h-9 text-xs sm:text-sm">
               Cancel
             </Button>
-            <Button onClick={handleUpdateRoom} disabled={loading}>
+            <Button onClick={handleUpdateRoom} disabled={loading} className="h-8 sm:h-9 text-xs sm:text-sm">
               {loading ? "Updating..." : "Update Room"}
             </Button>
           </div>

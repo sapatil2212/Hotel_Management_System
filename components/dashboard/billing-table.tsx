@@ -1355,65 +1355,67 @@ export default function BillingTable() {
   const bookingsWithoutInvoices = totalBookings - bookingsWithInvoices
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Billing & Invoice Management</h1>
-          <p className="text-sm text-gray-600">Professional billing system with streamlined invoice generation and payment processing. Manage bookings, add extra charges, and generate bills all in one place.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Billing & Invoice Management</h1>
+            <p className="text-[10px] sm:text-sm text-gray-600">Professional billing system with streamlined invoice generation and payment processing. Manage bookings, add extra charges, and generate bills all in one place.</p>
+          </div>
+          <Button onClick={() => console.log('Generate Invoice')} className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex items-center justify-center">
+            <Receipt className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-2 text-gray-600" />
+            <span className="hidden sm:inline text-gray-600">Generate Invoice</span>
+          </Button>
         </div>
-        <Button onClick={() => console.log('Generate Invoice')}>
-          <Receipt className="h-4 w-4 mr-2" />
-          Generate Invoice
-        </Button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-gray-200 shadow-sm">
-          <CardContent className="p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="border border-gray-200 shadow-sm rounded-lg">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Invoices</p>
-                <p className="text-2xl font-bold text-gray-900">{totalInvoices}</p>
+                <p className="text-[8px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total Invoices</p>
+                <p className="text-sm sm:text-2xl font-bold text-gray-900">{totalInvoices}</p>
               </div>
-              <FileText className="h-8 w-8 text-blue-600" />
+              <FileText className="h-4 w-4 sm:h-8 sm:w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="border border-gray-200 shadow-sm">
-          <CardContent className="p-4">
+        <Card className="border border-gray-200 shadow-sm rounded-lg">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Amount</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
+                <p className="text-[8px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total Amount</p>
+                <p className="text-sm sm:text-2xl font-bold text-gray-900">{formatCurrency(totalAmount)}</p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <DollarSign className="h-4 w-4 sm:h-8 sm:w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="border border-gray-200 shadow-sm">
-          <CardContent className="p-4">
+        <Card className="border border-gray-200 shadow-sm rounded-lg">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ready for Billing</p>
-                <p className="text-2xl font-bold text-gray-900">{totalBookings}</p>
+                <p className="text-[8px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Ready for Billing</p>
+                <p className="text-sm sm:text-2xl font-bold text-gray-900">{totalBookings}</p>
               </div>
-              <Calendar className="h-8 w-8 text-blue-600" />
+              <Calendar className="h-4 w-4 sm:h-8 sm:w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
         
-        <Card className="border border-gray-200 shadow-sm">
-          <CardContent className="p-4">
+        <Card className="border border-gray-200 shadow-sm rounded-lg">
+          <CardContent className="p-3 sm:p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">With Extra Charges</p>
-                <p className="text-2xl font-bold text-purple-600">{bookings.filter(b => b.billItems && b.billItems.length > 0).length}</p>
+                <p className="text-[8px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">With Extra Charges</p>
+                <p className="text-sm sm:text-2xl font-bold text-purple-600">{bookings.filter(b => b.billItems && b.billItems.length > 0).length}</p>
               </div>
-              <Plus className="h-8 w-8 text-purple-600" />
+              <Plus className="h-4 w-4 sm:h-8 sm:w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
@@ -1421,13 +1423,13 @@ export default function BillingTable() {
 
       {/* Overdue Alerts Summary */}
       {filteredInvoices.filter(inv => isOverdue(inv)).length > 0 && (
-        <Card className="border border-red-200 bg-red-50">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+        <Card className="border border-red-200 bg-red-50 rounded-lg">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
               <div>
-                <h3 className="font-semibold text-red-800">Overdue Invoices Alert</h3>
-                <p className="text-sm text-red-700">
+                <h3 className="text-xs sm:text-sm font-semibold text-red-800">Overdue Invoices Alert</h3>
+                <p className="text-[10px] sm:text-sm text-red-700">
                   {filteredInvoices.filter(inv => isOverdue(inv)).length} invoice(s) overdue • 
                   Total overdue amount: {formatCurrency(overdueAmount)}
                 </p>
@@ -1439,10 +1441,10 @@ export default function BillingTable() {
 
       {/* Tabs */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+        <nav className="-mb-px flex space-x-4 sm:space-x-8">
           <button
             onClick={() => setActiveTab('bookings')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm ${
               activeTab === 'bookings'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -1453,32 +1455,32 @@ export default function BillingTable() {
           </button>
           <button
             onClick={() => setActiveTab('invoices')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 px-1 border-b-2 font-medium text-xs sm:text-sm ${
               activeTab === 'invoices'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             }`}
           >
-            <FileText className="h-4 w-4 inline mr-2" />
+            <FileText className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1 sm:mr-2" />
             Generated Invoices ({totalInvoices})
           </button>
         </nav>
       </div>
 
       {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3 sm:h-4 sm:w-4" />
           <Input
             placeholder={activeTab === 'invoices' ? "Search invoices by number, guest name, email, or room..." : "Search bookings by ID, guest name, email, or room..."}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="pl-10"
+            className="pl-8 sm:pl-10 h-8 sm:h-9 text-[10px] sm:text-sm"
           />
         </div>
         {activeTab === 'invoices' && (
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-32 sm:w-48 h-8 sm:h-9 text-[10px] sm:text-sm">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -1497,8 +1499,8 @@ export default function BillingTable() {
 
       {/* Tables */}
       {(loading && activeTab === 'invoices') || (bookingsLoading && activeTab === 'bookings') ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader className="h-8 w-8 animate-spin text-blue-600" />
+        <div className="flex items-center justify-center py-8 sm:py-12">
+          <Loader className="h-6 w-6 sm:h-8 sm:w-8 animate-spin text-blue-600" />
         </div>
       ) : (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -1507,81 +1509,81 @@ export default function BillingTable() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50 border-b-2 border-gray-200">
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Invoice #</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Guest Details</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Room</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Stay Period</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Amount</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Status</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Due Date</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3">Actions</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Invoice #</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Guest Details</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Room</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Stay Period</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Amount</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Status</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Due Date</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id} className="border-b border-gray-100">
-                    <TableCell className="border-r border-gray-200 px-3 py-4">
-                      <div className="font-medium text-gray-900">{invoice.invoiceNumber}</div>
-                      <div className="text-xs text-gray-500">
+                    <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
+                      <div className="font-medium text-[10px] sm:text-sm text-gray-900">{invoice.invoiceNumber}</div>
+                      <div className="text-[9px] sm:text-xs text-gray-500">
                         {new Date(invoice.issuedDate).toLocaleDateString()}
                       </div>
                     </TableCell>
-                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                    <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                       <div className="space-y-1">
-                        <div className="font-medium text-gray-900">{invoice.guestName}</div>
-                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <div className="font-medium text-[10px] sm:text-sm text-gray-900">{invoice.guestName}</div>
+                        <div className="flex items-center gap-1 text-[9px] sm:text-xs text-gray-600">
                           <Phone className="h-3 w-3" />
                           {invoice.guestPhone}
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-gray-600">
+                        <div className="flex items-center gap-1 text-[9px] sm:text-xs text-gray-600">
                           <Mail className="h-3 w-3" />
                           {invoice.guestEmail}
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                    <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                       <div className="space-y-1">
-                        <div className="font-medium text-gray-900">{invoice.roomNumber}</div>
-                        <div className="text-xs text-gray-600">{invoice.roomTypeName}</div>
+                        <div className="font-medium text-[10px] sm:text-sm text-gray-900">{invoice.roomNumber}</div>
+                        <div className="text-[9px] sm:text-xs text-gray-600">{invoice.roomTypeName}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                    <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                       <div className="space-y-1">
-                        <div className="text-sm text-gray-900">
+                        <div className="text-[10px] sm:text-sm text-gray-900">
                           {formatDate(invoice.checkIn)} → {formatDate(invoice.checkOut)}
                         </div>
-                        <div className="text-xs text-gray-600">{invoice.nights} night(s)</div>
+                        <div className="text-[9px] sm:text-xs text-gray-600">{invoice.nights} night(s)</div>
                         
                         {/* Overdue indicator */}
                         {isOverdue(invoice) && (
-                          <div className="flex items-center gap-1 text-red-600 text-xs">
+                          <div className="flex items-center gap-1 text-red-600 text-[9px] sm:text-xs">
                             <AlertTriangle className="h-3 w-3" />
                             <span>{getDaysOverdue(invoice)} day(s) overdue</span>
                           </div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                    <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                       <div className="space-y-1">
-                        <div className="font-medium text-gray-900">{formatCurrency(invoice.totalAmount)}</div>
+                        <div className="font-medium text-[10px] sm:text-sm text-gray-900">{formatCurrency(invoice.totalAmount)}</div>
                         {invoice.discountAmount > 0 && (
-                          <div className="text-xs text-green-600">
+                          <div className="text-[9px] sm:text-xs text-green-600">
                             -{formatCurrency(invoice.discountAmount)} discount
                           </div>
                         )}
                         {invoice.payments.length > 0 && (
-                          <div className="text-xs text-blue-600">
+                          <div className="text-[9px] sm:text-xs text-blue-600">
                             {formatCurrency(invoice.payments.reduce((sum, p) => sum + p.amount, 0))} paid
                           </div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="border-r border-gray-200 px-3 py-4">
+                    <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                       <div className="space-y-1">
                         <select
                           value={invoice.status}
                           onChange={(e) => console.log('Status changed:', e.target.value)}
-                          className={`px-2 py-1 rounded text-xs font-medium border-0 focus:ring-2 focus:ring-amber-500 ${statusColors[getDisplayStatus(invoice)] || 'bg-gray-100 text-gray-800'}`}
+                          className={`px-2 py-1 rounded text-[9px] sm:text-xs font-medium border-0 focus:ring-2 focus:ring-amber-500 ${statusColors[getDisplayStatus(invoice)] || 'bg-gray-100 text-gray-800'}`}
                         >
                           <option value="pending">Pending</option>
                           <option value="sent">Sent</option>
@@ -1593,40 +1595,42 @@ export default function BillingTable() {
                         
                         {/* Overdue indicator */}
                         {isOverdue(invoice) && (
-                          <div className="flex items-center gap-1 text-red-600 text-xs mt-1">
+                          <div className="flex items-center gap-1 text-red-600 text-[9px] sm:text-xs mt-1">
                             <AlertTriangle className="h-3 w-3" />
                             <span>Overdue</span>
                           </div>
                         )}
                       </div>
                     </TableCell>
-                    <TableCell className="border-r border-gray-200 px-3 py-4">
-                      <div className="text-sm text-gray-900">
+                    <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
+                      <div className="text-[10px] sm:text-sm text-gray-900">
                         {new Date(invoice.dueDate).toLocaleDateString()}
                       </div>
                       {isOverdue(invoice) && (
-                        <div className="text-xs text-red-600">
+                        <div className="text-[9px] sm:text-xs text-red-600">
                           {getDaysOverdue(invoice)} day(s) late
                         </div>
                       )}
                     </TableCell>
-                                         <TableCell className="px-3 py-4">
+                                         <TableCell className="px-2 sm:px-3 py-3 sm:py-4">
                        <div className="flex gap-1">
                                                  <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleViewInvoiceAsBill(invoice)}
                           title="View Bill/Invoice Format"
+                          className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                         >
-                          <Eye className="h-4 w-4" />
+                          <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
                          <Button
                            variant="ghost"
                            size="sm"
                            onClick={() => handleEditInvoice(invoice)}
                            title="Edit Invoice"
+                           className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                          >
-                           <Edit className="h-4 w-4" />
+                           <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                          </Button>
                          <Button
                            variant="ghost"
@@ -1634,16 +1638,18 @@ export default function BillingTable() {
                            onClick={() => handleSendInvoice(invoice)}
                            title="Send Invoice"
                            disabled={invoice.emailSent}
+                           className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                          >
-                           <Send className="h-4 w-4" />
+                           <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                          </Button>
                                                    <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDownloadInvoice(invoice)}
                             title="Download Invoice"
+                            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
-                            <Download className="h-4 w-4" />
+                            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1679,15 +1685,15 @@ export default function BillingTable() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-gray-50 border-b-2 border-gray-200">
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Booking ID</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Guest Details</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Room</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Stay Period</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Base Amount</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Extra Charges</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Total Amount</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">Status</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3">Actions</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Booking ID</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Guest Details</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Room</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Stay Period</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Base Amount</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Extra Charges</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Total Amount</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">Status</TableHead>
+                  <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1695,72 +1701,72 @@ export default function BillingTable() {
                   const hasInvoice = booking.invoices && booking.invoices.length > 0;
                   return (
                     <TableRow key={booking.id} className="border-b border-gray-100">
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
-                        <div className="font-medium text-gray-900">{booking.id}</div>
-                        <div className="text-xs text-gray-500">
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
+                        <div className="font-medium text-[10px] sm:text-sm text-gray-900">{booking.id}</div>
+                        <div className="text-[9px] sm:text-xs text-gray-500">
                           {new Date(booking.createdAt).toLocaleDateString()}
                         </div>
                       </TableCell>
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                         <div className="space-y-1">
-                          <div className="font-medium text-gray-900">{booking.guestName}</div>
-                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                          <div className="font-medium text-[10px] sm:text-sm text-gray-900">{booking.guestName}</div>
+                          <div className="flex items-center gap-1 text-[9px] sm:text-xs text-gray-600">
                             <Phone className="h-3 w-3" />
                             {booking.guestPhone}
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-gray-600">
+                          <div className="flex items-center gap-1 text-[9px] sm:text-xs text-gray-600">
                             <Mail className="h-3 w-3" />
                             {booking.guestEmail}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                         <div className="space-y-1">
-                          <div className="font-medium text-gray-900">{booking.room.roomNumber}</div>
-                          <div className="text-xs text-gray-600">{booking.room.roomType.name}</div>
+                          <div className="font-medium text-[10px] sm:text-sm text-gray-900">{booking.room.roomNumber}</div>
+                          <div className="text-[9px] sm:text-xs text-gray-600">{booking.room.roomType.name}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                         <div className="space-y-1">
-                          <div className="text-sm text-gray-900">
+                          <div className="text-[10px] sm:text-sm text-gray-900">
                             {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
                           </div>
-                          <div className="text-xs text-gray-600">{booking.nights} night(s)</div>
+                          <div className="text-[9px] sm:text-xs text-gray-600">{booking.nights} night(s)</div>
                         </div>
                       </TableCell>
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
-                        <div className="font-medium text-gray-900">{formatCurrency((booking as any).baseAmount || (booking.room.roomType.price * booking.nights))}</div>
-                        <div className="text-xs text-gray-600">Base room rate</div>
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
+                        <div className="font-medium text-[10px] sm:text-sm text-gray-900">{formatCurrency((booking as any).baseAmount || (booking.room.roomType.price * booking.nights))}</div>
+                        <div className="text-[9px] sm:text-xs text-gray-600">Base room rate</div>
                         {((booking as any).gstAmount || 0) > 0 && (
-                          <div className="text-xs text-green-600">
+                          <div className="text-[9px] sm:text-xs text-green-600">
                             +{formatCurrency((booking as any).gstAmount || 0)} GST
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                         <div className="space-y-1">
                           {booking.billItems && booking.billItems.length > 0 ? (
                             <div className="space-y-1">
                               {booking.billItems.map((item) => (
-                                <div key={item.id} className="text-xs">
-                                  <div className="font-medium text-gray-900">{item.itemName}</div>
-                                  <div className="text-gray-600">{formatCurrency(item.finalAmount)}</div>
+                                <div key={item.id} className="text-[9px] sm:text-xs">
+                                  <div className="font-medium text-[10px] sm:text-sm text-gray-900">{item.itemName}</div>
+                                  <div className="text-[9px] sm:text-xs text-gray-600">{formatCurrency(item.finalAmount)}</div>
                                 </div>
                               ))}
-                              <div className="text-xs font-medium text-blue-600">
+                              <div className="text-[9px] sm:text-xs font-medium text-blue-600">
                                 Total: {formatCurrency(booking.billItems.reduce((sum, item) => sum + item.finalAmount, 0))}
                               </div>
                             </div>
                           ) : (
-                            <div className="text-xs text-gray-500">No extra charges</div>
+                            <div className="text-[9px] sm:text-xs text-gray-500">No extra charges</div>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
-                        <div className="font-medium text-gray-900">
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
+                        <div className="font-medium text-[10px] sm:text-sm text-gray-900">
                           {formatCurrency(booking.totalAmount)}
                         </div>
-                        <div className="text-xs text-gray-600">
+                        <div className="text-[9px] sm:text-xs text-gray-600">
                           {booking.billItems && booking.billItems.length > 0 && (
                             <span className="text-blue-600">
                               +{formatCurrency(booking.billItems.reduce((sum, item) => sum + item.finalAmount, 0))} extra
@@ -1768,28 +1774,28 @@ export default function BillingTable() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="border-r border-gray-200 px-3 py-4">
+                      <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                         <div className="space-y-1">
-                          <Badge className={`${statusColors[booking.status] || 'bg-gray-100 text-gray-800'} text-xs px-2 py-1`}>
+                          <Badge className={`${statusColors[booking.status] || 'bg-gray-100 text-gray-800'} text-[9px] sm:text-xs px-2 py-1`}>
                             {booking.status.replace('_', ' ').toUpperCase()}
                           </Badge>
                           {hasInvoice && (
-                            <div className="text-xs text-green-600">
+                            <div className="text-[9px] sm:text-xs text-green-600">
                               Invoice generated
                             </div>
                           )}
                         </div>
                       </TableCell>
-                                                                   <TableCell className="px-3 py-4">
+                                                                   <TableCell className="px-2 sm:px-3 py-3 sm:py-4">
                         <div className="flex gap-1">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleGenerateBillInvoice(booking)}
                             title="Generate Bill"
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 h-8 sm:h-9 text-[10px] sm:text-xs"
                           >
-                            <Receipt className="h-4 w-4 mr-1" />
+                            <Receipt className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                             Generate Bill
                           </Button>
                           <Button
@@ -1797,18 +1803,18 @@ export default function BillingTable() {
                             size="sm"
                             onClick={() => handleViewBooking(booking)}
                             title="View Booking Details"
-                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEditBooking(booking)}
                             title="Edit Booking"
-                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 h-7 w-7 sm:h-8 sm:w-8 p-0"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </TableCell>

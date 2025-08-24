@@ -515,87 +515,87 @@ export default function RevenueTrackingDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Revenue Tracking Dashboard</h2>
-        <Button onClick={refreshData} disabled={refreshing}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+    <div className="space-y-3 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4">
+        <h2 className="text-lg sm:text-2xl font-bold">Revenue Tracking Dashboard</h2>
+        <Button onClick={refreshData} disabled={refreshing} className="h-8 sm:h-9 text-xs sm:text-sm">
+          <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${refreshing ? 'animate-spin' : ''}`} />
           Refresh
         </Button>
       </div>
       {/* Revenue Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-sm sm:text-2xl font-bold">
               {loading ? (
-                <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-6 w-16 sm:h-8 sm:w-24 rounded"></div>
               ) : (
                 `₹${(revenueSummary?.totalRevenue || 0).toLocaleString()}`
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               All time revenue
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">Today's Revenue</CardTitle>
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-sm sm:text-2xl font-bold">
               {loading ? (
-                <div className="animate-pulse bg-gray-200 h-8 w-24 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-6 w-16 sm:h-8 sm:w-24 rounded"></div>
               ) : (
                 `₹${(revenueSummary?.todayRevenue || 0).toLocaleString()}`
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               Today's earnings
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">Total Bookings</CardTitle>
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-sm sm:text-2xl font-bold">
               {loading ? (
-                <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-6 w-12 sm:h-8 sm:w-16 rounded"></div>
               ) : (
                 revenueSummary?.totalBookings || 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               All bookings
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Paid Bookings</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">Paid Bookings</CardTitle>
+            <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-sm sm:text-2xl font-bold">
               {loading ? (
-                <div className="animate-pulse bg-gray-200 h-8 w-16 rounded"></div>
+                <div className="animate-pulse bg-gray-200 h-6 w-12 sm:h-8 sm:w-16 rounded"></div>
               ) : (
                 revenueSummary?.paidBookings || 0
               )}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               Revenue tracked
             </p>
           </CardContent>
@@ -603,16 +603,16 @@ export default function RevenueTrackingDashboard() {
       </div>
 
       {/* Interactive Charts Section */}
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-6">
         {/* Chart Period Selector */}
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">Revenue Analytics & Insights</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <h3 className="text-sm sm:text-lg font-semibold text-gray-900">Revenue Analytics & Insights</h3>
           <div className="flex items-center gap-2">
-            <Label htmlFor="chart-period" className="text-sm font-medium text-gray-700">
+            <Label htmlFor="chart-period" className="text-[10px] sm:text-sm font-medium text-gray-700">
               Time Period:
             </Label>
             <Select value={chartPeriod} onValueChange={(value: '7d' | '30d' | '90d') => setChartPeriod(value)}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-24 sm:w-32 h-8 sm:h-9 text-[10px] sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -626,10 +626,10 @@ export default function RevenueTrackingDashboard() {
               size="sm"
               onClick={refreshData}
               disabled={refreshing}
-              className="text-blue-600 hover:text-blue-700"
+              className="text-blue-600 hover:text-blue-700 h-8 sm:h-9 text-[10px] sm:text-sm"
               title="Refresh Data"
             >
-              <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${refreshing ? 'animate-spin' : ''}`} />
             </Button>
             <Button 
               variant="outline" 
@@ -640,26 +640,26 @@ export default function RevenueTrackingDashboard() {
                   description: 'Chart export functionality will be implemented soon',
                 });
               }}
-              className="text-blue-600 hover:text-blue-700"
+              className="text-blue-600 hover:text-blue-700 h-8 sm:h-9 text-[10px] sm:text-sm"
             >
-              <BarChart3 className="h-4 w-4 mr-2" />
+              <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
               Export Charts
             </Button>
           </div>
         </div>
 
         {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
           {/* Revenue Trend Chart */}
-          <Card className="border border-gray-200 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+          <Card className="border border-gray-200 shadow-sm rounded-lg">
+            <CardHeader className="pb-3 sm:pb-3">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-lg font-semibold text-gray-900">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
                 Revenue Trend ({chartPeriod === '7d' ? '7 Days' : chartPeriod === '30d' ? '30 Days' : '90 Days'})
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
+              <div className="h-48 sm:h-64">
                 {revenueTrendData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsLineChart data={revenueTrendData}>
@@ -667,13 +667,13 @@ export default function RevenueTrackingDashboard() {
                       <XAxis 
                         dataKey="name" 
                         stroke="#6b7280" 
-                        fontSize={12}
+                        fontSize={10}
                         tickLine={false}
                         axisLine={false}
                       />
                       <YAxis 
                         stroke="#6b7280" 
-                        fontSize={12}
+                        fontSize={10}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) => `₹${value.toLocaleString()}`}
@@ -762,39 +762,39 @@ export default function RevenueTrackingDashboard() {
         </div>
       </div>
       {/* Recent Bookings with Revenue Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
+      <Card className="rounded-lg">
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+            <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
             Recent Bookings - Revenue Tracking Status
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {recentBookings.length > 0 ? (
               recentBookings.map((booking) => (
-                <div key={booking.bookingId} className="border rounded-lg p-4">
+                <div key={booking.bookingId} className="border rounded-lg p-3 sm:p-4">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold">{booking.guestName}</h3>
-                        <Badge className={getPaymentStatusColor(booking.paymentStatus)}>
+                        <h3 className="text-sm sm:text-base font-semibold">{booking.guestName}</h3>
+                        <Badge className={`${getPaymentStatusColor(booking.paymentStatus)} text-[9px] sm:text-xs`}>
                           {booking.paymentStatus.replace('_', ' ')}
                         </Badge>
                         <div className="flex items-center gap-1">
                           {getStatusIcon(booking.revenueStatus.status)}
-                          <Badge className={getStatusColor(booking.revenueStatus.status)}>
+                          <Badge className={`${getStatusColor(booking.revenueStatus.status)} text-[9px] sm:text-xs`}>
                             Revenue {booking.revenueStatus.status.replace('_', ' ')}
                           </Badge>
                         </div>
                       </div>
                       
-                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 text-[10px] sm:text-sm">
                                                    <div>
                             <span className="text-gray-600">Invoice Amount:</span>
                             <p className="font-medium">₹{booking.totalAmount.toLocaleString()}</p>
                             {booking.originalTotalAmount && booking.originalTotalAmount !== booking.totalAmount && (
-                              <p className="text-xs text-gray-500">
+                              <p className="text-[9px] sm:text-xs text-gray-500">
                                 Booking Total: ₹{booking.originalTotalAmount.toLocaleString()}
                               </p>
                             )}
@@ -818,10 +818,10 @@ export default function RevenueTrackingDashboard() {
                       {/* Recent Payments with Edit/Delete Actions */}
                       {booking.recentPayments.length > 0 && (
                         <div className="mt-3">
-                          <p className="text-sm font-medium text-gray-600 mb-2">Recent Payments:</p>
+                          <p className="text-[10px] sm:text-sm font-medium text-gray-600 mb-2">Recent Payments:</p>
                           <div className="space-y-1">
                             {booking.recentPayments.map((payment, index) => (
-                              <div key={index} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                              <div key={index} className="flex items-center justify-between text-[9px] sm:text-xs bg-gray-50 p-2 rounded">
                                 <div className="flex items-center gap-2">
                                   <CreditCard className="h-3 w-3" />
                                   <span className="font-medium">₹{payment.amount.toLocaleString()}</span>
@@ -861,10 +861,10 @@ export default function RevenueTrackingDashboard() {
                 </div>
               ))
                          ) : (
-               <div className="text-center py-8 text-gray-500">
-                 <TrendingUp className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                 <p>No bookings with invoices found</p>
-                 <p className="text-sm text-gray-400 mt-2">
+               <div className="text-center py-6 sm:py-8 text-gray-500">
+                 <TrendingUp className="h-8 w-8 sm:h-12 sm:w-12 mx-auto mb-3 sm:mb-4 text-gray-300" />
+                 <p className="text-[10px] sm:text-sm">No bookings with invoices found</p>
+                 <p className="text-[9px] sm:text-sm text-gray-400 mt-2">
                    Generate invoices in Billing Management to track revenue
                  </p>
                </div>
@@ -874,98 +874,103 @@ export default function RevenueTrackingDashboard() {
       </Card>
 
 
-      {/* Edit Payment Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Payment</DialogTitle>
+             {/* Edit Payment Dialog */}
+       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+       <DialogContent className="max-w-[95%] sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-lg mx-2 sm:mx-0">
+
+          <DialogHeader className="mb-3 sm:mb-6">
+            <DialogTitle className="text-base sm:text-xl">Edit Payment</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-amount">Amount</Label>
-              <Input
-                id="edit-amount"
-                type="number"
-                step="0.01"
-                value={editForm.amount}
-                onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
-                placeholder="0.00"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-paymentMethod">Payment Method</Label>
-              <Input
-                id="edit-paymentMethod"
-                value={editForm.paymentMethod}
-                onChange={(e) => setEditForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                placeholder="Payment method"
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-notes">Notes</Label>
-              <Input
-                id="edit-notes"
-                value={editForm.notes}
-                onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
-                placeholder="Reason for adjustment"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={saveEditedPayment} className="flex-1">
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </Button>
-              <Button variant="outline" onClick={() => setShowEditDialog(false)} className="flex-1">
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-            </div>
-          </div>
+                     <div className="space-y-3 sm:space-y-4">
+             <div>
+               <Label htmlFor="edit-amount" className="text-[10px] sm:text-xs font-medium text-muted-foreground">Amount</Label>
+               <Input
+                 id="edit-amount"
+                 type="number"
+                 step="0.01"
+                 value={editForm.amount}
+                 onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
+                 placeholder="0.00"
+                 className="h-8 sm:h-9 text-[10px] sm:text-sm"
+               />
+             </div>
+             <div>
+               <Label htmlFor="edit-paymentMethod" className="text-[10px] sm:text-xs font-medium text-muted-foreground">Payment Method</Label>
+               <Input
+                 id="edit-paymentMethod"
+                 value={editForm.paymentMethod}
+                 onChange={(e) => setEditForm(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                 placeholder="Payment method"
+                 className="h-8 sm:h-9 text-[10px] sm:text-sm"
+               />
+             </div>
+             <div>
+               <Label htmlFor="edit-notes" className="text-[10px] sm:text-xs font-medium text-muted-foreground">Notes</Label>
+               <Input
+                 id="edit-notes"
+                 value={editForm.notes}
+                 onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                 placeholder="Reason for adjustment"
+                 className="h-8 sm:h-9 text-[10px] sm:text-sm"
+               />
+             </div>
+                                                       <div className="flex gap-2 pt-3 border-t">
+                 <Button variant="outline" onClick={() => setShowEditDialog(false)} className="h-8 sm:h-9 text-xs sm:text-sm flex-1">
+                   <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                   Cancel
+                 </Button>
+                 <Button onClick={saveEditedPayment} className="h-8 sm:h-9 text-xs sm:text-sm flex-1">
+                   <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                   Save Changes
+                 </Button>
+               </div>
+           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Payment Confirmation Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Delete Payment</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h4 className="font-semibold text-red-900 mb-2">⚠️ Warning</h4>
-              <p className="text-sm text-red-800">
-                Are you sure you want to delete this payment? This action will:
-              </p>
-              <ul className="text-sm text-red-800 mt-2 space-y-1">
-                <li>• Remove the payment from the system</li>
-                <li>• Automatically reverse the revenue</li>
-                <li>• Update all revenue reports</li>
-                <li>• Create an audit trail</li>
-              </ul>
-            </div>
-            <div className="bg-gray-50 p-3 rounded">
-              <p className="text-sm font-medium">Payment Details:</p>
-              <p className="text-sm text-gray-600">
-                Amount: ₹{deletingPayment?.amount?.toLocaleString()}<br />
-                Method: {deletingPayment?.paymentMethod}<br />
-                Date: {deletingPayment?.paymentDate ? new Date(deletingPayment.paymentDate).toLocaleDateString() : 'N/A'}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={confirmDeletePayment} 
-                variant="destructive" 
-                className="flex-1"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete Payment
-              </Button>
-              <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="flex-1">
-                <X className="h-4 w-4 mr-2" />
-                Cancel
-              </Button>
-            </div>
-          </div>
+             {/* Delete Payment Confirmation Dialog */}
+             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+             <DialogContent className="max-w-[95%] sm:max-w-lg max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-lg mx-2 sm:mx-0">
+
+    <DialogHeader className="mb-4">
+             <DialogTitle className="text-base sm:text-xl">Delete Payment</DialogTitle>
+           </DialogHeader>
+                     <div className="space-y-3 sm:space-y-4">
+             <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4">
+               <h4 className="text-xs sm:text-sm font-semibold text-red-900 mb-2">⚠️ Warning</h4>
+               <p className="text-[10px] sm:text-sm text-red-800">
+                 Are you sure you want to delete this payment? This action will:
+               </p>
+               <ul className="text-[10px] sm:text-sm text-red-800 mt-2 space-y-1">
+                 <li>• Remove the payment from the system</li>
+                 <li>• Automatically reverse the revenue</li>
+                 <li>• Update all revenue reports</li>
+                 <li>• Create an audit trail</li>
+               </ul>
+             </div>
+             <div className="bg-gray-50 p-2 sm:p-3 rounded">
+               <p className="text-[10px] sm:text-sm font-medium">Payment Details:</p>
+               <p className="text-[10px] sm:text-sm text-gray-600">
+                 Amount: ₹{deletingPayment?.amount?.toLocaleString()}<br />
+                 Method: {deletingPayment?.paymentMethod}<br />
+                 Date: {deletingPayment?.paymentDate ? new Date(deletingPayment.paymentDate).toLocaleDateString() : 'N/A'}
+               </p>
+             </div>
+                                                       <div className="flex gap-2 pt-3 border-t">
+                 <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="h-8 sm:h-9 text-xs sm:text-sm flex-1">
+                   <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                   Cancel
+                 </Button>
+                 <Button 
+                   onClick={confirmDeletePayment} 
+                   variant="destructive" 
+                   className="h-8 sm:h-9 text-xs sm:text-sm flex-1"
+                 >
+                   <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                   Delete Payment
+                 </Button>
+               </div>
+           </div>
         </DialogContent>
       </Dialog>
     </div>
