@@ -30,7 +30,7 @@ const inventorySubItems = [
   { href: "/dashboard/inventory/transactions", label: "Transactions", icon: Activity },
 ]
 
-export default function Sidebar({ isInDrawer = false }: { isInDrawer?: boolean }) {
+export default function Sidebar({ isInDrawer = false, onClose }: { isInDrawer?: boolean; onClose?: () => void }) {
   const pathname = usePathname()
   const { hotelInfo } = useHotel()
   const [isInventoryExpanded, setIsInventoryExpanded] = useState(false)
@@ -38,6 +38,13 @@ export default function Sidebar({ isInDrawer = false }: { isInDrawer?: boolean }
 
   // Check if any inventory page is active
   const isInventoryActive = pathname.startsWith('/dashboard/inventory')
+
+  const handleMenuClick = () => {
+    // Close the sidebar on mobile when a menu item is clicked
+    if (isInDrawer && onClose) {
+      onClose()
+    }
+  }
 
   const commonIssues = [
     {
@@ -97,6 +104,7 @@ export default function Sidebar({ isInDrawer = false }: { isInDrawer?: boolean }
               <li key={href}>
                 <Link
                   href={href}
+                  onClick={handleMenuClick}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
                     "hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 dark:hover:text-amber-300",
@@ -144,6 +152,7 @@ export default function Sidebar({ isInDrawer = false }: { isInDrawer?: boolean }
                     <li key={href}>
                       <Link
                         href={href}
+                        onClick={handleMenuClick}
                         className={cn(
                           "flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
                           "hover:bg-amber-50 hover:text-amber-700 dark:hover:bg-amber-950/40 dark:hover:text-amber-300",

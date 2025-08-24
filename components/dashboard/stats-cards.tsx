@@ -216,7 +216,7 @@ export default function StatsCards() {
           value: formatCurrency(currentRevenue),
           delta: `${revenueChange >= 0 ? '+' : ''}${revenueChange.toFixed(1)}%`,
           up: revenueChange >= 0,
-          icon: <DollarSign className="h-4 w-4" />,
+          icon: <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />,
           color: "text-green-600",
           description: `${currentBookings.length} bookings this month`
         },
@@ -225,7 +225,7 @@ export default function StatsCards() {
           value: bookings.length.toString(),
           delta: `${bookingsChange >= 0 ? '+' : ''}${bookingsChange.toFixed(1)}%`,
           up: bookingsChange >= 0,
-          icon: <CalendarCheck2 className="h-4 w-4" />,
+          icon: <CalendarCheck2 className="h-3 w-3 sm:h-4 sm:w-4" />,
           color: "text-blue-600",
           description: `${confirmedBookings} confirmed, ${checkedInBookings} checked in`
         },
@@ -234,7 +234,7 @@ export default function StatsCards() {
           value: `${occupancyRate.toFixed(1)}%`,
           delta: `${occupancyChange >= 0 ? '+' : ''}${occupancyChange.toFixed(1)}%`,
           up: occupancyChange >= 0,
-          icon: <Percent className="h-4 w-4" />,
+          icon: <Percent className="h-3 w-3 sm:h-4 sm:w-4" />,
           color: "text-purple-600",
           description: `${occupiedRooms}/${individualRooms.length} rooms occupied`
         },
@@ -243,7 +243,7 @@ export default function StatsCards() {
           value: fallbackAvailableRooms.toString(),
           delta: `${individualRooms.length} total`,
           up: true,
-          icon: <Bed className="h-4 w-4" />,
+          icon: <Bed className="h-3 w-3 sm:h-4 sm:w-4" />,
           color: "text-teal-600",
           description: `${occupiedRooms} currently occupied, ${maintenanceRooms} in maintenance`
         },
@@ -252,7 +252,7 @@ export default function StatsCards() {
           value: formatCurrency(totalExpenses),
           delta: `${expensesChange >= 0 ? '+' : ''}${expensesChange.toFixed(1)}%`,
           up: expensesChange <= 0, // Lower expenses is better
-          icon: <CreditCard className="h-4 w-4" />,
+          icon: <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />,
           color: "text-red-600",
           description: `${expensesArray.length} expense entries`
         }
@@ -272,14 +272,14 @@ export default function StatsCards() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <Card key={i} className="animate-pulse">
-            <CardHeader className="pb-1 px-3 pt-3">
+            <CardHeader className="pb-1 px-2 sm:px-3 pt-2 sm:pt-3">
               <div className="h-2 bg-gray-200 rounded w-3/4"></div>
             </CardHeader>
-            <CardContent className="pt-0 px-3 pb-3">
-              <div className="h-4 bg-gray-200 rounded w-1/2 mb-1"></div>
+            <CardContent className="pt-0 px-2 sm:px-3 pb-2 sm:pb-3">
+              <div className="h-3 sm:h-4 bg-gray-200 rounded w-1/2 mb-1"></div>
               <div className="h-2 bg-gray-200 rounded w-1/3"></div>
             </CardContent>
           </Card>
@@ -290,7 +290,7 @@ export default function StatsCards() {
 
   if (error) {
     return (
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
         <Card className="col-span-full">
           <CardContent className="text-center py-4">
             <AlertTriangle className="h-4 w-4 mx-auto mb-1 text-red-500" />
@@ -308,27 +308,29 @@ export default function StatsCards() {
   }
 
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4">
       {stats.map((stat, index) => (
         <Card key={index} className="hover:shadow-md transition-shadow duration-200">
-          <CardHeader className="pb-1 px-3 pt-3">
-            <CardTitle className="text-xs text-muted-foreground flex items-center gap-1">
+          <CardHeader className="pb-1 px-2 sm:px-3 pt-2 sm:pt-3">
+            <CardTitle className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
               {stat.icon}
-              {stat.title}
+              <span className="hidden sm:inline">{stat.title}</span>
+              <span className="sm:hidden">{stat.title.split(' ')[0]}</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0 px-3 pb-3">
+          <CardContent className="pt-0 px-2 sm:px-3 pb-2 sm:pb-3">
             <div className="flex items-end justify-between">
-              <div className="text-base font-bold">{stat.value}</div>
+              <div className="text-sm sm:text-base font-bold">{stat.value}</div>
               <div className={stat.up ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
-                <div className="flex items-center gap-1 text-xs">
-                  {stat.up ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
-                  {stat.delta}
+                <div className="flex items-center gap-1 text-[9px] sm:text-xs">
+                  {stat.up ? <TrendingUp className="h-2 w-2 sm:h-2.5 sm:w-2.5" /> : <TrendingDown className="h-2 w-2 sm:h-2.5 sm:w-2.5" />}
+                  <span className="hidden sm:inline">{stat.delta}</span>
+                  <span className="sm:hidden">{stat.delta.includes('+') ? '+' : stat.delta.includes('-') ? '-' : ''}</span>
                 </div>
               </div>
             </div>
             {stat.description && (
-              <div className="mt-0.5 text-xs text-muted-foreground">
+              <div className="mt-0.5 text-[8px] sm:text-xs text-muted-foreground hidden sm:block">
                 {stat.description}
               </div>
             )}

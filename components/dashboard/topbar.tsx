@@ -18,10 +18,12 @@ import {
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { useAppSelector } from "@/lib/hooks"
+import { useState } from "react"
 
 export default function Topbar() {
   const { data: session } = useSession()
   const { currentUser } = useAppSelector((state: any) => state.user)
+  const [isSheetOpen, setIsSheetOpen] = useState(false)
   
   // Use Redux state if available, otherwise fall back to session
   const userData = currentUser || session?.user
@@ -34,19 +36,23 @@ export default function Topbar() {
     .join("")
     .toUpperCase()
 
+  const handleSidebarClose = () => {
+    setIsSheetOpen(false)
+  }
+
   return (
     <div className="sticky top-0 z-20 h-16 border-b bg-white/70 dark:bg-gray-900/50 backdrop-blur supports-[backdrop-filter]:bg-white/50 dark:supports-[backdrop-filter]:bg-gray-900/40">
       <div className="flex h-full items-center justify-between px-4 sm:px-6 lg:px-8 xl:px-16">
         <div className="flex items-center gap-3">
           <div className="lg:hidden">
-            <Sheet>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="Open menu">
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="p-0 w-72">
-                <Sidebar isInDrawer />
+                <Sidebar isInDrawer onClose={handleSidebarClose} />
               </SheetContent>
             </Sheet>
           </div>

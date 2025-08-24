@@ -4,76 +4,102 @@ const prisma = new PrismaClient()
 
 async function checkDatabaseState() {
   try {
-    console.log('🔍 Checking database state...\n')
+    console.log('🔍 Checking database state...')
+    
+    // Test connection
+    await prisma.$connect()
+    console.log('✅ Database connection successful')
 
-    // Check users
-    const users = await prisma.user.findMany({
+    // Check if tables exist by trying to count records
+    console.log('\n📊 Checking table states...')
+    
+    try {
+      const roomTypesCount = await prisma.room.count()
+      console.log(`✅ room_types table exists with ${roomTypesCount} records`)
+    } catch (error) {
+      console.log('❌ room_types table error:', error.message)
+    }
+
+    try {
+      const roomsCount = await prisma.rooms.count()
+      console.log(`✅ rooms table exists with ${roomsCount} records`)
+    } catch (error) {
+      console.log('❌ rooms table error:', error.message)
+    }
+
+    try {
+      const categoriesCount = await prisma.category.count()
+      console.log(`✅ category table exists with ${categoriesCount} records`)
+    } catch (error) {
+      console.log('❌ category table error:', error.message)
+    }
+
+    try {
+      const usersCount = await prisma.user.count()
+      console.log(`✅ user table exists with ${usersCount} records`)
+    } catch (error) {
+      console.log('❌ user table error:', error.message)
+    }
+
+    // Check for specific room types
+    console.log('\n🏨 Checking for room types...')
+    const roomTypes = await prisma.room.findMany({
       select: {
         id: true,
         name: true,
-        email: true,
-        role: true,
-        createdAt: true
+        slug: true,
+        totalRooms: true,
+        _count: {
+          select: {
+            rooms: true
+          }
+        }
       }
     })
-    
-    console.log(`📊 Users in database: ${users.length}`)
-    if (users.length > 0) {
-      users.forEach(user => {
-        console.log(`  - ${user.name} (${user.email}) - ${user.role}`)
+
+    if (roomTypes.length === 0) {
+      console.log('❌ No room types found in database')
+      console.log('💡 You may need to run the seed script: npm run db:seed')
+    } else {
+      console.log(`✅ Found ${roomTypes.length} room types:`)
+      roomTypes.forEach(rt => {
+        console.log(`  - ${rt.name} (${rt.slug})`)
+        console.log(`    Total rooms: ${rt.totalRooms}, Created: ${rt._count.rooms}`)
       })
-    } else {
-      console.log('  No users found in database')
     }
 
-    // Check OTP records
-    const otps = await prisma.emailotp.findMany({
+    // Check for individual rooms
+    console.log('\n🚪 Checking for individual rooms...')
+    const rooms = await prisma.rooms.findMany({
       select: {
-        email: true,
-        purpose: true,
-        expiresAt: true,
-        attempts: true,
-        createdAt: true
-      }
+        id: true,
+        roomNumber: true,
+        status: true,
+        roomType: {
+          select: {
+            name: true
+          }
+        }
+      },
+      take: 10
     })
-    
-    console.log(`\n📧 OTP records in database: ${otps.length}`)
-    if (otps.length > 0) {
-      otps.forEach(otp => {
-        const isExpired = otp.expiresAt < new Date()
-        console.log(`  - ${otp.email} (${otp.purpose}) - Expired: ${isExpired} - Attempts: ${otp.attempts}`)
+
+    if (rooms.length === 0) {
+      console.log('❌ No individual rooms found in database')
+    } else {
+      console.log(`✅ Found ${rooms.length} individual rooms (showing first 10):`)
+      rooms.forEach(room => {
+        console.log(`  - ${room.roomNumber} (${room.roomType.name}) - ${room.status}`)
       })
-    } else {
-      console.log('  No OTP records found')
     }
 
-    // Check hotel info
-    const hotelInfo = await prisma.hotelinfo.findFirst({
-      select: {
-        name: true,
-        primaryEmail: true,
-        primaryPhone: true
-      }
-    })
-    
-    console.log(`\n🏨 Hotel info:`)
-    if (hotelInfo) {
-      console.log(`  - Name: ${hotelInfo.name}`)
-      console.log(`  - Email: ${hotelInfo.primaryEmail || 'Not set'}`)
-      console.log(`  - Phone: ${hotelInfo.primaryPhone || 'Not set'}`)
-    } else {
-      console.log('  No hotel info found')
-    }
-
-    // Check environment variables
-    console.log(`\n🔧 Environment variables:`)
-    console.log(`  - EMAIL_HOST: ${process.env.EMAIL_HOST ? 'Set' : 'Not set'}`)
-    console.log(`  - EMAIL_USERNAME: ${process.env.EMAIL_USERNAME ? 'Set' : 'Not set'}`)
-    console.log(`  - EMAIL_PASSWORD: ${process.env.EMAIL_PASSWORD ? 'Set' : 'Not set'}`)
-    console.log(`  - PSK: ${process.env.PSK ? 'Set' : 'Not set'}`)
+    // Check environment
+    console.log('\n🌍 Environment check:')
+    console.log('DATABASE_URL:', process.env.DATABASE_URL ? 'Set' : 'Not set')
+    console.log('NODE_ENV:', process.env.NODE_ENV || 'Not set')
 
   } catch (error) {
-    console.error('❌ Error checking database:', error)
+    console.error('❌ Database check failed:', error)
   } finally {
     await prisma.$disconnect()
   }

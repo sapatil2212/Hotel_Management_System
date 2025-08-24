@@ -102,10 +102,33 @@ export default function RoomManagePage() {
 
   const fetchRoomTypes = async () => {
     try {
+      console.log('Fetching room types from /api/room-types/available...')
       const response = await fetch('/api/room-types/available')
+      console.log('Room types API response status:', response.status)
+      
       if (response.ok) {
-        const data = await response.json()
-        setRoomTypes(data)
+        const result = await response.json()
+        console.log('Room types API response:', result)
+        
+        if (result.success && result.data) {
+          console.log('Room types data received:', result.data)
+          setRoomTypes(result.data)
+        } else {
+          console.error('Room types API returned error:', result.error)
+          toast({
+            title: "Error",
+            description: result.error || "Failed to fetch room types",
+            variant: "destructive"
+          })
+        }
+      } else {
+        const errorData = await response.json()
+        console.error('Room types API error:', errorData)
+        toast({
+          title: "Error",
+          description: "Failed to fetch room types",
+          variant: "destructive"
+        })
       }
     } catch (error) {
       console.error('Error fetching room types:', error)
@@ -463,13 +486,25 @@ export default function RoomManagePage() {
                     <SelectValue placeholder="Select room type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {roomTypes.filter(rt => rt.canAddMore).map((roomType) => (
-                      <SelectItem key={roomType.id} value={roomType.id}>
-                        {roomType.name} ({roomType.availableSlots} slots available)
-                      </SelectItem>
-                    ))}
+                    {roomTypes.filter(rt => rt.canAddMore).length === 0 ? (
+                      <div className="p-4 text-center text-gray-500">
+                        <p>No room types available for adding rooms</p>
+                        <p className="text-sm mt-1">Create room types first or check database connection</p>
+                      </div>
+                    ) : (
+                      roomTypes.filter(rt => rt.canAddMore).map((roomType) => (
+                        <SelectItem key={roomType.id} value={roomType.id}>
+                          {roomType.name} ({roomType.availableSlots} slots available)
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
+                {roomTypes.length === 0 && (
+                  <p className="text-sm text-red-600 mt-1">
+                    No room types found. Please create room types first.
+                  </p>
+                )}
               </div>
               <div>
                 <Label htmlFor="floor">Floor Number</Label>
@@ -523,31 +558,54 @@ export default function RoomManagePage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {roomTypes.map((roomType) => (
-              <div key={roomType.id} className="p-4 border rounded-lg">
-                <h3 className="font-semibold">{roomType.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {roomType.currentRoomsCount} of {roomType.totalRooms} rooms created
-                </p>
-                <div className="mt-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Progress</span>
-                    <span>{Math.round((roomType.currentRoomsCount / roomType.totalRooms) * 100)}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                    <div 
-                      className="bg-blue-600 h-2 rounded-full" 
-                      style={{ width: `${(roomType.currentRoomsCount / roomType.totalRooms) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {roomType.availableSlots} slots available
-                </p>
+          {roomTypes.length === 0 ? (
+            <div className="text-center py-8">
+              <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Room Types Found</h3>
+              <p className="text-gray-600 mb-4">
+                No room types have been created yet. You need to create room types first before adding individual rooms.
+              </p>
+              <div className="space-y-2 text-sm text-gray-500">
+                <p>• Go to the <strong>Rooms</strong> page to create room types</p>
+                <p>• Or run the database seed script to create sample room types</p>
+                <p>• Check the database connection if the issue persists</p>
               </div>
-            ))}
-          </div>
+              <div className="mt-4">
+                <Button 
+                  onClick={() => window.location.href = '/dashboard/rooms'}
+                  variant="outline"
+                >
+                  Go to Rooms Page
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {roomTypes.map((roomType) => (
+                <div key={roomType.id} className="p-4 border rounded-lg">
+                  <h3 className="font-semibold">{roomType.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {roomType.currentRoomsCount} of {roomType.totalRooms} rooms created
+                  </p>
+                  <div className="mt-2">
+                    <div className="flex justify-between text-sm">
+                      <span>Progress</span>
+                      <span>{Math.round((roomType.currentRoomsCount / roomType.totalRooms) * 100)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full" 
+                        style={{ width: `${(roomType.currentRoomsCount / roomType.totalRooms) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {roomType.availableSlots} slots available
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

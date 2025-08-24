@@ -1,27 +1,41 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-export async function GET(request: NextRequest) {
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
   try {
     // Test database connection
-    await prisma.$queryRaw`SELECT 1`
+    await prisma.$connect()
+    
+    // Test room types query
+    const roomTypesCount = await prisma.room.count()
+    const sampleRoomTypes = await prisma.room.findMany({
+      select: {
+        id: true,
+        name: true,
+        totalRooms: true
+      },
+      take: 5
+    })
     
     return NextResponse.json({
-      status: "healthy",
-      timestamp: new Date().toISOString(),
-      database: "connected",
-      message: "All systems operational"
+      success: true,
+      database: 'connected',
+      roomTypesCount,
+      sampleRoomTypes,
+      timestamp: new Date().toISOString()
     })
   } catch (error) {
-    console.error("Health check failed:", error)
-    
+    console.error('Health check failed:', error)
     return NextResponse.json({
-      status: "unhealthy",
-      timestamp: new Date().toISOString(),
-      database: "disconnected",
-      error: error instanceof Error ? error.message : "Unknown error",
-      message: "Database connection failed"
-    }, { status: 503 })
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
 

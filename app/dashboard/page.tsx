@@ -253,12 +253,12 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header with refresh button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Hi 👋{session?.user?.name || 'User'}!</h1>
-          <p className="text-gray-600 mt-1 text-sm">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Hi 👋{session?.user?.name || 'User'}!</h1>
+          <p className="text-gray-600 mt-1 text-xs sm:text-sm">
             Welcome back! Here's what's happening at {hotelInfo.name || 'Check-Mate'} today.
           </p>
         </div>
@@ -267,58 +267,59 @@ export default function DashboardPage() {
           variant="outline" 
           size="sm"
           disabled={refreshing}
+          className="w-full sm:w-auto"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
           {refreshing ? 'Refreshing...' : 'Refresh'}
         </Button>
       </div>
 
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Quick Stats Cards - Responsive Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
         <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
-          <CardContent className="p-3">
+          <CardContent className="p-2 sm:p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-blue-600">Today's Bookings</p>
-                <p className="text-lg font-bold text-blue-900">{quickStats.todayBookings}</p>
+                <p className="text-[10px] sm:text-xs font-medium text-blue-600">Today's Bookings</p>
+                <p className="text-sm sm:text-lg font-bold text-blue-900">{quickStats.todayBookings}</p>
               </div>
-              <Calendar className="h-6 w-6 text-blue-600" />
+              <Calendar className="h-4 w-4 sm:h-6 sm:w-6 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
-          <CardContent className="p-3">
+          <CardContent className="p-2 sm:p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-green-600">Today's Revenue</p>
-                <p className="text-lg font-bold text-green-900">{formatCurrency(quickStats.todayRevenue)}</p>
+                <p className="text-[10px] sm:text-xs font-medium text-green-600">Today's Revenue</p>
+                <p className="text-sm sm:text-lg font-bold text-green-900">{formatCurrency(quickStats.todayRevenue)}</p>
               </div>
-              <TrendingUp className="h-6 w-6 text-green-600" />
+              <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6 text-green-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
-          <CardContent className="p-3">
+          <CardContent className="p-2 sm:p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-orange-600">Pending Checkouts</p>
-                <p className="text-lg font-bold text-orange-900">{quickStats.pendingCheckouts}</p>
+                <p className="text-[10px] sm:text-xs font-medium text-orange-600">Pending Checkouts</p>
+                <p className="text-sm sm:text-lg font-bold text-orange-900">{quickStats.pendingCheckouts}</p>
               </div>
-              <Clock className="h-6 w-6 text-orange-600" />
+              <Clock className="h-4 w-4 sm:h-6 sm:w-6 text-orange-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-red-50 to-red-100 border-red-200">
-          <CardContent className="p-3">
+          <CardContent className="p-2 sm:p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-red-600">Overdue Checkouts</p>
-                <p className="text-lg font-bold text-red-900">{quickStats.overdueCheckouts}</p>
+                <p className="text-[10px] sm:text-xs font-medium text-red-600">Overdue Checkouts</p>
+                <p className="text-sm sm:text-lg font-bold text-red-900">{quickStats.overdueCheckouts}</p>
               </div>
-              <AlertTriangle className="h-6 w-6 text-red-600" />
+              <AlertTriangle className="h-4 w-4 sm:h-6 sm:w-6 text-red-600" />
             </div>
           </CardContent>
         </Card>
@@ -339,17 +340,17 @@ export default function DashboardPage() {
           {/* Recent Activity */}
           <Card className="hover:shadow-md transition-shadow duration-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Activity className="h-4 w-4" />
+              <CardTitle className="flex items-center gap-2 text-xs sm:text-sm">
+                <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
                 Recent Activity
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 {recentActivity.length === 0 ? (
-                  <div className="text-center py-6 text-gray-500">
-                    <Activity className="h-6 w-6 mx-auto mb-2 text-gray-300" />
-                    <p className="text-xs">No recent activity</p>
+                  <div className="text-center py-4 sm:py-6 text-gray-500">
+                    <Activity className="h-4 w-4 sm:h-6 sm:w-6 mx-auto mb-2 text-gray-300" />
+                    <p className="text-[10px] sm:text-xs">No recent activity</p>
                   </div>
                 ) : (
                   recentActivity.map((activity) => (
@@ -358,11 +359,11 @@ export default function DashboardPage() {
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-gray-900 font-medium">{activity.message}</p>
+                        <p className="text-[10px] sm:text-xs text-gray-900 font-medium">{activity.message}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-gray-500">{formatTimeAgo(activity.timestamp)}</span>
+                          <span className="text-[9px] sm:text-xs text-gray-500">{formatTimeAgo(activity.timestamp)}</span>
                           {activity.status && (
-                            <Badge className={`text-xs ${getStatusColor(activity.status)}`}>
+                            <Badge className={`text-[8px] sm:text-xs ${getStatusColor(activity.status)}`}>
                               {activity.status.replace('_', ' ')}
                             </Badge>
                           )}
@@ -379,9 +380,9 @@ export default function DashboardPage() {
 
       {/* Recent Bookings Table */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Bookings</h2>
-          <Button variant="outline" size="sm" asChild>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Bookings</h2>
+          <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
             <a href="/dashboard/bookings">View All Bookings</a>
           </Button>
         </div>
