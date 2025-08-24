@@ -129,7 +129,7 @@ export default function SourcePieChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Booking Sources</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Booking Sources</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64">
@@ -144,15 +144,15 @@ export default function SourcePieChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Booking Sources</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Booking Sources</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64 text-red-600">
             <div className="text-center">
-              <p className="mb-2">{error}</p>
+              <p className="mb-2 text-xs sm:text-sm">{error}</p>
               <button 
                 onClick={fetchSourceData}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
               >
                 Try again
               </button>
@@ -172,14 +172,14 @@ export default function SourcePieChart() {
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Booking Sources</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Booking Sources</CardTitle>
           <div className="text-center">
-            <div className="font-semibold text-blue-600">{totalBookings}</div>
-            <div className="text-muted-foreground text-sm">Total Bookings</div>
+            <div className="font-semibold text-blue-600 text-xs sm:text-sm">{totalBookings}</div>
+            <div className="text-muted-foreground text-[10px] sm:text-sm">Total Bookings</div>
           </div>
         </div>
         {topSource && (
-          <div className="text-xs text-muted-foreground">
+          <div className="text-[9px] sm:text-xs text-muted-foreground">
             Top source: {topSource.name} ({topSource.percentage.toFixed(1)}%)
           </div>
         )}
@@ -217,7 +217,7 @@ export default function SourcePieChart() {
         
         {/* Top Sources Summary */}
         <div className="mt-4">
-          <h4 className="text-xs font-medium mb-2 text-gray-700">Top Sources</h4>
+          <h4 className="text-[10px] sm:text-xs font-medium mb-2 text-gray-700">Top Sources</h4>
           <div className="space-y-1.5">
             {data.slice(0, 3).map((source, index) => (
               <div key={index} className="flex items-center justify-between">
@@ -226,9 +226,9 @@ export default function SourcePieChart() {
                     className="w-3 h-3 rounded-full"
                     style={{ backgroundColor: source.color }}
                   ></div>
-                  <span className="text-xs text-gray-600 capitalize">{source.name}</span>
+                  <span className="text-[9px] sm:text-xs text-gray-600 capitalize">{source.name}</span>
                 </div>
-                <span className="text-xs font-medium text-gray-900">
+                <span className="text-[9px] sm:text-xs font-medium text-gray-900">
                   {source.value} ({((source.value / totalBookings) * 100).toFixed(1)}%)
                 </span>
               </div>

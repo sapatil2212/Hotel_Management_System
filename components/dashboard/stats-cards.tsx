@@ -312,17 +312,17 @@ export default function StatsCards() {
       {stats.map((stat, index) => (
         <Card key={index} className="hover:shadow-md transition-shadow duration-200">
           <CardHeader className="pb-1 px-2 sm:px-3 pt-2 sm:pt-3">
-            <CardTitle className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1">
+            <CardTitle className="text-[8px] sm:text-xs text-muted-foreground flex items-center gap-1">
               {stat.icon}
               <span className="hidden sm:inline">{stat.title}</span>
-              <span className="sm:hidden">{stat.title.split(' ')[0]}</span>
+              <span className="sm:hidden font-bold">{stat.title.charAt(0)}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 px-2 sm:px-3 pb-2 sm:pb-3">
             <div className="flex items-end justify-between">
-              <div className="text-sm sm:text-base font-bold">{stat.value}</div>
+              <div className="text-xs sm:text-base font-bold">{stat.value}</div>
               <div className={stat.up ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
-                <div className="flex items-center gap-1 text-[9px] sm:text-xs">
+                <div className="flex items-center gap-1 text-[8px] sm:text-xs">
                   {stat.up ? <TrendingUp className="h-2 w-2 sm:h-2.5 sm:w-2.5" /> : <TrendingDown className="h-2 w-2 sm:h-2.5 sm:w-2.5" />}
                   <span className="hidden sm:inline">{stat.delta}</span>
                   <span className="sm:hidden">{stat.delta.includes('+') ? '+' : stat.delta.includes('-') ? '-' : ''}</span>
@@ -330,7 +330,7 @@ export default function StatsCards() {
               </div>
             </div>
             {stat.description && (
-              <div className="mt-0.5 text-[8px] sm:text-xs text-muted-foreground hidden sm:block">
+              <div className="mt-0.5 text-[7px] sm:text-xs text-muted-foreground hidden sm:block">
                 {stat.description}
               </div>
             )}

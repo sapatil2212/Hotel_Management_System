@@ -124,7 +124,7 @@ export default function OccupancyBarChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Room Occupancy by Type</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Room Occupancy by Type</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64">
@@ -139,15 +139,15 @@ export default function OccupancyBarChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Room Occupancy by Type</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Room Occupancy by Type</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64 text-red-600">
             <div className="text-center">
-              <p className="mb-2">{error}</p>
+              <p className="mb-2 text-xs sm:text-sm">{error}</p>
               <button 
                 onClick={fetchOccupancyData}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
               >
                 Try again
               </button>
@@ -169,23 +169,23 @@ export default function OccupancyBarChart() {
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Room Occupancy by Type</CardTitle>
-          <div className="flex gap-4 text-sm">
+          <CardTitle className="text-sm sm:text-base">Room Occupancy by Type</CardTitle>
+          <div className="flex gap-2 sm:gap-4 text-xs sm:text-sm">
             <div className="text-center">
-              <div className="font-semibold text-green-600">{totalAvailable}</div>
-              <div className="text-muted-foreground">Available</div>
+              <div className="font-semibold text-green-600 text-xs sm:text-sm">{totalAvailable}</div>
+              <div className="text-muted-foreground text-[10px] sm:text-xs">Available</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-red-600">{totalOccupied}</div>
-              <div className="text-muted-foreground">Occupied</div>
+              <div className="font-semibold text-red-600 text-xs sm:text-sm">{totalOccupied}</div>
+              <div className="text-muted-foreground text-[10px] sm:text-xs">Occupied</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-purple-600">{overallOccupancyRate.toFixed(1)}%</div>
-              <div className="text-muted-foreground">Occupancy</div>
+              <div className="font-semibold text-purple-600 text-xs sm:text-sm">{overallOccupancyRate.toFixed(1)}%</div>
+              <div className="text-muted-foreground text-[10px] sm:text-xs">Occupancy</div>
             </div>
           </div>
         </div>
-        <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="flex gap-2 sm:gap-4 text-[9px] sm:text-xs text-muted-foreground">
           <div>Total Rooms: {totalRooms}</div>
           <div>Maintenance: {totalMaintenance}</div>
         </div>
@@ -202,7 +202,7 @@ export default function OccupancyBarChart() {
               dataKey="roomType" 
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 8, sm: 10 }}
               angle={-45}
               textAnchor="end"
               height={60}
@@ -210,7 +210,7 @@ export default function OccupancyBarChart() {
             <YAxis 
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 8, sm: 10 }}
               width={30}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
@@ -241,19 +241,19 @@ export default function OccupancyBarChart() {
         
         {/* Occupancy Rate Chart */}
         <div className="mt-4">
-          <h4 className="text-xs font-medium mb-2 text-gray-700">Occupancy Rates</h4>
+          <h4 className="text-[10px] sm:text-xs font-medium mb-2 text-gray-700">Occupancy Rates</h4>
           <div className="space-y-1.5">
             {data.map((roomType, index) => (
               <div key={index} className="flex items-center justify-between">
-                <span className="text-xs text-gray-600">{roomType.roomType}</span>
+                <span className="text-[9px] sm:text-xs text-gray-600">{roomType.roomType}</span>
                 <div className="flex items-center gap-2">
-                  <div className="w-20 bg-gray-100 rounded-full h-1.5">
+                  <div className="w-16 sm:w-20 bg-gray-100 rounded-full h-1.5">
                     <div 
                       className="bg-gradient-to-r from-blue-500 to-purple-600 h-1.5 rounded-full transition-all duration-300"
                       style={{ width: `${Math.min(roomType.occupancyRate, 100)}%` }}
                     ></div>
                   </div>
-                  <span className="text-xs font-medium text-gray-900 w-10 text-right">
+                  <span className="text-[9px] sm:text-xs font-medium text-gray-900 w-8 sm:w-10 text-right">
                     {roomType.occupancyRate.toFixed(1)}%
                   </span>
                 </div>

@@ -127,7 +127,7 @@ export default function RevenueAreaChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Revenue & Bookings (7d)</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Revenue & Bookings (7d)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64">
@@ -142,15 +142,15 @@ export default function RevenueAreaChart() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Revenue & Bookings (7d)</CardTitle>
+          <CardTitle className="text-sm sm:text-base">Revenue & Bookings (7d)</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center h-64 text-red-600">
             <div className="text-center">
-              <p className="mb-2">{error}</p>
+              <p className="mb-2 text-xs sm:text-sm">{error}</p>
               <button 
                 onClick={fetchRevenueData}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-xs sm:text-sm text-blue-600 hover:text-blue-800"
               >
                 Try again
               </button>
@@ -171,19 +171,19 @@ export default function RevenueAreaChart() {
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Revenue & Bookings (7d)</CardTitle>
-          <div className="flex gap-4 text-sm">
+          <CardTitle className="text-sm sm:text-base">Revenue & Bookings (7d)</CardTitle>
+          <div className="flex gap-2 sm:gap-4 text-xs sm:text-sm">
             <div className="text-center">
-              <div className="font-semibold text-green-600">{formatCurrency(totalRevenue)}</div>
-              <div className="text-muted-foreground">Total Revenue</div>
+              <div className="font-semibold text-green-600 text-xs sm:text-sm">{formatCurrency(totalRevenue)}</div>
+              <div className="text-muted-foreground text-[10px] sm:text-xs">Total Revenue</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-blue-600">{totalBookings}</div>
-              <div className="text-muted-foreground">Total Bookings</div>
+              <div className="font-semibold text-blue-600 text-xs sm:text-sm">{totalBookings}</div>
+              <div className="text-muted-foreground text-[10px] sm:text-xs">Total Bookings</div>
             </div>
           </div>
         </div>
-        <div className="flex gap-4 text-xs text-muted-foreground">
+        <div className="flex gap-2 sm:gap-4 text-[9px] sm:text-xs text-muted-foreground">
           <div>Avg Revenue: {formatCurrency(avgRevenue)}</div>
           <div>Avg Bookings: {avgBookings.toFixed(1)}</div>
         </div>
@@ -200,13 +200,13 @@ export default function RevenueAreaChart() {
                 dataKey="date" 
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 8, sm: 10 }}
                 height={60}
               />
               <YAxis 
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 8, sm: 10 }}
                 width={50}
                 tickFormatter={(value) => `₹${value.toLocaleString()}`}
               />

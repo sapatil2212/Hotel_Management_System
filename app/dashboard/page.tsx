@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Loader, RefreshCw, TrendingUp, Users, Calendar, AlertTriangle, CheckCircle, Clock, DollarSign, Bed, Activity } from "lucide-react"
+import { Loader, RefreshCw, TrendingUp, Users, Calendar, AlertTriangle, CheckCircle, Clock, DollarSign, Bed, Activity, Eye } from "lucide-react"
 import StatsCards from "@/components/dashboard/stats-cards"
 import RevenueAreaChart from "@/components/dashboard/charts/revenue-area-chart"
 import OccupancyBarChart from "@/components/dashboard/charts/occupancy-bar-chart"
@@ -254,11 +254,12 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      
       {/* Header with refresh button */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Hi 👋{session?.user?.name || 'User'}!</h1>
-          <p className="text-gray-600 mt-1 text-xs sm:text-sm">
+          <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Hi 👋{session?.user?.name || 'User'}!</h1>
+          <p className="text-gray-600 mt-1 text-[10px] sm:text-sm">
             Welcome back! Here's what's happening at {hotelInfo.name || 'Check-Mate'} today.
           </p>
         </div>
@@ -267,10 +268,10 @@ export default function DashboardPage() {
           variant="outline" 
           size="sm"
           disabled={refreshing}
-          className="w-full sm:w-auto"
+          className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3"
         >
-          <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-          {refreshing ? 'Refreshing...' : 'Refresh'}
+          <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 ${refreshing ? 'animate-spin' : ''} sm:mr-2`} />
+          <span className="hidden sm:inline">{refreshing ? 'Refreshing...' : 'Refresh'}</span>
         </Button>
       </div>
 
@@ -382,8 +383,11 @@ export default function DashboardPage() {
       <div className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <h2 className="text-base sm:text-lg font-semibold text-gray-900">Recent Bookings</h2>
-          <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
-            <a href="/dashboard/bookings">View All Bookings</a>
+          <Button variant="outline" size="sm" asChild className="w-full sm:w-auto h-8 w-8 sm:h-auto sm:w-auto sm:px-3">
+            <a href="/dashboard/bookings">
+              <Eye className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">View All Bookings</span>
+            </a>
           </Button>
         </div>
         <BookingsTable />

@@ -909,9 +909,9 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
             <option value="checked_in">Checked In</option>
             <option value="checked_out">Checked Out</option>
           </select>
-          <Button onClick={fetchBookings} variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Refresh
+          <Button onClick={fetchBookings} variant="outline" size="sm" className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3">
+            <Filter className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
