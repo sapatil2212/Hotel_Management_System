@@ -853,14 +853,18 @@ export default function EnhancedBillingModal({
                         <span>Subtotal:</span>
                         <span>{formatCurrency(billTotals.subtotal)}</span>
                       </div>
-                      <div className="flex justify-between text-sm">
-                        <span>GST:</span>
-                        <span>{formatCurrency(billTotals.gstAmount)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Additional Taxes:</span>
-                        <span>{formatCurrency(billTotals.additionalTaxes)}</span>
-                      </div>
+                      {billTotals.gstAmount > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>GST:</span>
+                          <span>{formatCurrency(billTotals.gstAmount)}</span>
+                        </div>
+                      )}
+                      {billTotals.additionalTaxes > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span>Additional Taxes:</span>
+                          <span>{formatCurrency(billTotals.additionalTaxes)}</span>
+                        </div>
+                      )}
                       <Separator />
                       <div className="flex justify-between font-bold text-lg">
                         <span>Total Amount:</span>

@@ -233,17 +233,17 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
       const iconColor = checkoutStatus.hasPassed ? 'text-red-500' : 'text-yellow-500'
       
       return (
-        <div className={`p-1.5 rounded border ${bgColor} mb-1`}>
-          <div className="flex items-start gap-1.5">
+        <div className={`p-1 sm:p-1.5 rounded border ${bgColor} mb-1`}>
+          <div className="flex items-start gap-1 sm:gap-1.5">
             <div className={`mt-0.5 ${iconColor}`}>
-              {checkoutStatus.hasPassed ? <AlertTriangle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+              {checkoutStatus.hasPassed ? <AlertTriangle className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
             </div>
             <div className="flex-1">
-              <div className={`text-xs ${textColor}`}>
+              <div className={`text-[9px] sm:text-xs ${textColor}`}>
                 {notification.message}
               </div>
               {checkoutStatus.timeRemaining && (
-                <div className="text-xs text-gray-600 mt-0.5">
+                <div className="text-[9px] sm:text-xs text-gray-600 mt-0.5">
                   {checkoutStatus.timeRemaining}
                 </div>
               )}
@@ -885,21 +885,21 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 sm:space-y-4">
              <div className="flex items-center gap-2 sm:gap-3 w-full">
          <div className="relative flex-1 min-w-0">
-           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4 sm:h-5 sm:w-5" />
+           <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3 sm:h-5 sm:w-5" />
            <Input 
              value={query} 
              onChange={(e) => setQuery(e.target.value)} 
              placeholder="Search by guest, booking ID, or room number" 
-             className="pl-8 sm:pl-10 h-9 sm:h-9 text-xs sm:text-sm" 
+             className="pl-6 sm:pl-10 h-8 sm:h-9 text-[10px] sm:text-sm" 
            />
          </div>
          <select
            value={statusFilter}
            onChange={(e) => setStatusFilter(e.target.value)}
-           className="px-2 sm:px-3 py-2 border border-gray-300 rounded-md text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent h-9 sm:h-9 min-w-[80px] sm:min-w-[100px]"
+           className="px-1 sm:px-3 py-1 sm:py-2 border border-gray-300 rounded-md text-[10px] sm:text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent h-8 sm:h-9 min-w-[70px] sm:min-w-[100px]"
          >
            <option value="all">All Status</option>
            <option value="confirmed">Confirmed</option>
@@ -909,13 +909,13 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
            <option value="checked_out">Checked Out</option>
          </select>
          <div className="flex items-center gap-1">
-           <Button onClick={fetchBookings} variant="outline" size="sm" className="h-9 w-9 sm:h-auto sm:w-auto sm:px-3 flex-shrink-0">
-             <Filter className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
+           <Button onClick={fetchBookings} variant="outline" size="sm" className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex-shrink-0">
+             <Filter className="h-3 w-3 sm:h-5 sm:w-5 sm:mr-2" />
              <span className="hidden sm:inline">Refresh</span>
            </Button>
-           <Button variant="outline" size="sm" asChild className="h-9 w-9 sm:h-auto sm:w-auto sm:px-3 flex-shrink-0">
+           <Button variant="outline" size="sm" asChild className="h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex-shrink-0">
              <a href="/dashboard/bookings">
-               <Eye className="h-4 w-4 sm:h-5 sm:w-5 sm:mr-2" />
+               <Eye className="h-3 w-3 sm:h-5 sm:w-5 sm:mr-2" />
                <span className="hidden sm:inline">View All</span>
              </a>
            </Button>
@@ -936,30 +936,30 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
         
         if (todayCheckouts.length > 0 || overdueCheckouts.length > 0) {
           return (
-            <div className="mb-4 space-y-2">
+            <div className="mb-3 sm:mb-4 space-y-2">
               {overdueCheckouts.length > 0 && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="p-2 sm:p-3 bg-red-50 border border-red-200 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-red-500" />
-                    <span className="text-sm font-medium text-red-700">
+                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
+                    <span className="text-xs sm:text-sm font-medium text-red-700">
                       {overdueCheckouts.length} guest{overdueCheckouts.length > 1 ? 's' : ''} overdue for checkout
                     </span>
                   </div>
-                  <div className="text-xs text-red-600 mt-1">
+                  <div className="text-[10px] sm:text-xs text-red-600 mt-1">
                     Checkout time ({hotelInfo.checkOutTime}) has passed for these bookings
                   </div>
                 </div>
               )}
               
               {todayCheckouts.length > 0 && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="p-2 sm:p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-yellow-500" />
-                    <span className="text-sm font-medium text-yellow-700">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+                    <span className="text-xs sm:text-sm font-medium text-yellow-700">
                       {todayCheckouts.length} guest{todayCheckouts.length > 1 ? 's' : ''} due for checkout today
                     </span>
                   </div>
-                  <div className="text-xs text-yellow-600 mt-1">
+                  <div className="text-[10px] sm:text-xs text-yellow-600 mt-1">
                     Checkout time: {hotelInfo.checkOutTime}
                   </div>
                 </div>
@@ -972,8 +972,8 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
 
       {filteredBookings.length === 0 ? (
         <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-muted-foreground">
+          <CardContent className="text-center py-6 sm:py-8">
+            <p className="text-[10px] sm:text-sm text-muted-foreground">
               {bookings.length === 0 ? "No bookings found" : "No bookings match your search criteria"}
             </p>
           </CardContent>
@@ -983,28 +983,28 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 border-b-2 border-gray-200">
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">
                   Booking ID
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">
                   Guest Details
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">
                   Room
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200 w-24 sm:w-auto">
                   Stay Period
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">
                   Guests
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">
                   Amount
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3 border-r border-gray-200">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3 border-r border-gray-200">
                   Status
                 </TableHead>
-                <TableHead className="text-xs font-semibold text-gray-700 uppercase tracking-wide py-4 px-3">
+                <TableHead className="text-[10px] sm:text-xs font-semibold text-gray-700 uppercase tracking-wide py-3 sm:py-4 px-2 sm:px-3">
                   Actions
                 </TableHead>
               </TableRow>
@@ -1012,36 +1012,36 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
             <TableBody>
               {filteredBookings.map((booking) => (
                 <TableRow key={booking.id} className="hover:bg-gray-50 border-b border-gray-100">
-                  <TableCell className="font-mono text-sm font-medium border-r border-gray-200 px-3 py-4">
+                  <TableCell className="font-mono text-[10px] sm:text-sm font-medium border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                     {booking.id}
                   </TableCell>
-                  <TableCell className="border-r border-gray-200 px-3 py-4">
+                  <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                     <div>
-                      <div className="font-medium">{booking.guestName}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
+                      <div className="font-medium text-[10px] sm:text-sm">{booking.guestName}</div>
+                      <div className="text-[9px] sm:text-sm text-muted-foreground flex items-center gap-1">
+                        <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         {booking.guestPhone}
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="border-r border-gray-200 px-3 py-4">
+                  <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                     <div>
-                      <div className="font-medium">{booking.room.roomNumber}</div>
+                      <div className="font-medium text-[10px] sm:text-sm">{booking.room.roomNumber}</div>
                     </div>
                   </TableCell>
-                  <TableCell className="border-r border-gray-200 px-3 py-4">
+                  <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4 w-24 sm:w-auto">
                     <div>
-                      <div className="text-sm font-medium">
+                      <div className="text-[10px] sm:text-sm font-medium">
                         {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-[9px] sm:text-xs text-muted-foreground">
                         {booking.nights} night{booking.nights > 1 ? 's' : ''}
                       </div>
                       <CheckoutNotification booking={booking} />
                     </div>
                   </TableCell>
-                  <TableCell className="border-r border-gray-200 px-3 py-4">
-                    <div className="text-sm">
+                  <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
+                    <div className="text-[10px] sm:text-sm">
                       <div>{booking.adults} Adult{booking.adults > 1 ? 's' : ''}</div>
                       {booking.children > 0 && (
                         <div className="text-muted-foreground">
@@ -1050,40 +1050,40 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="border-r border-gray-200 px-3 py-4">
+                  <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                     <div>
-                      <div className="font-medium">
+                      <div className="font-medium text-[10px] sm:text-sm">
                         {formatCurrency(booking.totalAmount, booking.room.roomType.currency)}
                       </div>
                       {booking.discountAmount && booking.discountAmount > 0 && (
-                        <div className="text-xs text-green-600">
+                        <div className="text-[9px] sm:text-xs text-green-600">
                           -{formatCurrency(booking.discountAmount, booking.room.roomType.currency)} saved
                         </div>
                       )}
                       {booking.promoCode && (
-                        <div className="text-xs text-blue-600">
+                        <div className="text-[9px] sm:text-xs text-blue-600">
                           Code: {booking.promoCode.code}
                         </div>
                       )}
                       {booking.totalTaxAmount && booking.totalTaxAmount > 0 && (
-                        <div className="text-xs text-slate-500">
+                        <div className="text-[9px] sm:text-xs text-slate-500">
                           Incl. {formatCurrency(booking.totalTaxAmount, booking.room.roomType.currency)} tax
                         </div>
                       )}
                       {/* Show if pricing was recently updated */}
                       {booking.createdAt && new Date(booking.createdAt) > new Date(Date.now() - 24 * 60 * 60 * 1000) && (
-                        <div className="text-xs text-blue-600 font-medium">
+                        <div className="text-[9px] sm:text-xs text-blue-600 font-medium">
                           ⚡ Recently updated
                         </div>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="border-r border-gray-200 px-3 py-4">
+                  <TableCell className="border-r border-gray-200 px-2 sm:px-3 py-3 sm:py-4">
                     <div className="space-y-1">
                       <select
                         value={booking.status}
                         onChange={(e) => handleUpdateStatus(booking.id, e.target.value)}
-                        className={`px-2 py-1 rounded text-xs font-medium border-0 focus:ring-2 focus:ring-amber-500 ${statusColors[getDisplayStatus(booking)] || 'bg-gray-100 text-gray-800'}`}
+                        className={`px-1 sm:px-2 py-1 rounded text-[9px] sm:text-xs font-medium border-0 focus:ring-2 focus:ring-amber-500 ${statusColors[getDisplayStatus(booking)] || 'bg-gray-100 text-gray-800'}`}
                       >
                         <option value="pending">Pending</option>
                         <option value="confirmed">Confirmed</option>
@@ -1094,20 +1094,20 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
                       
                       {/* Checkout status indicator */}
                       {booking.status === 'checked_in' && (
-                        <div className="text-xs">
+                        <div className="text-[9px] sm:text-xs">
                           {(() => {
                             const checkoutStatus = checkCheckoutStatus(booking.checkOut, hotelInfo.checkOutTime)
                             if (checkoutStatus.hasPassed) {
                               return (
                                 <div className="flex items-center gap-1 text-red-600">
-                                  <AlertTriangle className="h-3 w-3" />
+                                  <AlertTriangle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                   <span>Overdue</span>
                                 </div>
                               )
                             } else if (checkoutStatus.isToday) {
                               return (
                                 <div className="flex items-center gap-1 text-yellow-600">
-                                  <Clock className="h-3 w-3" />
+                                  <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                                   <span>Due today</span>
                                 </div>
                               )
@@ -1119,39 +1119,41 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
                       
                       {/* Early checkout indicator */}
                       {getDisplayStatus(booking) === 'early_checked_out' && (
-                        <div className="flex items-center gap-1 text-orange-600 text-xs mt-1">
-                          <Clock className="h-3 w-3" />
+                        <div className="flex items-center gap-1 text-orange-600 text-[9px] sm:text-xs mt-1">
+                          <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                           <span>Early Checked-out</span>
                         </div>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="px-3 py-4">
+                  <TableCell className="px-2 sm:px-3 py-3 sm:py-4">
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleViewDetails(booking)}
                         title="View Details"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Eye className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleEditBooking(booking)}
                         title="Edit Booking"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                       >
-                        <Edit className="h-4 w-4" />
+                        <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleExtraCharges(booking)}
                         title="Extra Charges"
-                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       >
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
@@ -1159,12 +1161,12 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
                         onClick={() => handleDeleteBooking(booking.id)}
                         disabled={deleting === booking.id}
                         title="Cancel Booking"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="h-7 w-7 sm:h-8 sm:w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         {deleting === booking.id ? (
-                          <Loader className="h-4 w-4 animate-spin" />
+                          <Loader className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                         ) : (
-                          <Trash2 className="h-4 w-4 text-red-600" />
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
                         )}
                       </Button>
                     </div>
@@ -1176,224 +1178,239 @@ export default function BookingsTable({ editBookingId }: BookingsTableProps) {
         </div>
       )}
 
-      {/* Booking Details Modal */}
-      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          {selectedBooking && (
-            <>
-              <DialogHeader className="pb-6">
-                <DialogTitle className="text-xl font-semibold text-gray-900">Booking Details - {selectedBooking.id}</DialogTitle>
-                <DialogDescription className="text-sm text-gray-600">
-                  Complete booking information and guest details
-                </DialogDescription>
-              </DialogHeader>
+             {/* Booking Details Modal */}
+       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+         <DialogContent className="max-w-2xl sm:max-w-4xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-8 p-4 sm:p-6 rounded-lg">
+           {selectedBooking && (
+             <>
+               <DialogHeader className="mb-3 sm:mb-6">
+                 <DialogTitle className="text-base sm:text-xl">Booking Details - {selectedBooking.id}</DialogTitle>
+                 <DialogDescription className="text-[10px] sm:text-sm">
+                   Complete booking information and guest details
+                 </DialogDescription>
+               </DialogHeader>
               
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Guest Information */}
-                <Card className="border border-gray-200 shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                      <Users className="h-4 w-4 text-gray-600" />
-                      Guest Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Name</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{selectedBooking.guestName}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email</label>
-                      <p className="flex items-center gap-2 text-sm text-gray-700 mt-1">
-                        <Mail className="h-3 w-3 text-gray-500" />
-                        {selectedBooking.guestEmail}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone</label>
-                      <p className="flex items-center gap-2 text-sm text-gray-700 mt-1">
-                        <Phone className="h-3 w-3 text-gray-500" />
-                        {selectedBooking.guestPhone}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Guests</label>
-                      <p className="flex items-center gap-2 text-sm text-gray-700 mt-1">
-                        <Users className="h-3 w-3 text-gray-500" />
-                        {selectedBooking.adults} Adult{selectedBooking.adults > 1 ? 's' : ''}
-                        {selectedBooking.children > 0 && `, ${selectedBooking.children} Child${selectedBooking.children > 1 ? 'ren' : ''}`}
-                      </p>
-                    </div>
-                    {selectedBooking.specialRequests && (
-                      <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Special Requests</label>
-                        <p className="text-sm bg-gray-50 p-3 rounded-md border border-gray-200 mt-1 text-gray-700">{selectedBooking.specialRequests}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Room Information */}
-                <Card className="border border-gray-200 shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                      <Bed className="h-4 w-4 text-gray-600" />
-                      Room Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Room</label>
-                      <p className="text-sm font-medium text-gray-900 mt-1">{selectedBooking.room.roomNumber}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Type</label>
-                      <p className="text-sm text-gray-700 mt-1">{selectedBooking.room.roomType.name}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Floor</label>
-                      <p className="text-sm text-gray-700 mt-1">{selectedBooking.room.floorNumber || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Size & Bed</label>
-                      <p className="flex items-center gap-2 text-sm text-gray-700 mt-1">
-                        <Bed className="h-3 w-3 text-gray-500" />
-                        {selectedBooking.room.roomType.size} • {selectedBooking.room.roomType.bedType}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Amenities</label>
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {selectedBooking.room.roomType.amenities?.map((amenity: string, index: number) => (
-                          <Badge key={index} variant="outline" className="text-xs px-2 py-1 bg-gray-50 border-gray-200 text-gray-700">{amenity}</Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Booking Details */}
-                <Card className="border border-gray-200 shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-600" />
-                      Booking Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Check-in</label>
-                      <p className="flex items-center gap-2 text-sm text-gray-700 mt-1">
-                        <Calendar className="h-3 w-3 text-gray-500" />
-                        {formatDate(selectedBooking.checkIn)}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Check-out</label>
-                      <p className="flex items-center gap-2 text-sm text-gray-700 mt-1">
-                        <Calendar className="h-3 w-3 text-gray-500" />
-                        {formatDate(selectedBooking.checkOut)}
-                      </p>
-                      <p className="text-xs text-gray-500 ml-5 mt-1">
-                        Checkout time: {hotelInfo.checkOutTime}
-                      </p>
-                      <div className="mt-2">
-                        <CheckoutNotification booking={selectedBooking} />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Duration</label>
-                      <p className="text-sm text-gray-700 mt-1">{selectedBooking.nights} night{selectedBooking.nights > 1 ? 's' : ''}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
-                      <div className="mt-1">
-                                        <Badge className={`${statusColors[getDisplayStatus(selectedBooking)] || 'bg-gray-100 text-gray-800'} text-xs px-2 py-1`}>
-                  {getDisplayStatus(selectedBooking).replace('_', ' ').toUpperCase()}
-                </Badge>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Source</label>
-                      <p className="text-sm text-gray-700 mt-1">{selectedBooking.source}</p>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Booking Date</label>
-                      <p className="text-sm text-gray-700 mt-1">{formatDate(selectedBooking.createdAt)}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Payment Information */}
-                <Card className="border border-gray-200 shadow-sm">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                      <svg className="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                      Payment Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {selectedBooking.originalAmount && selectedBooking.discountAmount && selectedBooking.discountAmount > 0 ? (
-                      <>
+                                                           <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
+                  {/* Guest Information */}
+                  <Card className="border border-gray-200 shadow-sm rounded-lg">
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                        <Users className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                        Guest Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 sm:space-y-4">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <div>
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Original Amount</label>
-                          <p className="text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.originalAmount, selectedBooking.room.roomType.currency)}</p>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Name</label>
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 mt-1">{selectedBooking.guestName}</p>
                         </div>
                         <div>
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Discount</label>
-                          <p className="text-sm text-green-600 mt-1">
-                            -{formatCurrency(selectedBooking.discountAmount, selectedBooking.room.roomType.currency)}
-                            {selectedBooking.promoCode && ` (${selectedBooking.promoCode.code})`}
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Phone</label>
+                          <p className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-700 mt-1">
+                            <Phone className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-500" />
+                            {selectedBooking.guestPhone}
                           </p>
                         </div>
-                      </>
-                    ) : null}
-                    
-                    {/* Tax Breakdown */}
-                    {selectedBooking.baseAmount && (
-                      <div>
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Base Amount (after discounts)</label>
-                        <p className="text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.baseAmount, selectedBooking.room.roomType.currency)}</p>
                       </div>
-                    )}
-                    
-                    {selectedBooking.totalTaxAmount && selectedBooking.totalTaxAmount > 0 && (
-                      <>
-                        {selectedBooking.gstAmount && selectedBooking.gstAmount > 0 && (
-                          <div>
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">GST</label>
-                            <p className="text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.gstAmount, selectedBooking.room.roomType.currency)}</p>
-                          </div>
-                        )}
-                        {selectedBooking.serviceTaxAmount && selectedBooking.serviceTaxAmount > 0 && (
-                          <div>
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Service Tax</label>
-                            <p className="text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.serviceTaxAmount, selectedBooking.room.roomType.currency)}</p>
-                          </div>
-                        )}
-                        {selectedBooking.otherTaxAmount && selectedBooking.otherTaxAmount > 0 && (
-                          <div>
-                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Other Taxes</label>
-                            <p className="text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.otherTaxAmount, selectedBooking.room.roomType.currency)}</p>
-                          </div>
-                        )}
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Email</label>
+                        <p className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mt-1">
+                          <Mail className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-500" />
+                          {selectedBooking.guestEmail}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Guests</label>
+                        <p className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mt-1">
+                          <Users className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-500" />
+                          {selectedBooking.adults} Adult{selectedBooking.adults > 1 ? 's' : ''}
+                          {selectedBooking.children > 0 && `, ${selectedBooking.children} Child${selectedBooking.children > 1 ? 'ren' : ''}`}
+                        </p>
+                      </div>
+                      {selectedBooking.specialRequests && (
                         <div>
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Tax Amount</label>
-                          <p className="text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.totalTaxAmount, selectedBooking.room.roomType.currency)}</p>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Special Requests</label>
+                          <p className="text-xs sm:text-sm bg-gray-50 p-2 sm:p-3 rounded-md border border-gray-200 mt-1 text-gray-700">{selectedBooking.specialRequests}</p>
                         </div>
-                      </>
-                    )}
-                    
-                    <div className="border-t pt-4 mt-4">
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total Amount</label>
-                      <p className="text-lg font-semibold text-gray-900 mt-1">
-                        {formatCurrency(selectedBooking.totalAmount, selectedBooking.room.roomType.currency)}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                                                                   {/* Room Information */}
+                  <Card className="border border-gray-200 shadow-sm rounded-lg">
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                        <Bed className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                        Room Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 sm:space-y-4">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Room</label>
+                          <p className="text-xs sm:text-sm font-medium text-gray-900 mt-1">{selectedBooking.room.roomNumber}</p>
+                        </div>
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Floor</label>
+                          <p className="text-xs sm:text-sm text-gray-700 mt-1">{selectedBooking.room.floorNumber || 'N/A'}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Type</label>
+                        <p className="text-xs sm:text-sm text-gray-700 mt-1">{selectedBooking.room.roomType.name}</p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Size & Bed</label>
+                        <p className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mt-1">
+                          <Bed className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-500" />
+                          {selectedBooking.room.roomType.size} • {selectedBooking.room.roomType.bedType}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Amenities</label>
+                        <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-2">
+                          {selectedBooking.room.roomType.amenities?.map((amenity: string, index: number) => (
+                            <Badge key={index} variant="outline" className="text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1 bg-gray-50 border-gray-200 text-gray-700">{amenity}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                                                                   {/* Booking Details */}
+                  <Card className="border border-gray-200 shadow-sm rounded-lg">
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                        <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
+                        Booking Details
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 sm:space-y-4">
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Check-in</label>
+                          <p className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mt-1">
+                            <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-500" />
+                            {formatDate(selectedBooking.checkIn)}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Check-out</label>
+                          <p className="flex items-center gap-2 text-xs sm:text-sm text-gray-700 mt-1">
+                            <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-gray-500" />
+                            {formatDate(selectedBooking.checkOut)}
+                          </p>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Duration</label>
+                        <p className="text-xs sm:text-sm text-gray-700 mt-1">{selectedBooking.nights} night{selectedBooking.nights > 1 ? 's' : ''}</p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
+                          <div className="mt-1">
+                            <Badge className={`${statusColors[getDisplayStatus(selectedBooking)] || 'bg-gray-100 text-gray-800'} text-[9px] sm:text-xs px-1.5 sm:px-2 py-0.5 sm:py-1`}>
+                              {getDisplayStatus(selectedBooking).replace('_', ' ').toUpperCase()}
+                            </Badge>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Source</label>
+                          <p className="text-xs sm:text-sm text-gray-700 mt-1">{selectedBooking.source}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Booking Date</label>
+                        <p className="text-xs sm:text-sm text-gray-700 mt-1">{formatDate(selectedBooking.createdAt)}</p>
+                      </div>
+                      <div>
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Checkout Time</label>
+                        <p className="text-[9px] sm:text-xs text-gray-500 mt-1">
+                          {hotelInfo.checkOutTime}
+                        </p>
+                        <div className="mt-2">
+                          <CheckoutNotification booking={selectedBooking} />
+                        </div>
+                      </div>
+                   </CardContent>
+                 </Card>
+
+                                                                   {/* Payment Information */}
+                  <Card className="border border-gray-200 shadow-sm rounded-lg">
+                    <CardHeader className="pb-3 sm:pb-4">
+                      <CardTitle className="text-sm sm:text-base font-semibold text-gray-900 flex items-center gap-2">
+                        <svg className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                        Payment Information
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 sm:space-y-4">
+                      {selectedBooking.originalAmount && selectedBooking.discountAmount && selectedBooking.discountAmount > 0 ? (
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          <div>
+                            <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Original Amount</label>
+                            <p className="text-xs sm:text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.originalAmount, selectedBooking.room.roomType.currency)}</p>
+                          </div>
+                          <div>
+                            <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Discount</label>
+                            <p className="text-xs sm:text-sm text-green-600 mt-1">
+                              -{formatCurrency(selectedBooking.discountAmount, selectedBooking.room.roomType.currency)}
+                              {selectedBooking.promoCode && ` (${selectedBooking.promoCode.code})`}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+                     
+                      {/* Tax Breakdown */}
+                      {selectedBooking.baseAmount && (
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Base Amount (after discounts)</label>
+                          <p className="text-xs sm:text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.baseAmount, selectedBooking.room.roomType.currency)}</p>
+                        </div>
+                      )}
+                     
+                      {selectedBooking.totalTaxAmount && selectedBooking.totalTaxAmount > 0 && (
+                        <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                          {selectedBooking.gstAmount && selectedBooking.gstAmount > 0 && (
+                            <div>
+                              <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">GST</label>
+                              <p className="text-xs sm:text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.gstAmount, selectedBooking.room.roomType.currency)}</p>
+                            </div>
+                          )}
+                          {selectedBooking.serviceTaxAmount && selectedBooking.serviceTaxAmount > 0 && (
+                            <div>
+                              <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Service Tax</label>
+                              <p className="text-xs sm:text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.serviceTaxAmount, selectedBooking.room.roomType.currency)}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                     
+                      {selectedBooking.otherTaxAmount && selectedBooking.otherTaxAmount > 0 && (
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Other Taxes</label>
+                          <p className="text-xs sm:text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.otherTaxAmount, selectedBooking.room.roomType.currency)}</p>
+                        </div>
+                      )}
+                     
+                      {selectedBooking.totalTaxAmount && selectedBooking.totalTaxAmount > 0 && (
+                        <div>
+                          <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total Tax Amount</label>
+                          <p className="text-xs sm:text-sm text-gray-700 mt-1">{formatCurrency(selectedBooking.totalTaxAmount, selectedBooking.room.roomType.currency)}</p>
+                        </div>
+                      )}
+                     
+                      <div className="border-t pt-3 sm:pt-4 mt-3 sm:mt-4">
+                        <label className="text-[10px] sm:text-xs font-medium text-gray-500 uppercase tracking-wide">Total Amount</label>
+                        <p className="text-base sm:text-lg font-semibold text-gray-900 mt-1">
+                          {formatCurrency(selectedBooking.totalAmount, selectedBooking.room.roomType.currency)}
+                        </p>
+                      </div>
+                   </CardContent>
+                 </Card>
               </div>
             </>
           )}

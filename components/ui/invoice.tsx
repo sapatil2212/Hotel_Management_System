@@ -247,11 +247,13 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
                     <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
                       {formatCurrency(data.breakdown.roomDetails.baseAmount)}
                     </div>
-                    <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
-                      {formatCurrency(data.breakdown.roomDetails.gstAmount)}
-                    </div>
+                    {data.breakdown.roomDetails.gstAmount > 0 && (
+                      <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                        {formatCurrency(data.breakdown.roomDetails.gstAmount)}
+                      </div>
+                    )}
                     <div className="col-span-2 text-right text-gray-900 font-bold text-xs">
-                      {formatCurrency(data.breakdown.roomDetails.baseAmount + data.breakdown.roomDetails.gstAmount)}
+                      {formatCurrency(data.breakdown.roomDetails.baseAmount + (data.breakdown.roomDetails.gstAmount > 0 ? data.breakdown.roomDetails.gstAmount : 0))}
                     </div>
                   </div>
                 </div>
@@ -267,7 +269,9 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
                   <div className="col-span-2 text-center">Quantity</div>
                   <div className="col-span-2 text-right">Unit Price</div>
                   <div className="col-span-2 text-right">Base Amount</div>
-                  <div className="col-span-2 text-right">GST Amount</div>
+                  {data.breakdown.extraCharges?.items?.some(item => item.taxAmount && item.taxAmount > 0) && (
+                    <div className="col-span-2 text-right">GST Amount</div>
+                  )}
                   <div className="col-span-2 text-right">Total Amount</div>
                 </div>
               </div>
@@ -294,9 +298,11 @@ export function Invoice({ data, className = '' }: InvoiceProps) {
                         <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
                           {formatCurrency(baseAmount)}
                         </div>
-                        <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
-                          {formatCurrency(item.taxAmount || 0)}
-                        </div>
+                        {item.taxAmount && item.taxAmount > 0 && (
+                          <div className="col-span-2 text-right text-gray-900 font-medium text-xs">
+                            {formatCurrency(item.taxAmount)}
+                          </div>
+                        )}
                         <div className="col-span-2 text-right text-gray-900 font-bold text-xs">
                           {formatCurrency(item.finalAmount)}
                         </div>

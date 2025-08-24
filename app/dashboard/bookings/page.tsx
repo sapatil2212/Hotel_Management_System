@@ -86,13 +86,16 @@ export default function DashboardBookingsPage() {
           </p>
         </div>
         <Button 
-          variant="outline"
-          className="border-gray-300 text-gray-600 hover:bg-gray-50 hover:border-gray-400 h-8 w-8 sm:h-auto sm:w-auto sm:px-3 flex items-center justify-center"
-          onClick={() => setIsNewBookingModalOpen(true)}
-        >
-          <Plus className="h-4 w-4 text-gray-600 sm:mr-2" />
-          <span className="hidden sm:inline text-gray-600">New Booking</span>
-        </Button>
+  variant="outline" 
+  className="h-10 w-10 sm:h-auto sm:w-auto sm:px-3 flex items-center justify-center rounded-md sm:rounded-md"
+  onClick={() => setIsNewBookingModalOpen(true)}
+>
+  
+  <Plus className="h-7 w-7 sm:h-5 sm:w-5 text-black sm:mr-2" />
+  <span className="hidden sm:inline">New Booking</span>
+
+</Button>
+
       </div>
 
       {/* Booking Statistics */}

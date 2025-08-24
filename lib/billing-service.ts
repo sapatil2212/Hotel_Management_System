@@ -258,10 +258,10 @@ export class BillingService {
         baseAmount,
         totalDiscount,
         subtotal,
-        gstAmount: taxCalculation.gst || 0,
-        serviceTaxAmount: taxCalculation.serviceTax || 0,
-        otherTaxAmount: taxCalculation.otherTax || 0,
-        totalTaxAmount: taxCalculation.totalTax || 0,
+              gstAmount: taxCalculation.gst && taxCalculation.gst > 0 ? taxCalculation.gst : 0,
+      serviceTaxAmount: taxCalculation.serviceTax && taxCalculation.serviceTax > 0 ? taxCalculation.serviceTax : 0,
+      otherTaxAmount: taxCalculation.otherTax && taxCalculation.otherTax > 0 ? taxCalculation.otherTax : 0,
+      totalTaxAmount: taxCalculation.totalTax && taxCalculation.totalTax > 0 ? taxCalculation.totalTax : 0,
         totalAmount,
         itemsBreakdown: [
           {
@@ -295,10 +295,10 @@ export class BillingService {
           totalAmount: calculation.totalAmount,
           baseAmount: calculation.baseAmount || 0,
           discountAmount: calculation.totalDiscount || 0,
-          gstAmount: calculation.gstAmount || 0,
-          serviceTaxAmount: calculation.serviceTaxAmount || 0,
-          otherTaxAmount: calculation.otherTaxAmount || 0,
-          totalTaxAmount: calculation.totalTaxAmount || 0,
+                  gstAmount: calculation.gstAmount && calculation.gstAmount > 0 ? calculation.gstAmount : 0,
+        serviceTaxAmount: calculation.serviceTaxAmount && calculation.serviceTaxAmount > 0 ? calculation.serviceTaxAmount : 0,
+        otherTaxAmount: calculation.otherTaxAmount && calculation.otherTaxAmount > 0 ? calculation.otherTaxAmount : 0,
+        totalTaxAmount: calculation.totalTaxAmount && calculation.totalTaxAmount > 0 ? calculation.totalTaxAmount : 0,
         },
       });
     } catch (error) {

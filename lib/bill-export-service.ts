@@ -122,9 +122,11 @@ export class BillExportService {
     doc.text('Subtotal:', 130, y)
     doc.text(`₹${billData.charges.subtotal.toFixed(2)}`, 160, y)
 
-    y += 10
-    doc.text('GST (18%):', 130, y)
-    doc.text(`₹${billData.charges.gstAmount.toFixed(2)}`, 160, y)
+    if (billData.charges.gstAmount > 0) {
+      y += 10
+      doc.text('GST (18%):', 130, y)
+      doc.text(`₹${billData.charges.gstAmount.toFixed(2)}`, 160, y)
+    }
 
     y += 10
     doc.setFontSize(12)
@@ -189,7 +191,7 @@ export class BillExportService {
       ]),
       [],
       ['Subtotal:', '', '', billData.charges.subtotal],
-      ['GST (18%):', '', '', billData.charges.gstAmount],
+      ...(billData.charges.gstAmount > 0 ? [['GST (18%):', '', '', billData.charges.gstAmount]] : []),
       ['TOTAL AMOUNT:', '', '', billData.charges.totalAmount],
       [],
       ['PAYMENT INFORMATION'],

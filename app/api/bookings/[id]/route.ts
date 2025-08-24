@@ -138,10 +138,10 @@ export async function PUT(
           ...updateData,
           originalAmount: baseAmount,
           baseAmount: taxBreakdown.baseAmount,
-          gstAmount: taxBreakdown.gstAmount,
-          serviceTaxAmount: taxBreakdown.serviceTaxAmount,
-          otherTaxAmount: taxBreakdown.otherTaxAmount,
-          totalTaxAmount: taxBreakdown.totalTaxAmount,
+          gstAmount: taxBreakdown.gstAmount > 0 ? taxBreakdown.gstAmount : null,
+          serviceTaxAmount: taxBreakdown.serviceTaxAmount > 0 ? taxBreakdown.serviceTaxAmount : null,
+          otherTaxAmount: taxBreakdown.otherTaxAmount > 0 ? taxBreakdown.otherTaxAmount : null,
+          totalTaxAmount: taxBreakdown.totalTaxAmount > 0 ? taxBreakdown.totalTaxAmount : null,
           totalAmount: taxBreakdown.totalAmount,
           // Preserve discount if it exists
           discountAmount: originalBooking.discountAmount || 0

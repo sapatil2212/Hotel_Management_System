@@ -324,56 +324,58 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-0 p-4 sm:p-6 rounded-lg">
-        <DialogHeader className="mb-4 sm:mb-6">
-          <DialogTitle className="text-lg sm:text-xl">Create New Booking</DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm">
+     <DialogContent 
+  className="w-full max-w-[95%] sm:max-w-4xl max-h-[90vh] overflow-y-auto p-4 sm:p-6 rounded-lg left-1/2 -translate-x-1/2"
+>
+ <DialogHeader className="mb-3 sm:mb-6">
+          <DialogTitle className="text-base sm:text-xl">Create New Booking</DialogTitle>
+          <DialogDescription className="text-[10px] sm:text-sm">
             Create a new booking for a guest. Fill in all required information below.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
           {/* Left Column - Guest Information */}
           <div className="space-y-3 sm:space-y-4">
-            <h3 className="text-base sm:text-lg font-medium border-b pb-2">Guest Information</h3>
+            <h3 className="text-sm sm:text-lg font-medium border-b pb-2">Guest Information</h3>
             
             <div>
-              <Label htmlFor="guestName" className="text-xs sm:text-sm">Guest Name *</Label>
+              <Label htmlFor="guestName" className="text-[10px] sm:text-sm">Guest Name *</Label>
               <Input
                 id="guestName"
                 value={formData.guestName}
                 onChange={(e) => setFormData(prev => ({ ...prev, guestName: e.target.value }))}
                 placeholder="Enter guest name"
-                className="h-10 sm:h-9 text-sm rounded-md"
+                className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
               />
             </div>
 
             <div>
-              <Label htmlFor="guestEmail" className="text-xs sm:text-sm">Email Address *</Label>
+              <Label htmlFor="guestEmail" className="text-[10px] sm:text-sm">Email Address *</Label>
               <Input
                 id="guestEmail"
                 type="email"
                 value={formData.guestEmail}
                 onChange={(e) => setFormData(prev => ({ ...prev, guestEmail: e.target.value }))}
                 placeholder="Enter email address"
-                className="h-10 sm:h-9 text-sm rounded-md"
+                className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
               />
             </div>
 
             <div>
-              <Label htmlFor="guestPhone" className="text-xs sm:text-sm">Phone Number *</Label>
+              <Label htmlFor="guestPhone" className="text-[10px] sm:text-sm">Phone Number *</Label>
               <Input
                 id="guestPhone"
                 value={formData.guestPhone}
                 onChange={(e) => setFormData(prev => ({ ...prev, guestPhone: e.target.value }))}
                 placeholder="Enter phone number"
-                className="h-10 sm:h-9 text-sm rounded-md"
+                className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="adults" className="text-xs sm:text-sm">Adults</Label>
+                <Label htmlFor="adults" className="text-[10px] sm:text-sm">Adults</Label>
                 <Input
                   id="adults"
                   type="number"
@@ -381,11 +383,11 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
                   max="10"
                   value={formData.adults}
                   onChange={(e) => setFormData(prev => ({ ...prev, adults: parseInt(e.target.value) || 1 }))}
-                  className="h-10 sm:h-9 text-sm rounded-md"
+                  className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                 />
               </div>
               <div>
-                <Label htmlFor="children" className="text-xs sm:text-sm">Children</Label>
+                <Label htmlFor="children" className="text-[10px] sm:text-sm">Children</Label>
                 <Input
                   id="children"
                   type="number"
@@ -393,52 +395,78 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
                   max="10"
                   value={formData.children}
                   onChange={(e) => setFormData(prev => ({ ...prev, children: parseInt(e.target.value) || 0 }))}
-                  className="h-10 sm:h-9 text-sm rounded-md"
+                  className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                 />
               </div>
             </div>
 
             <div>
-              <Label htmlFor="specialRequests" className="text-xs sm:text-sm">Special Requests</Label>
+              <Label htmlFor="specialRequests" className="text-[10px] sm:text-sm">Special Requests</Label>
               <Textarea
                 id="specialRequests"
                 value={formData.specialRequests}
                 onChange={(e) => setFormData(prev => ({ ...prev, specialRequests: e.target.value }))}
                 placeholder="Enter any special requests or notes..."
-                rows={3}
-                className="resize-none text-sm rounded-md"
+                rows={2}
+                className="resize-none text-xs sm:text-sm rounded-md"
               />
             </div>
           </div>
 
           {/* Right Column - Room & Booking Details */}
           <div className="space-y-3 sm:space-y-4">
-            <h3 className="text-base sm:text-lg font-medium border-b pb-2">Room & Booking Details</h3>
+            <h3 className="text-sm sm:text-lg font-medium border-b pb-2">Room & Booking Details</h3>
             
-            <div>
-              <Label htmlFor="roomTypeId" className="text-xs sm:text-sm">Room Type *</Label>
-              <Select 
-                value={formData.roomTypeId} 
-                onValueChange={(value) => setFormData(prev => ({ ...prev, roomTypeId: value, roomId: '' }))}
-                disabled={loadingRoomTypes}
-              >
-                <SelectTrigger className="h-10 sm:h-9 text-sm rounded-md">
-                  <SelectValue placeholder={loadingRoomTypes ? "Loading room types..." : "Select room type"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {roomTypes.map((roomType) => (
-                    <SelectItem key={roomType.id} value={roomType.id} disabled={roomType.availableRooms.length === 0}>
-                      <div className="flex justify-between items-center w-full">
-                        <span>{roomType.name}</span>
-                        <span className="ml-2 text-xs">
-                          {formatCurrency(roomType.price, roomType.currency)}/night
-                          {roomType.availableRooms.length === 0 && " (No rooms)"}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="roomTypeId" className="text-[10px] sm:text-sm">Room Type *</Label>
+                <Select 
+                  value={formData.roomTypeId} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, roomTypeId: value, roomId: '' }))}
+                  disabled={loadingRoomTypes}
+                >
+                  <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
+                    <SelectValue placeholder={loadingRoomTypes ? "Loading..." : "Select type"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roomTypes.map((roomType) => (
+                      <SelectItem key={roomType.id} value={roomType.id} disabled={roomType.availableRooms.length === 0}>
+                        <div className="flex justify-between items-center w-full">
+                          <span>{roomType.name}</span>
+                          <span className="ml-2 text-xs">
+                            {formatCurrency(roomType.price, roomType.currency)}/night
+                            {roomType.availableRooms.length === 0 && " (No rooms)"}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.roomTypeId && (
+                <div>
+                  <Label htmlFor="roomId" className="text-[10px] sm:text-sm">Select Room *</Label>
+                  <Select 
+                    value={formData.roomId} 
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, roomId: value }))}
+                    disabled={loadingRooms || availableRooms.length === 0}
+                  >
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
+                      <SelectValue placeholder={loadingRooms ? "Loading..." : availableRooms.length === 0 ? "No rooms" : "Select room"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableRooms.map((room) => (
+                        <SelectItem key={room.id} value={room.id}>
+                          Room {room.roomNumber} 
+                          {room.floorNumber && ` (Floor ${room.floorNumber})`}
+                          {room.status === 'available' && " (Available)"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
 
             {selectedRoomType && (
@@ -466,69 +494,45 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
               </Card>
             )}
 
-            {formData.roomTypeId && (
-              <div>
-                <Label htmlFor="roomId" className="text-xs sm:text-sm">Select Room *</Label>
-                <Select 
-                  value={formData.roomId} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, roomId: value }))}
-                  disabled={loadingRooms || availableRooms.length === 0}
-                >
-                  <SelectTrigger className="h-10 sm:h-9 text-sm rounded-md">
-                    <SelectValue placeholder={loadingRooms ? "Loading rooms..." : availableRooms.length === 0 ? "No rooms available" : "Select a room"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableRooms.map((room) => (
-                      <SelectItem key={room.id} value={room.id}>
-                        Room {room.roomNumber} 
-                        {room.floorNumber && ` (Floor ${room.floorNumber})`}
-                        {room.status === 'available' && " (Available)"}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="checkIn" className="text-xs sm:text-sm">Check-in Date *</Label>
+                <Label htmlFor="checkIn" className="text-[10px] sm:text-sm">Check-in Date *</Label>
                 <Input
                   id="checkIn"
                   type="date"
                   value={formData.checkIn}
                   onChange={(e) => handleDateChange('checkIn', e.target.value)}
-                  className="h-10 sm:h-9 text-sm rounded-md"
+                  className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                   min={new Date().toISOString().split('T')[0]}
                 />
               </div>
               <div>
-                <Label htmlFor="checkOut" className="text-xs sm:text-sm">Check-out Date *</Label>
+                <Label htmlFor="checkOut" className="text-[10px] sm:text-sm">Check-out Date *</Label>
                 <Input
                   id="checkOut"
                   type="date"
                   value={formData.checkOut}
                   onChange={(e) => handleDateChange('checkOut', e.target.value)}
-                  className="h-10 sm:h-9 text-sm rounded-md"
+                  className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                   min={formData.checkIn || new Date().toISOString().split('T')[0]}
                 />
               </div>
             </div>
 
             <div className="text-center">
-              <span className="text-xs sm:text-sm font-medium">
+              <span className="text-[10px] sm:text-sm font-medium">
                 Duration: {formData.nights} night{formData.nights > 1 ? 's' : ''}
               </span>
             </div>
 
             <div>
-              <Label htmlFor="promoCode" className="text-xs sm:text-sm">Promo Code (Optional)</Label>
+              <Label htmlFor="promoCode" className="text-[10px] sm:text-sm">Promo Code (Optional)</Label>
               <Input
                 id="promoCode"
                 value={formData.promoCode}
                 onChange={(e) => setFormData(prev => ({ ...prev, promoCode: e.target.value }))}
                 placeholder="Enter promo code"
-                className="h-10 sm:h-9 text-sm"
+                className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
               />
             </div>
 
@@ -567,27 +571,27 @@ export default function NewBookingModal({ open, onOpenChange, onBookingCreated }
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t">
+        <div className="flex justify-end gap-3 pt-3 border-t">
           <Button 
             variant="outline" 
             onClick={handleClose}
             disabled={loading}
             size="sm"
-            className="h-10 sm:h-9"
+            className="h-8 sm:h-9 text-xs sm:text-sm"
           >
-            <X className="h-4 w-4 mr-2" />
+            <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             Cancel
           </Button>
           <Button 
             onClick={handleSubmit}
             disabled={loading || !formData.guestName || !formData.guestEmail || !formData.guestPhone || !formData.roomTypeId || !formData.roomId || !formData.checkIn || !formData.checkOut}
             size="sm"
-            className="h-10 sm:h-9"
+            className="h-8 sm:h-9 text-xs sm:text-sm"
           >
             {loading ? (
-              <Loader className="h-4 w-4 mr-2 animate-spin" />
+              <Loader className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
             ) : (
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             )}
             {loading ? 'Creating...' : 'Create Booking'}
           </Button>

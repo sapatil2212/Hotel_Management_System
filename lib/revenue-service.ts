@@ -486,9 +486,9 @@ export class RevenueService {
     let otherTax = 0;
 
     bookings.forEach(booking => {
-      gst += booking.gstAmount || 0;
-      serviceTax += booking.serviceTaxAmount || 0;
-      otherTax += booking.otherTaxAmount || 0;
+      gst += booking.gstAmount && booking.gstAmount > 0 ? booking.gstAmount : 0;
+      serviceTax += booking.serviceTaxAmount && booking.serviceTaxAmount > 0 ? booking.serviceTaxAmount : 0;
+      otherTax += booking.otherTaxAmount && booking.otherTaxAmount > 0 ? booking.otherTaxAmount : 0;
     });
 
     return {
@@ -768,8 +768,8 @@ export class RevenueService {
         'Room Number': booking.room.roomNumber,
         'Base Amount': booking.baseAmount || 0,
         'Discount': booking.discountAmount || 0,
-        'GST': booking.gstAmount || 0,
-        'Service Tax': booking.serviceTaxAmount || 0,
+        'GST': booking.gstAmount && booking.gstAmount > 0 ? booking.gstAmount : null,
+        'Service Tax': booking.serviceTaxAmount && booking.serviceTaxAmount > 0 ? booking.serviceTaxAmount : null,
         'Total Amount': booking.totalAmount,
         'Payment Status': booking.paymentStatus,
         'Source': booking.source,

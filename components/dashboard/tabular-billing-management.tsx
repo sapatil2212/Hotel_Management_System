@@ -1016,10 +1016,12 @@ export default function TabularBillingManagement() {
                       <span>Subtotal:</span>
                       <span>₹{billTotals.subtotal.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>GST (18%):</span>
-                      <span>₹{billTotals.gstAmount.toFixed(2)}</span>
-                    </div>
+                    {billTotals.gstAmount > 0 && (
+                      <div className="flex justify-between">
+                        <span>GST (18%):</span>
+                        <span>₹{billTotals.gstAmount.toFixed(2)}</span>
+                      </div>
+                    )}
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <span>Total Amount:</span>
