@@ -200,13 +200,13 @@ export default function RevenueAreaChart() {
                 dataKey="date" 
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 8, sm: 10 }}
+                tick={{ fontSize: 8 }}
                 height={60}
               />
               <YAxis 
                 tickLine={false}
                 axisLine={false}
-                tick={{ fontSize: 8, sm: 10 }}
+                tick={{ fontSize: 8 }}
                 width={50}
                 tickFormatter={(value) => `₹${value.toLocaleString()}`}
               />

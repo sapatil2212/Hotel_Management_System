@@ -202,7 +202,7 @@ export default function OccupancyBarChart() {
               dataKey="roomType" 
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 8, sm: 10 }}
+              tick={{ fontSize: 8 }}
               angle={-45}
               textAnchor="end"
               height={60}
@@ -210,7 +210,7 @@ export default function OccupancyBarChart() {
             <YAxis 
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 8, sm: 10 }}
+              tick={{ fontSize: 8 }}
               width={30}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
