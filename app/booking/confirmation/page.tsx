@@ -84,9 +84,14 @@ export default function BookingConfirmationPage() {
 
   const fetchBookingDetails = async () => {
     try {
+      console.log('Fetching booking details for ID:', bookingId);
+      
       const response = await fetch(`/api/bookings/${bookingId}`)
+      console.log('Booking API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json()
+        console.log('Booking data received:', data);
         setBookingDetails(data)
         
         // Automatically generate invoice if it doesn't exist
@@ -105,9 +110,12 @@ export default function BookingConfirmationPage() {
           console.error('Error generating invoice:', error)
         }
       } else {
+        const errorText = await response.text();
+        console.error('Booking API error:', response.status, errorText);
+        
         toast({
           title: "Error",
-          description: "Failed to fetch booking details",
+          description: `Failed to fetch booking details: ${response.status} - ${errorText}`,
           variant: "destructive"
         })
       }
@@ -115,7 +123,7 @@ export default function BookingConfirmationPage() {
       console.error('Error fetching booking:', error)
       toast({
         title: "Error",
-        description: "Failed to fetch booking details",
+        description: `Failed to fetch booking details: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       })
     }

@@ -12,10 +12,16 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // Allow access to booking details without authentication for guest users
+    // This is needed for booking confirmation pages
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+    const isAuthenticated = !!session?.user?.email;
+    
+    console.log('Fetching booking:', {
+      bookingId: params.id,
+      isAuthenticated,
+      userEmail: session?.user?.email || 'Guest user'
+    });
 
     const booking = await prisma.booking.findUnique({
       where: { id: params.id },
@@ -32,8 +38,16 @@ export async function GET(
     });
 
     if (!booking) {
+      console.log('Booking not found:', params.id);
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
     }
+
+    console.log('Booking found:', {
+      bookingId: booking.id,
+      guestName: booking.guestName,
+      guestEmail: booking.guestEmail,
+      status: booking.status
+    });
 
     return NextResponse.json(booking);
   } catch (error) {

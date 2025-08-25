@@ -274,6 +274,17 @@ export async function POST(request: NextRequest) {
       bookingType: isAuthenticated ? 'Authenticated User' : 'Guest User'
     })
 
+    // Log the exact response being sent back
+    console.log('Sending booking response:', {
+      id: result.id,
+      guestName: result.guestName,
+      room: {
+        roomNumber: result.room.roomNumber,
+        roomType: result.room.roomType.name
+      },
+      status: result.status
+    })
+
     // Create notification for new booking (only if authenticated user exists)
     try {
       if (user) {
@@ -298,6 +309,32 @@ export async function POST(request: NextRequest) {
     } catch (notificationError) {
       console.error('Error creating booking notification:', notificationError)
       // Don't fail the booking creation if notification fails
+    }
+
+    // Verify the booking was actually saved to the database
+    try {
+      const verificationBooking = await prisma.booking.findUnique({
+        where: { id: result.id },
+        include: {
+          room: {
+            include: {
+              roomType: true
+            }
+          }
+        }
+      })
+      
+      if (verificationBooking) {
+        console.log('✅ Booking verification successful:', {
+          bookingId: verificationBooking.id,
+          guestName: verificationBooking.guestName,
+          status: verificationBooking.status
+        })
+      } else {
+        console.error('❌ Booking verification failed - booking not found in database:', result.id)
+      }
+    } catch (verificationError) {
+      console.error('❌ Error verifying booking:', verificationError)
     }
 
     return NextResponse.json(result, { status: 201 })
