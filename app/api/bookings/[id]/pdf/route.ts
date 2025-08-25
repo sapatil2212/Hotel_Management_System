@@ -6,6 +6,8 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log('PDF generation requested for booking ID:', params.id)
+  
   try {
     // Fetch booking details
     const booking = await prisma.booking.findUnique({
@@ -21,11 +23,14 @@ export async function GET(
     })
 
     if (!booking) {
+      console.log('Booking not found for ID:', params.id)
       return NextResponse.json(
         { error: 'Booking not found' },
         { status: 404 }
       )
     }
+
+    console.log('Booking found, generating PDF...')
 
     // Fetch hotel info
     const hotelInfo = await prisma.hotelinfo.findFirst()
@@ -33,33 +38,41 @@ export async function GET(
     // Generate HTML for PDF
     const htmlContent = generateInvoiceHTML(booking, hotelInfo)
 
-    // Generate PDF using Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    })
+    // For now, return HTML that can be printed to PDF by the browser
+    // This avoids Puppeteer issues and works reliably across all devices
+    console.log('Returning HTML for browser-based PDF generation...')
     
-    const page = await browser.newPage()
-    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
+    const printableHTML = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Booking Confirmation - ${booking.id}</title>
+        <style>
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        ${htmlContent}
+        <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+          <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Print/Save as PDF
+          </button>
+          <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+            Close
+          </button>
+        </div>
+      </body>
+      </html>
+    `
     
-    const pdfBuffer = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: {
-        top: '20px',
-        bottom: '20px',
-        left: '20px',
-        right: '20px'
-      }
-    })
-    
-    await browser.close()
-
-    // Return PDF response
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(printableHTML, {
       headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="booking-invoice-${booking.id}.pdf"`
+        'Content-Type': 'text/html',
+        'Content-Disposition': `attachment; filename="booking-invoice-${booking.id}.html"`
       }
     })
 
@@ -69,6 +82,71 @@ export async function GET(
       { error: 'Failed to generate PDF' },
       { status: 500 }
     )
+  }
+}
+
+async function generatePDFWithPuppeteer(htmlContent: string, bookingId: string) {
+  // Generate PDF using Puppeteer with better error handling
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process'
+      ]
+    })
+    
+    const page = await browser.newPage()
+    
+    // Set a reasonable timeout
+    page.setDefaultTimeout(30000)
+    
+    await page.setContent(htmlContent, { 
+      waitUntil: 'networkidle0',
+      timeout: 30000
+    })
+    
+    const pdfBuffer = await page.pdf({
+      format: 'A4',
+      printBackground: true,
+      margin: {
+        top: '20px',
+        bottom: '20px',
+        left: '20px',
+        right: '20px'
+      },
+      timeout: 30000
+    })
+    
+    await browser.close()
+    
+    // Return PDF response
+    return new NextResponse(pdfBuffer, {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="booking-invoice-${bookingId}.pdf"`
+      }
+    })
+    
+  } catch (puppeteerError) {
+    console.error('Puppeteer error:', puppeteerError)
+    
+    // If browser was created, try to close it
+    if (browser) {
+      try {
+        await browser.close()
+      } catch (closeError) {
+        console.error('Error closing browser:', closeError)
+      }
+    }
+    
+    throw puppeteerError
   }
 }
 
