@@ -69,15 +69,36 @@ export async function GET(request: NextRequest) {
 // POST /api/bookings - Create a new booking with automatic room allocation
 export async function POST(request: NextRequest) {
   try {
+    console.log('Booking API called - User Agent:', request.headers.get('user-agent'))
+    console.log('Booking API called - Origin:', request.headers.get('origin'))
+    
     const session = await getServerSession(authOptions)
+    console.log('Session check result:', { 
+      hasSession: !!session, 
+      userEmail: session?.user?.email,
+      userId: session?.user?.id 
+    })
+    
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.log('Unauthorized booking attempt - no session')
+      return NextResponse.json({ 
+        error: 'Unauthorized - Please log in again',
+        requiresAuth: true 
+      }, { status: 401 })
     }
 
     // Get user ID for notifications
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     })
+    
+    if (!user) {
+      console.log('User not found in database:', session.user.email)
+      return NextResponse.json({ 
+        error: 'User not found - Please log in again',
+        requiresAuth: true 
+      }, { status: 401 })
+    }
 
     const data = await request.json()
     const { 
