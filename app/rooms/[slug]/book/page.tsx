@@ -383,45 +383,14 @@ export default function BookingPage() {
     
     if (!validateForm()) return
     
-    // Check session before showing confirmation modal
-    try {
-      const sessionCheck = await fetch('/api/auth/session')
-      const sessionData = await sessionCheck.json()
-      
-      if (!sessionData.user?.email) {
-        toast.error('Your session has expired. Please log in again to continue with your booking.')
-        router.push('/auth/sign-in')
-        return
-      }
-      
-      // Show confirmation modal if session is valid
-      setShowConfirmationModal(true)
-    } catch (error) {
-      console.error('Session check failed:', error)
-      toast.error('Unable to verify your session. Please try again.')
-    }
+    // Show confirmation modal instead of immediately submitting
+    setShowConfirmationModal(true)
   }
 
   const handleConfirmBooking = async () => {
     console.log('Starting booking confirmation process...')
     console.log('User Agent:', navigator.userAgent)
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    console.log('Is Mobile:', isMobile)
-    
-    // Check connection quality on mobile
-    if (isMobile && 'connection' in navigator) {
-      const connection = (navigator as any).connection
-      console.log('Connection info:', {
-        effectiveType: connection.effectiveType,
-        downlink: connection.downlink,
-        rtt: connection.rtt
-      })
-      
-      if (connection.effectiveType === 'slow-2g' || connection.effectiveType === '2g') {
-        toast.error('Your connection appears to be slow. Please try again when you have a better internet connection.')
-        return
-      }
-    }
+    console.log('Is Mobile:', /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
     
     setSubmitting(true)
     setShowConfirmationModal(false)
@@ -445,51 +414,75 @@ export default function BookingPage() {
         specialRequests: bookingData.specialRequests
       }
       
-      // Create booking with automatic room allocation and timeout for mobile
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      const timeoutDuration = isMobile ? 45000 : 30000 // 45 seconds for mobile, 30 for desktop
+      console.log('Booking payload:', bookingPayload)
       
+      // Create booking with automatic room allocation and timeout for mobile
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), timeoutDuration)
+      const timeoutId = setTimeout(() => {
+        console.log('Request timeout reached')
+        controller.abort()
+      }, 45000) // Increased timeout to 45 seconds for mobile
       
       let response: Response | undefined
       let retryCount = 0
-      const maxRetries = isMobile ? 3 : 2 // More retries for mobile
+      const maxRetries = 3 // Increased retries for mobile
       
       while (retryCount <= maxRetries) {
         try {
           console.log(`Attempting booking (attempt ${retryCount + 1}/${maxRetries + 1})...`)
+          
+          // Add mobile-specific headers
+          const headers: HeadersInit = {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+          
+          // Add user agent for debugging
+          if (typeof navigator !== 'undefined') {
+            headers['X-User-Agent'] = navigator.userAgent
+          }
+          
           response = await fetch('/api/bookings', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
+            headers,
             body: JSON.stringify(bookingPayload),
-            signal: controller.signal
+            signal: controller.signal,
+            // Add mobile-specific fetch options
+            keepalive: true,
+            mode: 'cors',
+            credentials: 'same-origin'
           })
-          break // If successful, break out of retry loop
+          
+          console.log('Response status:', response.status)
+          console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+          
+          if (response.ok) {
+            console.log('Booking request successful')
+            break // If successful, break out of retry loop
+          } else {
+            const errorText = await response.text()
+            console.error('Response not ok:', response.status, errorText)
+            throw new Error(`HTTP ${response.status}: ${errorText}`)
+          }
         } catch (fetchError) {
+          console.error(`Booking attempt ${retryCount + 1} failed:`, fetchError)
           retryCount++
+          
           if (retryCount > maxRetries) {
             throw fetchError
           }
-          console.log(`Booking attempt ${retryCount} failed, retrying...`)
-          const retryDelay = isMobile ? (2000 * retryCount) : (1000 * retryCount) // Longer delays for mobile
-          await new Promise(resolve => setTimeout(resolve, retryDelay))
+          
+          // Exponential backoff with jitter for mobile
+          const backoffDelay = Math.min(1000 * Math.pow(2, retryCount) + Math.random() * 1000, 5000)
+          console.log(`Retrying in ${backoffDelay}ms...`)
+          await new Promise(resolve => setTimeout(resolve, backoffDelay))
         }
       }
 
       clearTimeout(timeoutId)
 
       if (!response || !response.ok) {
-        const error = await response?.json()
-        console.log('Booking API error response:', error)
-        
-        // Handle authentication errors specifically
-        if (response?.status === 401 && error?.requiresAuth) {
-          throw new Error('Your session has expired. Please log in again to continue with your booking.')
-        }
-        
+        const error = await response?.json().catch(() => ({ error: 'Failed to parse error response' }))
         throw new Error(error?.error || 'Failed to create booking')
       }
 
@@ -519,14 +512,9 @@ export default function BookingPage() {
     } catch (error) {
       console.error("Booking error:", error)
       
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      
       if (error instanceof Error) {
         if (error.name === 'AbortError') {
-          const mobileMessage = isMobile 
-            ? "Booking request timed out. This can happen on slower mobile connections. Please try again or check your internet connection."
-            : "Booking request timed out. Please check your connection and try again."
-          toast.error(mobileMessage)
+          toast.error("Booking request timed out. Please check your connection and try again.")
         } else {
           toast.error(error.message || "Failed to submit booking. Please try again.")
         }
@@ -624,29 +612,29 @@ export default function BookingPage() {
                       <Label htmlFor="guestName" className="text-sm font-medium text-gray-700">Full Name *</Label>
                       <div className="relative">
                         <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                                 <Input
-                           id="guestName"
-                           value={bookingData.guestName}
-                           onChange={(e) => updateBookingData('guestName', e.target.value)}
-                           placeholder="Enter your full name"
-                           className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-200"
-                           required
-                         />
+                                                                         <Input
+                          id="guestName"
+                          value={bookingData.guestName}
+                          onChange={(e) => updateBookingData('guestName', e.target.value)}
+                          placeholder="Enter your full name"
+                          className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-200 mobile-form-input mobile-focus"
+                          required
+                        />
                       </div>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="guestEmail" className="text-sm font-medium text-gray-700">Email Address *</Label>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                                 <Input
-                           id="guestEmail"
-                           type="email"
-                           value={bookingData.guestEmail}
-                           onChange={(e) => updateBookingData('guestEmail', e.target.value)}
-                           placeholder="your@email.com"
-                           className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-200"
-                           required
-                         />
+                                                                         <Input
+                          id="guestEmail"
+                          type="email"
+                          value={bookingData.guestEmail}
+                          onChange={(e) => updateBookingData('guestEmail', e.target.value)}
+                          placeholder="your@email.com"
+                          className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-200 mobile-form-input mobile-focus"
+                          required
+                        />
                       </div>
                     </div>
                   </div>
@@ -654,14 +642,14 @@ export default function BookingPage() {
                     <Label htmlFor="guestPhone" className="text-sm font-medium text-gray-700">Phone Number *</Label>
                     <div className="relative">
                                               <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                             <Input
-                         id="guestPhone"
-                         value={bookingData.guestPhone}
-                         onChange={(e) => updateBookingData('guestPhone', e.target.value)}
-                         placeholder="+91 98765 43210"
-                         className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-200"
-                         required
-                       />
+                                                                   <Input
+                        id="guestPhone"
+                        value={bookingData.guestPhone}
+                        onChange={(e) => updateBookingData('guestPhone', e.target.value)}
+                        placeholder="+91 98765 43210"
+                        className="pl-10 border-gray-200 focus:border-gray-400 focus:ring-gray-200 mobile-form-input mobile-focus"
+                        required
+                      />
                     </div>
                   </div>
                 </CardContent>
@@ -683,7 +671,7 @@ export default function BookingPage() {
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-start text-left font-normal"
+                            className="w-full justify-start text-left font-normal mobile-calendar mobile-focus"
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {bookingData.checkIn ? format(bookingData.checkIn, "PPP") : "Pick a date"}
@@ -710,7 +698,7 @@ export default function BookingPage() {
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
-                            className="w-full justify-start text-left font-normal"
+                            className="w-full justify-start text-left font-normal mobile-calendar mobile-focus"
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {bookingData.checkOut ? format(bookingData.checkOut, "PPP") : "Pick a date"}
@@ -1060,12 +1048,12 @@ export default function BookingPage() {
                     <Separator />
                     
                     {/* Book Now Button */}
-                                         <Button 
-                       onClick={handleSubmit}
-                       className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold py-3 md:py-4 text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-200" 
-                       size="lg"
-                       disabled={submitting || !bookingData.agreeToTerms}
-                     >
+                                                             <Button 
+                      onClick={handleSubmit}
+                      className="w-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-semibold py-3 md:py-4 text-base md:text-lg shadow-lg hover:shadow-xl transition-all duration-200 mobile-button touch-friendly no-select" 
+                      size="lg"
+                      disabled={submitting || !bookingData.agreeToTerms}
+                    >
                       {submitting ? (
                         <div className="flex items-center">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
@@ -1258,9 +1246,9 @@ export default function BookingPage() {
                                      {/* Book Now Button */}
                    <Button 
                      onClick={handleConfirmBooking}
-                     className={`w-full font-semibold py-3 sm:py-2 text-base touch-manipulation mobile-touch-target ${
+                     className={`w-full font-semibold py-3 sm:py-2 text-base mobile-button touch-friendly no-select ${
                        submitting 
-                         ? 'bg-gray-400 cursor-not-allowed' 
+                         ? 'bg-gray-400 cursor-not-allowed mobile-loading' 
                          : 'bg-green-600 hover:bg-green-700 active:bg-green-800'
                      } text-white`}
                      size="lg"
@@ -1270,12 +1258,7 @@ export default function BookingPage() {
                     {submitting ? (
                       <div className="flex items-center justify-center">
                         <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
-                        <span className="text-sm sm:text-base">
-                          {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
-                            ? "Processing booking (this may take a moment on mobile)..."
-                            : "Processing your booking..."
-                          }
-                        </span>
+                        <span className="text-sm sm:text-base">Processing your booking...</span>
                       </div>
                     ) : (
                       "Book Now"

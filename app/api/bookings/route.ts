@@ -69,38 +69,39 @@ export async function GET(request: NextRequest) {
 // POST /api/bookings - Create a new booking with automatic room allocation
 export async function POST(request: NextRequest) {
   try {
-    console.log('Booking API called - User Agent:', request.headers.get('user-agent'))
-    console.log('Booking API called - Origin:', request.headers.get('origin'))
-    
-    const session = await getServerSession(authOptions)
-    console.log('Session check result:', { 
-      hasSession: !!session, 
-      userEmail: session?.user?.email,
-      userId: session?.user?.id 
+    // Log request details for debugging
+    const userAgent = request.headers.get('user-agent') || 'unknown'
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+    console.log('Booking request received:', {
+      userAgent,
+      isMobile,
+      method: request.method,
+      url: request.url,
+      headers: Object.fromEntries(request.headers.entries())
     })
-    
+
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       console.log('Unauthorized booking attempt - no session')
-      return NextResponse.json({ 
-        error: 'Unauthorized - Please log in again',
-        requiresAuth: true 
-      }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     // Get user ID for notifications
     const user = await prisma.user.findUnique({
       where: { email: session.user.email }
     })
-    
-    if (!user) {
-      console.log('User not found in database:', session.user.email)
-      return NextResponse.json({ 
-        error: 'User not found - Please log in again',
-        requiresAuth: true 
-      }, { status: 401 })
-    }
 
     const data = await request.json()
+    console.log('Booking data received:', {
+      roomTypeId: data.roomTypeId,
+      checkIn: data.checkIn,
+      checkOut: data.checkOut,
+      guestName: data.guestName,
+      guestEmail: data.guestEmail,
+      guestPhone: data.guestPhone,
+      isMobile
+    })
+
     const { 
       roomTypeId, 
       checkIn, 
@@ -121,6 +122,7 @@ export async function POST(request: NextRequest) {
     
     // Validate required fields
     if (!roomTypeId || !checkIn || !checkOut || !guestName || !guestEmail || !guestPhone) {
+      console.log('Missing required fields:', { roomTypeId, checkIn, checkOut, guestName, guestEmail, guestPhone })
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -133,6 +135,7 @@ export async function POST(request: NextRequest) {
     })
     
     if (!roomType) {
+      console.log('Room type not found:', roomTypeId)
       return NextResponse.json(
         { error: 'Room type not found' },
         { status: 404 }
@@ -150,7 +153,10 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    console.log(`Found ${availableRooms.length} available rooms for room type ${roomTypeId}`)
+
     if (availableRooms.length === 0) {
+      console.log('No available rooms found for room type:', roomTypeId)
       return NextResponse.json(
         { error: 'No available rooms of this type' },
         { status: 400 }
@@ -159,6 +165,7 @@ export async function POST(request: NextRequest) {
 
     // Select the first available room
     const selectedRoom = availableRooms[0]
+    console.log('Selected room:', selectedRoom.roomNumber)
 
     // Get hotel tax configuration
     const hotelInfo = await prisma.hotelinfo.findFirst()
@@ -191,6 +198,8 @@ export async function POST(request: NextRequest) {
 
     // Generate unique booking ID
     const bookingId = `BL-${Date.now()}`
+    
+    console.log('Creating booking with ID:', bookingId)
     
     // Create booking in a transaction
     const result = await prisma.$transaction(async (tx: any) => {
@@ -245,6 +254,14 @@ export async function POST(request: NextRequest) {
       return booking
     })
 
+    console.log('Booking created successfully:', {
+      bookingId: result.id,
+      roomNumber: result.room.roomNumber,
+      guestName: result.guestName,
+      totalAmount: result.totalAmount,
+      isMobile
+    })
+
     // Create notification for new booking
     try {
       if (user) {
@@ -265,6 +282,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('Error creating booking:', error)
+    
+    // Return more specific error messages for mobile debugging
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: `Failed to create booking: ${error.message}` },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to create booking' },
       { status: 500 }
