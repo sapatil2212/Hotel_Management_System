@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,13 +16,48 @@ interface NavigatorWithConnection extends Navigator {
   };
 }
 
+interface DeviceInfo {
+  userAgent: string;
+  isMobile: boolean;
+  connectionInfo: string;
+  screenSize: string;
+  viewportSize: string;
+}
+
 export default function TestMobileBookingPage() {
   const [testResult, setTestResult] = useState<string>("")
   const [loading, setLoading] = useState(false)
-  const [userAgent, setUserAgent] = useState("")
-  const [isMobile, setIsMobile] = useState(false)
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo | null>(null)
+  const [isClient, setIsClient] = useState(false)
+
+  // Initialize client-side state
+  useEffect(() => {
+    setIsClient(true)
+    
+    // Get device information only on client side
+    if (typeof window !== 'undefined' && typeof navigator !== 'undefined') {
+      const ua = navigator.userAgent
+      const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
+      
+      // Safe access to navigator.connection
+      const nav = navigator as NavigatorWithConnection
+      const connectionInfo = nav.connection ? 
+        `${nav.connection.effectiveType || 'Unknown'} (${nav.connection.downlink || 'Unknown'}Mbps)` : 
+        'Not supported'
+      
+      setDeviceInfo({
+        userAgent: ua,
+        isMobile: mobile,
+        connectionInfo,
+        screenSize: `${window.screen.width} x ${window.screen.height}`,
+        viewportSize: `${window.innerWidth} x ${window.innerHeight}`
+      })
+    }
+  }, [])
 
   const testBookingAPI = async () => {
+    if (!isClient) return
+    
     setLoading(true)
     setTestResult("")
     
@@ -30,9 +65,6 @@ export default function TestMobileBookingPage() {
       // Get user agent info
       const ua = navigator.userAgent
       const mobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua)
-      
-      setUserAgent(ua)
-      setIsMobile(mobile)
       
       const testData = {
         roomTypeId: "test-room-id",
@@ -80,6 +112,8 @@ Response Body: ${result}
   }
 
   const testNetworkConnectivity = async () => {
+    if (!isClient) return
+    
     setLoading(true)
     setTestResult("")
     
@@ -114,13 +148,18 @@ Connection: ${connectionInfo ? `${connectionInfo.effectiveType} (${connectionInf
     }
   }
 
-  // Safe access to navigator.connection for display
-  const getConnectionInfo = () => {
-    const nav = navigator as NavigatorWithConnection
-    if (nav.connection) {
-      return `${nav.connection.effectiveType || 'Unknown'} (${nav.connection.downlink || 'Unknown'}Mbps)`
-    }
-    return 'Not supported'
+  // Show loading state while client-side code initializes
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <Container>
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
+            <p>Loading device information...</p>
+          </div>
+        </Container>
+      </div>
+    )
   }
 
   return (
@@ -141,35 +180,35 @@ Connection: ${connectionInfo ? `${connectionInfo.effectiveType} (${connectionInf
                 <div>
                   <Label>User Agent</Label>
                   <div className="text-sm bg-gray-100 p-2 rounded mt-1 break-all">
-                    {navigator.userAgent}
+                    {deviceInfo?.userAgent || 'Loading...'}
                   </div>
                 </div>
                 
                 <div>
                   <Label>Is Mobile</Label>
                   <div className="text-sm bg-gray-100 p-2 rounded mt-1">
-                    {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'Yes' : 'No'}
+                    {deviceInfo ? (deviceInfo.isMobile ? 'Yes' : 'No') : 'Loading...'}
                   </div>
                 </div>
                 
                 <div>
                   <Label>Connection Type</Label>
                   <div className="text-sm bg-gray-100 p-2 rounded mt-1">
-                    {getConnectionInfo()}
+                    {deviceInfo?.connectionInfo || 'Loading...'}
                   </div>
                 </div>
                 
                 <div>
                   <Label>Screen Size</Label>
                   <div className="text-sm bg-gray-100 p-2 rounded mt-1">
-                    {window.screen.width} x {window.screen.height}
+                    {deviceInfo?.screenSize || 'Loading...'}
                   </div>
                 </div>
                 
                 <div>
                   <Label>Viewport Size</Label>
                   <div className="text-sm bg-gray-100 p-2 rounded mt-1">
-                    {window.innerWidth} x {window.innerHeight}
+                    {deviceInfo?.viewportSize || 'Loading...'}
                   </div>
                 </div>
               </CardContent>
