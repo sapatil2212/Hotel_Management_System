@@ -55,6 +55,46 @@ export default function TestMobileBookingPage() {
     }
   }, [])
 
+  const testAuthenticationStatus = async () => {
+    if (!isClient) return
+    
+    setLoading(true)
+    setTestResult("")
+    
+    try {
+      const response = await fetch('/api/auth/session')
+      const sessionData = await response.json()
+      
+      setTestResult(`
+🔐 AUTHENTICATION STATUS:
+Response Status: ${response.status}
+Session Data: ${JSON.stringify(sessionData, null, 2)}
+
+📋 ANALYSIS:
+${sessionData.user ? 
+  `✅ User is authenticated
+   Email: ${sessionData.user.email}
+   Name: ${sessionData.user.name || 'Not provided'}
+   Booking API calls should work properly.` :
+  `❌ User is NOT authenticated
+   This explains the 401 Unauthorized error from the booking API.
+   You need to log in before making bookings.`
+}
+
+💡 SOLUTION:
+${sessionData.user ? 
+  'You are logged in. Try the booking test again or proceed with actual booking.' :
+  'Please log in to the application before testing the booking API.'
+}
+      `)
+      
+    } catch (error) {
+      setTestResult(`Authentication Test Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const testBookingAPI = async () => {
     if (!isClient) return
     
@@ -96,13 +136,49 @@ export default function TestMobileBookingPage() {
       
       const result = await response.text()
       
-      setTestResult(`
+      let resultMessage = `
 User Agent: ${ua}
 Is Mobile: ${mobile}
 Response Status: ${response.status}
 Response Headers: ${JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2)}
 Response Body: ${result}
-      `)
+      `
+      
+      // Add specific guidance for 401 error
+      if (response.status === 401) {
+        resultMessage += `
+
+🔍 ANALYSIS:
+The 401 Unauthorized error indicates that the user is not authenticated.
+This is expected behavior for the booking API which requires user login.
+
+📋 NEXT STEPS:
+1. Make sure you are logged in to the application
+2. Try booking through the actual booking form instead of this test
+3. Check if your session is still valid
+4. If the issue persists, try logging out and logging back in
+
+💡 NOTE:
+This test page is for debugging purposes only. Real bookings should be made through the proper booking flow with user authentication.
+       `
+       } else if (response.status === 201) {
+         resultMessage += `
+
+✅ SUCCESS:
+Booking created successfully! Guest bookings are now allowed without authentication.
+
+📋 BOOKING DETAILS:
+- Booking ID: ${JSON.parse(result).id}
+- Room: ${JSON.parse(result).room?.roomNumber || 'N/A'}
+- Guest: ${JSON.parse(result).guestName}
+- Status: ${JSON.parse(result).status}
+
+💡 NOTE:
+The booking API now supports guest bookings without requiring user authentication.
+       `
+       }
+      
+      setTestResult(resultMessage)
       
     } catch (error) {
       setTestResult(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -228,6 +304,15 @@ Connection: ${connectionInfo ? `${connectionInfo.effectiveType} (${connectionInf
                 </Button>
                 
                 <Button 
+                  onClick={testAuthenticationStatus}
+                  disabled={loading}
+                  className="w-full"
+                  variant="outline"
+                >
+                  {loading ? 'Testing...' : 'Test Authentication Status'}
+                </Button>
+                
+                <Button 
                   onClick={testBookingAPI}
                   disabled={loading}
                   className="w-full"
@@ -235,6 +320,20 @@ Connection: ${connectionInfo ? `${connectionInfo.effectiveType} (${connectionInf
                 >
                   {loading ? 'Testing...' : 'Test Booking API'}
                 </Button>
+                
+                <div className="pt-4 border-t">
+                  <p className="text-sm text-gray-600 mb-3">
+                    💡 <strong>Note:</strong> The booking API now supports guest bookings without authentication. 
+                    Both authenticated users and guest users can make bookings.
+                  </p>
+                  <Button 
+                    onClick={() => window.location.href = '/auth/sign-in'}
+                    className="w-full"
+                    variant="secondary"
+                  >
+                    🔐 Go to Login Page (Optional)
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

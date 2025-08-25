@@ -80,16 +80,22 @@ export async function POST(request: NextRequest) {
       headers: Object.fromEntries(request.headers.entries())
     })
 
+    // Check for session but don't require it for guest bookings
     const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      console.log('Unauthorized booking attempt - no session')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Get user ID for notifications
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+    const isAuthenticated = !!session?.user?.email
+    
+    console.log('Authentication status:', {
+      isAuthenticated,
+      userEmail: session?.user?.email || 'Guest user'
     })
+
+    // Get user ID for notifications (if authenticated)
+    let user = null
+    if (isAuthenticated && session?.user?.email) {
+      user = await prisma.user.findUnique({
+        where: { email: session.user.email }
+      })
+    }
 
     const data = await request.json()
     console.log('Booking data received:', {
@@ -99,7 +105,8 @@ export async function POST(request: NextRequest) {
       guestName: data.guestName,
       guestEmail: data.guestEmail,
       guestPhone: data.guestPhone,
-      isMobile
+      isMobile,
+      isAuthenticated
     })
 
     const { 
@@ -113,13 +120,16 @@ export async function POST(request: NextRequest) {
       totalAmount,
       originalAmount,
       discountAmount,
-      promoCodeId,
+      promoCodeId: rawPromoCodeId,
       guestName, 
       guestEmail, 
       guestPhone, 
       specialRequests 
     } = data
     
+    // Handle promoCodeId properly
+    const promoCodeId = rawPromoCodeId && rawPromoCodeId !== 'null' ? rawPromoCodeId : undefined
+
     // Validate required fields
     if (!roomTypeId || !checkIn || !checkOut || !guestName || !guestEmail || !guestPhone) {
       console.log('Missing required fields:', { roomTypeId, checkIn, checkOut, guestName, guestEmail, guestPhone })
@@ -225,7 +235,7 @@ export async function POST(request: NextRequest) {
           totalTaxAmount: finalTaxBreakdown.totalTaxAmount > 0 ? finalTaxBreakdown.totalTaxAmount : null,
           specialRequests,
           roomId: selectedRoom.id,
-          promoCodeId: promoCodeId || null,
+          promoCodeId: promoCodeId,
           status: 'confirmed',
           paymentMethod: 'pay_at_hotel', // Default payment method
           paymentStatus: 'pending',
@@ -259,10 +269,12 @@ export async function POST(request: NextRequest) {
       roomNumber: result.room.roomNumber,
       guestName: result.guestName,
       totalAmount: result.totalAmount,
-      isMobile
+      isMobile,
+      isAuthenticated,
+      bookingType: isAuthenticated ? 'Authenticated User' : 'Guest User'
     })
 
-    // Create notification for new booking
+    // Create notification for new booking (only if authenticated user exists)
     try {
       if (user) {
         await NotificationService.createNotification({
@@ -272,6 +284,15 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           referenceId: result.id,
           referenceType: 'booking'
+        })
+      } else {
+        // Log guest booking for admin notification
+        console.log('Guest booking created:', {
+          bookingId: result.id,
+          guestName: result.guestName,
+          guestEmail: result.guestEmail,
+          roomNumber: result.room.roomNumber,
+          totalAmount: result.totalAmount
         })
       }
     } catch (notificationError) {
