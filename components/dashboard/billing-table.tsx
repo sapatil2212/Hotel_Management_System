@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Search, Filter, Loader, Phone, Mail, MapPin, Calendar, Users, Bed, Eye, Edit, Trash2, Save, X, Clock, AlertTriangle, CheckCircle, Download, Send, DollarSign, Receipt, CreditCard, FileText, Plus, ArrowRight, ArrowLeft, Check } from "lucide-react"
+import { Search, Filter, Loader, Phone, Mail, MapPin, Calendar, Users, Bed, Eye, Edit, Trash2, Save, X, Clock, AlertTriangle, CheckCircle, Download, Send, DollarSign, Receipt, CreditCard, FileText, Plus, ArrowRight, ArrowLeft, Check, Printer } from "lucide-react"
 import { Invoice } from "@/components/ui/invoice"
 import { InvoicePDF } from "@/components/ui/invoice-pdf"
 import { toast } from "@/hooks/use-toast"
@@ -652,12 +652,266 @@ export default function BillingTable() {
     })
   }
 
+  // Handle print generated bill
+  const handlePrintGeneratedBill = async (generatedBill: any) => {
+    try {
+      const response = await fetch(`/api/billing/generate-bill/${generatedBill.id}`)
+      
+      if (response.ok) {
+        const htmlContent = await response.text()
+        
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank')
+        if (printWindow) {
+          printWindow.document.write(htmlContent)
+          printWindow.document.close()
+          
+          // Wait for content to load then print
+          printWindow.onload = () => {
+            printWindow.print()
+            // Close the window after printing
+            setTimeout(() => {
+              printWindow.close()
+            }, 1000)
+          }
+        } else {
+          toast({
+            title: "Error",
+            description: "Please allow popups to print the bill",
+            variant: "destructive"
+          })
+        }
+      } else {
+        throw new Error('Failed to generate bill for printing')
+      }
+    } catch (error) {
+      console.error('Error printing bill:', error)
+      toast({
+        title: "Error",
+        description: "Failed to print bill",
+        variant: "destructive"
+      })
+    }
+  }
+
+  // Handle download generated bill
+  const handleDownloadGeneratedBill = async (generatedBill: any) => {
+    try {
+      const response = await fetch(`/api/billing/generate-bill/${generatedBill.id}`)
+      
+      if (response.ok) {
+        const contentType = response.headers.get('content-type')
+        const blob = await response.blob()
+        
+        // Check if we're on a mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        
+        // Determine file extension based on content type
+        const isPDF = contentType?.includes('application/pdf')
+        const fileExtension = isPDF ? 'pdf' : 'html'
+        const fileName = `bill-${generatedBill.invoiceNumber}.${fileExtension}`
+        
+        if (isMobile) {
+          // For mobile devices, use a more reliable approach
+          const url = window.URL.createObjectURL(blob)
+          
+          try {
+            // Method 1: Try to create a download link with proper attributes
+            const a = document.createElement('a')
+            a.href = url
+            a.download = fileName
+            a.style.display = 'none'
+            a.setAttribute('target', '_blank')
+            a.setAttribute('rel', 'noopener noreferrer')
+            
+            // Add to DOM and trigger
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            
+            // Clean up after a delay
+            setTimeout(() => {
+              window.URL.revokeObjectURL(url)
+            }, 2000)
+            
+          } catch (error) {
+            console.log('Primary mobile download method failed, trying fallback...')
+            
+            // Method 2: Fallback - open in new tab
+            try {
+              window.open(url, '_blank')
+            } catch (fallbackError) {
+              console.error('Fallback method also failed:', fallbackError)
+              
+              // Method 3: Last resort - create a visible download link
+              const fallbackLink = document.createElement('a')
+              fallbackLink.href = url
+              fallbackLink.download = fileName
+              fallbackLink.textContent = `Click here to download ${fileExtension.toUpperCase()}`
+              fallbackLink.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #007bff;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                z-index: 10000;
+                font-size: 16px;
+                font-weight: bold;
+              `
+              document.body.appendChild(fallbackLink)
+              
+              // Remove the link after 10 seconds
+              setTimeout(() => {
+                if (document.body.contains(fallbackLink)) {
+                  document.body.removeChild(fallbackLink)
+                }
+                window.URL.revokeObjectURL(url)
+              }, 10000)
+            }
+          }
+        } else {
+          // Desktop download (original implementation)
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = fileName
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }
+        
+        toast({
+          title: "Success",
+          description: isMobile 
+            ? `Bill ${isPDF ? 'opened in new tab' : 'downloaded as HTML'}` 
+            : `${fileExtension.toUpperCase()} downloaded successfully`
+        })
+      } else {
+        throw new Error('Failed to download bill')
+      }
+    } catch (error) {
+      console.error('Error downloading bill:', error)
+      toast({
+        title: "Error",
+        description: "Failed to download bill",
+        variant: "destructive"
+      })
+    }
+  }
+
   // Handle download invoice
   const handleDownloadInvoice = async (invoice: Invoice) => {
-    toast({
-      title: "Info",
-      description: "Download invoice functionality will be implemented soon",
-    })
+    try {
+      const response = await fetch(`/api/bookings/${invoice.bookingId}/pdf`)
+      
+      if (response.ok) {
+        const contentType = response.headers.get('content-type')
+        const blob = await response.blob()
+        
+        // Check if we're on a mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        
+        // Determine file extension based on content type
+        const isPDF = contentType?.includes('application/pdf')
+        const fileExtension = isPDF ? 'pdf' : 'html'
+        const fileName = `booking-invoice-${invoice.invoiceNumber}.${fileExtension}`
+        
+        if (isMobile) {
+          // For mobile devices, use a more reliable approach
+          const url = window.URL.createObjectURL(blob)
+          
+          try {
+            // Method 1: Try to create a download link with proper attributes
+            const a = document.createElement('a')
+            a.href = url
+            a.download = fileName
+            a.style.display = 'none'
+            a.setAttribute('target', '_blank')
+            a.setAttribute('rel', 'noopener noreferrer')
+            
+            // Add to DOM and trigger
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            
+            // Clean up after a delay
+            setTimeout(() => {
+              window.URL.revokeObjectURL(url)
+            }, 2000)
+            
+          } catch (error) {
+            console.log('Primary mobile download method failed, trying fallback...')
+            
+            // Method 2: Fallback - open in new tab
+            try {
+              window.open(url, '_blank')
+            } catch (fallbackError) {
+              console.error('Fallback method also failed:', fallbackError)
+              
+              // Method 3: Last resort - create a visible download link
+              const fallbackLink = document.createElement('a')
+              fallbackLink.href = url
+              fallbackLink.download = fileName
+              fallbackLink.textContent = `Click here to download ${fileExtension.toUpperCase()}`
+              fallbackLink.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #007bff;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                z-index: 10000;
+                font-size: 16px;
+                font-weight: bold;
+              `
+              document.body.appendChild(fallbackLink)
+              
+              // Remove the link after 10 seconds
+              setTimeout(() => {
+                if (document.body.contains(fallbackLink)) {
+                  document.body.removeChild(fallbackLink)
+                }
+                window.URL.revokeObjectURL(url)
+              }, 10000)
+            }
+          }
+        } else {
+          // Desktop download (original implementation)
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = fileName
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }
+        
+        toast({
+          title: "Success",
+          description: isMobile 
+            ? `Invoice ${isPDF ? 'opened in new tab' : 'downloaded as HTML'}` 
+            : `${fileExtension.toUpperCase()} downloaded successfully`
+        })
+      } else {
+        throw new Error('Failed to download invoice')
+      }
+    } catch (error) {
+      console.error('Error downloading invoice:', error)
+      toast({
+        title: "Error",
+        description: "Failed to download invoice",
+        variant: "destructive"
+      })
+    }
   }
 
   // Handle view bill
@@ -3548,177 +3802,91 @@ export default function BillingTable() {
                   {/* Generated Bill/Invoice Preview */}
                   <div className="border rounded-lg p-4 bg-gray-50">
                     <h4 className="font-semibold text-gray-900 mb-3">Final Invoice Preview</h4>
-                                          <InvoicePDF 
-                      invoiceData={{
-                        invoiceNumber: generatedBill.invoiceNumber,
-                        invoiceDate: generatedBill.issuedDate,
-                        dueDate: generatedBill.dueDate,
-                        terms: generatedBill.terms,
-                        company: {
-                          name: hotelInfo.name,
-                          address: hotelInfo.address ? hotelInfo.address.split('\n') : [
-                            'Hotel Address Line 1',
-                            'Hotel Address Line 2',
-                            'City, State ZIP',
-                            'Country'
-                          ],
-                          logo: hotelInfo.logo || undefined,
-                          contact: hotelInfo.primaryPhone || undefined
-                        },
-                        billTo: {
-                          name: generatedBill.guestName,
-                          address: [
-                            generatedBill.guestEmail,
-                            generatedBill.guestPhone,
-                            `Room: ${generatedBill.roomNumber}`,
-                            `${generatedBill.roomTypeName}`
-                          ]
-                        },
-                        shipTo: {
-                          address: [
-                            generatedBill.guestEmail,
-                            generatedBill.guestPhone,
-                            `Room: ${generatedBill.roomNumber}`,
-                            `${generatedBill.roomTypeName}`
-                          ]
-                        },
-                        items: generatedBill.invoiceItems?.map((item, index) => ({
-                          id: index + 1,
-                          name: item.itemName,
-                          description: item.description || '',
-                          quantity: item.quantity,
-                          unit: 'pcs',
-                          rate: item.unitPrice,
-                          amount: item.finalAmount
-                        })) || [],
-                        subtotal: ((selectedBooking?.room.roomType.price || 0) * generatedBill.nights) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.totalPrice, 0) || 0),
-                        taxRate: (((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.taxAmount, 0) || 0),
-                        total: generatedBill.totalAmount,
-                        currency: 'INR',
-                        paymentInfo: generatedBill.payments?.[0] ? {
-                          method: generatedBill.payments[0].paymentMethod,
-                          referenceId: generatedBill.payments[0].paymentReference || undefined,
-                          collectedBy: generatedBill.payments[0].receivedBy || 'Staff',
-                          status: generatedBill.payments[0].status
-                        } : undefined
-                      }}
-                      filename={`${billGenerationData.type === 'bill' ? 'bill' : 'invoice'}-${generatedBill.invoiceNumber}.pdf`}
-                    >
-                      <Invoice data={{
-                        invoiceNumber: generatedBill.invoiceNumber,
-                        invoiceDate: generatedBill.issuedDate,
-                        dueDate: generatedBill.dueDate,
-                        terms: generatedBill.terms,
-                        company: {
-                          name: hotelInfo.name,
-                          address: hotelInfo.address ? hotelInfo.address.split('\n') : [
-                            'Hotel Address Line 1',
-                            'Hotel Address Line 2',
-                            'City, State ZIP',
-                            'Country'
-                          ],
-                          logo: hotelInfo.logo || undefined,
-                          contact: hotelInfo.primaryPhone || undefined
-                        },
-                        billTo: {
-                          name: generatedBill.guestName,
-                          address: [
-                            generatedBill.guestEmail,
-                            generatedBill.guestPhone,
-                            `Room: ${generatedBill.roomNumber}`,
-                            `${generatedBill.roomTypeName}`
-                          ]
-                        },
-                        shipTo: {
-                          address: [
-                            generatedBill.guestEmail,
-                            generatedBill.guestPhone,
-                            `Room: ${generatedBill.roomNumber}`,
-                            `${generatedBill.roomTypeName}`
-                          ]
-                        },
-                        items: generatedBill.invoiceItems?.map((item, index) => ({
-                          id: index + 1,
-                          name: item.itemName,
-                          description: item.description || '',
-                          quantity: item.quantity,
-                          unit: 'pcs',
-                          rate: item.unitPrice,
-                          amount: item.finalAmount
-                        })) || [],
-                        subtotal: ((selectedBooking?.room.roomType.price || 0) * generatedBill.nights) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.totalPrice, 0) || 0),
-                        taxRate: (((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100) + (generatedBill.invoiceItems?.slice(1).reduce((sum, item) => sum + item.taxAmount, 0) || 0),
-                        total: generatedBill.totalAmount,
-                        currency: 'INR',
-                        paymentInfo: generatedBill.payments?.[0] ? {
-                          method: generatedBill.payments[0].paymentMethod,
-                          referenceId: generatedBill.payments[0].paymentReference || undefined,
-                          collectedBy: generatedBill.payments[0].receivedBy || 'Staff',
-                          status: generatedBill.payments[0].status
-                        } : undefined,
-                        breakdown: {
-                          roomDetails: {
-                            roomType: generatedBill.roomTypeName,
-                            roomNumber: generatedBill.roomNumber,
-                            nights: generatedBill.nights,
-                            ratePerNight: selectedBooking?.room.roomType.price || 0,
-                            baseAmount: (selectedBooking?.room.roomType.price || 0) * generatedBill.nights,
-                            gstAmount: ((selectedBooking?.room.roomType.price || 0) * generatedBill.nights * (hotelInfo.gstPercentage || 18)) / 100,
-                            gstPercentage: hotelInfo.gstPercentage || 18,
-                            checkIn: generatedBill.checkIn,
-                            checkOut: generatedBill.checkOut
-                          },
-                          extraCharges: {
-                            items: generatedBill.invoiceItems && generatedBill.invoiceItems.length > 1 
-                              ? generatedBill.invoiceItems.slice(1).map(item => ({
-                                  name: item.itemName,
-                                  description: item.description || '',
-                                  quantity: item.quantity,
-                                  unitPrice: item.unitPrice,
-                                  baseAmount: item.totalPrice,
-                                  taxAmount: item.taxAmount,
-                                  finalAmount: item.finalAmount
-                                }))
-                              : [],
-                            totalExtraCharges: generatedBill.invoiceItems && generatedBill.invoiceItems.length > 1
-                              ? generatedBill.invoiceItems.slice(1).reduce((sum, item) => sum + item.finalAmount, 0)
-                              : 0
-                          }
-                        }
-                      }} />
-                    </InvoicePDF>
-                  </div>
-
-                  <div className="flex justify-center space-x-4">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => {
-                        setIsMultiStepModalOpen(false)
-                        setGeneratedBill(null)
-                        setCurrentStep(1)
-                      }}
-                    >
-                      Close
-                    </Button>
-                    <Button 
-                      onClick={() => {
-                        // Reset and start over
-                        setGeneratedBill(null)
-                        setCurrentStep(1)
-                        setBillGenerationData({
-                          type: 'bill',
-                          extraCharges: [],
-                          paymentMethod: 'cash',
-                          collectedBy: '',
-                          referenceId: '',
-                          notes: ''
-                        })
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Generate Another {billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'}
-                    </Button>
+                    <div className="text-center py-8">
+                      <div className="mb-4">
+                        <Check className="h-12 w-12 text-green-600 mx-auto mb-2" />
+                        <h3 className="text-lg font-semibold text-green-600 mb-2">
+                          Bill Generated Successfully!
+                        </h3>
+                        <p className="text-gray-600 mb-4">
+                          Your bill has been created and is ready for download or sharing.
+                        </p>
+                      </div>
+                      
+                      {/* Invoice Summary */}
+                      <div className="bg-white rounded-lg border p-4 mb-4 text-left">
+                        <h4 className="font-semibold text-gray-900 mb-3">Invoice Summary</h4>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Invoice Number:</span>
+                            <span className="font-medium ml-2">{generatedBill.invoiceNumber}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Status:</span>
+                            <span className="font-medium ml-2 capitalize">{generatedBill.status}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Generated Date:</span>
+                            <span className="font-medium ml-2">{new Date(generatedBill.issuedDate).toLocaleDateString()}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Due Date:</span>
+                            <span className="font-medium ml-2">{new Date(generatedBill.dueDate).toLocaleDateString()}</span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-gray-600">Total Amount:</span>
+                            <span className="font-bold text-lg ml-2 text-green-600">₹{generatedBill.totalAmount.toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap justify-center gap-3">
+                        <Button 
+                          onClick={() => handleDownloadGeneratedBill(generatedBill)}
+                          className="bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download Bill
+                        </Button>
+                        <Button 
+                          onClick={() => handlePrintGeneratedBill(generatedBill)}
+                          className="bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <Printer className="h-4 w-4 mr-2" />
+                          Print Bill
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setIsMultiStepModalOpen(false)
+                            setGeneratedBill(null)
+                            setCurrentStep(1)
+                          }}
+                        >
+                          Close
+                        </Button>
+                        <Button 
+                          onClick={() => {
+                            // Reset and start over
+                            setGeneratedBill(null)
+                            setCurrentStep(1)
+                            setBillGenerationData({
+                              type: 'bill',
+                              extraCharges: [],
+                              paymentMethod: 'cash',
+                              collectedBy: '',
+                              referenceId: '',
+                              notes: ''
+                            })
+                          }}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Generate Another {billGenerationData.type === 'bill' ? 'Bill' : 'Invoice'}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -3726,6 +3894,8 @@ export default function BillingTable() {
           )}
         </DialogContent>
       </Dialog>
+      
+
 
       {/* View Booking Bill/Invoice Modal */}
       <Dialog open={isViewBookingModalOpen} onOpenChange={setIsViewBookingModalOpen}>

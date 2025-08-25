@@ -239,12 +239,113 @@ export default function BillingPage() {
     setIsViewBillDialogOpen(true);
   };
 
-  const handleDownloadBill = (bill: SupplierBill) => {
-    // Implementation for downloading bill as PDF
-    toast({
-      title: 'Download Started',
-      description: `Downloading ${bill.billNumber}...`,
-    });
+  const handleDownloadBill = async (bill: SupplierBill) => {
+    try {
+      const response = await fetch(`/api/billing/supplier-bills/${bill.id}/pdf`)
+      
+      if (response.ok) {
+        const contentType = response.headers.get('content-type')
+        const blob = await response.blob()
+        
+        // Check if we're on a mobile device
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        
+        // Determine file extension based on content type
+        const isPDF = contentType?.includes('application/pdf')
+        const fileExtension = isPDF ? 'pdf' : 'html'
+        const fileName = `supplier-bill-${bill.billNumber}.${fileExtension}`
+        
+        if (isMobile) {
+          // For mobile devices, use a more reliable approach
+          const url = window.URL.createObjectURL(blob)
+          
+          try {
+            // Method 1: Try to create a download link with proper attributes
+            const a = document.createElement('a')
+            a.href = url
+            a.download = fileName
+            a.style.display = 'none'
+            a.setAttribute('target', '_blank')
+            a.setAttribute('rel', 'noopener noreferrer')
+            
+            // Add to DOM and trigger
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            
+            // Clean up after a delay
+            setTimeout(() => {
+              window.URL.revokeObjectURL(url)
+            }, 2000)
+            
+          } catch (error) {
+            console.log('Primary mobile download method failed, trying fallback...')
+            
+            // Method 2: Fallback - open in new tab
+            try {
+              window.open(url, '_blank')
+            } catch (fallbackError) {
+              console.error('Fallback method also failed:', fallbackError)
+              
+              // Method 3: Last resort - create a visible download link
+              const fallbackLink = document.createElement('a')
+              fallbackLink.href = url
+              fallbackLink.download = fileName
+              fallbackLink.textContent = `Click here to download ${fileExtension.toUpperCase()}`
+              fallbackLink.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: #007bff;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                text-decoration: none;
+                z-index: 10000;
+                font-size: 16px;
+                font-weight: bold;
+              `
+              document.body.appendChild(fallbackLink)
+              
+              // Remove the link after 10 seconds
+              setTimeout(() => {
+                if (document.body.contains(fallbackLink)) {
+                  document.body.removeChild(fallbackLink)
+                }
+                window.URL.revokeObjectURL(url)
+              }, 10000)
+            }
+          }
+        } else {
+          // Desktop download (original implementation)
+          const url = window.URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = fileName
+          document.body.appendChild(a)
+          a.click()
+          window.URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }
+        
+        toast({
+          title: "Success",
+          description: isMobile 
+            ? `Bill ${isPDF ? 'opened in new tab' : 'downloaded as HTML'}` 
+            : `${fileExtension.toUpperCase()} downloaded successfully`
+        })
+      } else {
+        throw new Error('Failed to download bill')
+      }
+    } catch (error) {
+      console.error('Error downloading bill:', error)
+      toast({
+        title: "Error",
+        description: "Failed to download bill",
+        variant: "destructive"
+      })
+    }
   };
 
   const handleMarkAsPaid = (bill: SupplierBill) => {
