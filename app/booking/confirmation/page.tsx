@@ -72,6 +72,7 @@ export default function BookingConfirmationPage() {
   const [hotelInfo, setHotelInfo] = useState<HotelInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (bookingId) {
@@ -79,12 +80,13 @@ export default function BookingConfirmationPage() {
       fetchHotelInfo()
     } else {
       setLoading(false)
+      setError('No booking ID provided')
     }
   }, [bookingId])
 
-  const fetchBookingDetails = async () => {
+  const fetchBookingDetails = async (retryCount = 0) => {
     try {
-      console.log('Fetching booking details for ID:', bookingId);
+      console.log(`Fetching booking details for ID: ${bookingId} (attempt ${retryCount + 1})`);
       
       const response = await fetch(`/api/bookings/${bookingId}`)
       console.log('Booking API response status:', response.status);
@@ -93,6 +95,7 @@ export default function BookingConfirmationPage() {
         const data = await response.json()
         console.log('Booking data received:', data);
         setBookingDetails(data)
+        setError(null)
         
         // Automatically generate invoice if it doesn't exist
         try {
@@ -113,6 +116,16 @@ export default function BookingConfirmationPage() {
         const errorText = await response.text();
         console.error('Booking API error:', response.status, errorText);
         
+        // If it's a 404 and we haven't retried too many times, retry after a delay
+        if (response.status === 404 && retryCount < 3) {
+          console.log(`Booking not found, retrying in ${(retryCount + 1) * 1000}ms...`);
+          setTimeout(() => {
+            fetchBookingDetails(retryCount + 1)
+          }, (retryCount + 1) * 1000)
+          return
+        }
+        
+        setError(`Failed to fetch booking details: ${response.status} - ${errorText}`)
         toast({
           title: "Error",
           description: `Failed to fetch booking details: ${response.status} - ${errorText}`,
@@ -121,6 +134,17 @@ export default function BookingConfirmationPage() {
       }
     } catch (error) {
       console.error('Error fetching booking:', error)
+      
+      // If it's a network error and we haven't retried too many times, retry
+      if (retryCount < 3) {
+        console.log(`Network error, retrying in ${(retryCount + 1) * 1000}ms...`);
+        setTimeout(() => {
+          fetchBookingDetails(retryCount + 1)
+        }, (retryCount + 1) * 1000)
+        return
+      }
+      
+      setError(`Failed to fetch booking details: ${error instanceof Error ? error.message : 'Unknown error'}`)
       toast({
         title: "Error",
         description: `Failed to fetch booking details: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -138,10 +162,27 @@ export default function BookingConfirmationPage() {
       }
     } catch (error) {
       console.error('Error fetching hotel info:', error)
-    } finally {
-      setLoading(false)
     }
   }
+
+  // Set loading to false when we have either booking details or an error
+  useEffect(() => {
+    if (bookingDetails || error) {
+      setLoading(false)
+    }
+  }, [bookingDetails, error])
+
+  // Also set loading to false after a timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.log('Loading timeout reached, setting loading to false')
+        setLoading(false)
+      }
+    }, 10000) // 10 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [loading])
 
   const handleDownloadPDF = async () => {
     if (!bookingDetails) return
@@ -197,6 +238,11 @@ export default function BookingConfirmationPage() {
         <Container className="text-center">
           <Loader className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p>Loading booking details...</p>
+          {error && (
+            <p className="text-sm text-amber-600 mt-2">
+              {error.includes('404') ? 'Booking not found, retrying...' : 'Retrying...'}
+            </p>
+          )}
         </Container>
       </div>
     )
@@ -208,7 +254,7 @@ export default function BookingConfirmationPage() {
         <Container className="text-center">
           <h1 className="text-2xl font-bold mb-4">Booking Not Found</h1>
           <p className="text-muted-foreground mb-6">
-            The booking you're looking for could not be found.
+            {error || 'The booking you\'re looking for could not be found.'}
           </p>
           <Button asChild>
             <Link href="/">

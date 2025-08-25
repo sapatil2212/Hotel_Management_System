@@ -337,6 +337,9 @@ export async function POST(request: NextRequest) {
       console.error('❌ Error verifying booking:', verificationError)
     }
 
+    // Add a small delay to ensure database transaction is fully committed
+    await new Promise(resolve => setTimeout(resolve, 500))
+
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error('Error creating booking:', error)
