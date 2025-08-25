@@ -388,6 +388,7 @@ export default function BookingPage() {
   }
 
   const handleConfirmBooking = async () => {
+    console.log('Starting booking confirmation process...')
     setSubmitting(true)
     setShowConfirmationModal(false)
     
@@ -410,21 +411,45 @@ export default function BookingPage() {
         specialRequests: bookingData.specialRequests
       }
       
-      // Create booking with automatic room allocation
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bookingPayload)
-      })
+      // Create booking with automatic room allocation and timeout for mobile
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000) // 30 second timeout
+      
+      let response: Response | undefined
+      let retryCount = 0
+      const maxRetries = 2
+      
+      while (retryCount <= maxRetries) {
+        try {
+          console.log(`Attempting booking (attempt ${retryCount + 1}/${maxRetries + 1})...`)
+          response = await fetch('/api/bookings', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(bookingPayload),
+            signal: controller.signal
+          })
+          break // If successful, break out of retry loop
+        } catch (fetchError) {
+          retryCount++
+          if (retryCount > maxRetries) {
+            throw fetchError
+          }
+          console.log(`Booking attempt ${retryCount} failed, retrying...`)
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)) // Exponential backoff
+        }
+      }
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create booking')
+      clearTimeout(timeoutId)
+
+      if (!response || !response.ok) {
+        const error = await response?.json()
+        throw new Error(error?.error || 'Failed to create booking')
       }
 
       const booking = await response.json()
+      console.log('Booking created successfully:', booking)
       
       // If a promo code was used, increment its usage count
       if (validatedPromo) {
@@ -448,7 +473,19 @@ export default function BookingPage() {
       
     } catch (error) {
       console.error("Booking error:", error)
-      toast.error(error instanceof Error ? error.message : "Failed to submit booking. Please try again.")
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          toast.error("Booking request timed out. Please check your connection and try again.")
+        } else {
+          toast.error(error.message || "Failed to submit booking. Please try again.")
+        }
+      } else {
+        toast.error("Failed to submit booking. Please try again.")
+      }
+      
+      // Re-show the confirmation modal on error so user can retry
+      setShowConfirmationModal(true)
     } finally {
       setSubmitting(false)
     }
@@ -1093,7 +1130,7 @@ export default function BookingPage() {
 
                     {/* Confirmation Modal */}
        <Dialog open={showConfirmationModal} onOpenChange={setShowConfirmationModal}>
-         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto mx-4 my-4 rounded-lg sm:mx-8">
+         <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto mx-2 sm:mx-4 my-2 sm:my-4 rounded-lg mobile-modal-fix">
                        <DialogHeader className="px-4 sm:px-0">
               <DialogTitle className="text-xl font-bold text-center">Confirm Your Booking</DialogTitle>
             </DialogHeader>
@@ -1110,9 +1147,9 @@ export default function BookingPage() {
              </div>
            </div>
           
-                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 px-4 sm:px-0">
+                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 px-2 sm:px-4 lg:px-0">
             {/* Left Column - Booking Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
                              {/* Your Details Section */}
                <Card className="border border-gray-200 bg-white">
                  <CardHeader className="pb-3">
@@ -1146,23 +1183,23 @@ export default function BookingPage() {
                 <CardContent className="space-y-4">
                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                          {/* Pay At Hotel Option */}
-                     <div className="border-2 border-green-500 bg-green-50 rounded-lg p-3 cursor-pointer">
+                     <div className="border-2 border-green-500 bg-green-50 rounded-lg p-3 sm:p-4 cursor-pointer touch-manipulation">
                        <div className="flex items-center justify-between mb-2">
-                         <span className="font-semibold text-sm text-green-800">Pay At Hotel</span>
+                         <span className="font-semibold text-sm sm:text-base text-green-800">Pay At Hotel</span>
                          <div className="flex items-center gap-1">
                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
                            <span className="text-xs text-yellow-700">No payment needed today</span>
                          </div>
                        </div>
-                       <p className="text-xs text-green-700">
+                       <p className="text-xs sm:text-sm text-green-700">
                          We will confirm your stay without any charge. Pay directly at the hotel during your stay.
                        </p>
                      </div>
 
                                          {/* Pay Now Option */}
-                     <div className="border-2 border-gray-200 bg-white rounded-lg p-3 cursor-pointer hover:border-gray-300">
+                     <div className="border-2 border-gray-200 bg-white rounded-lg p-3 sm:p-4 cursor-pointer hover:border-gray-300 touch-manipulation">
                        <div className="flex items-center justify-between">
-                         <span className="font-semibold text-sm text-gray-800">Pay Now</span>
+                         <span className="font-semibold text-sm sm:text-base text-gray-800">Pay Now</span>
                          <ArrowRight className="h-3 w-3 text-gray-500" />
                        </div>
                      </div>
@@ -1171,14 +1208,19 @@ export default function BookingPage() {
                                      {/* Book Now Button */}
                    <Button 
                      onClick={handleConfirmBooking}
-                     className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 text-base"
+                     className={`w-full font-semibold py-3 sm:py-2 text-base touch-manipulation mobile-touch-target ${
+                       submitting 
+                         ? 'bg-gray-400 cursor-not-allowed' 
+                         : 'bg-green-600 hover:bg-green-700 active:bg-green-800'
+                     } text-white`}
                      size="lg"
                      disabled={submitting}
+                     type="button"
                    >
                     {submitting ? (
-                      <div className="flex items-center">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Processing...
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                        <span className="text-sm sm:text-base">Processing your booking...</span>
                       </div>
                     ) : (
                       "Book Now"

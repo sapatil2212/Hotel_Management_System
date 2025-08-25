@@ -85,4 +85,24 @@
   .font-luxury {
     font-family: var(--font-playfair-display), 'Times New Roman', serif;
   }
+  
+  /* Mobile-specific modal improvements */
+  @media (max-width: 768px) {
+    .mobile-modal-fix {
+      position: fixed !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      max-height: 85vh !important;
+      width: 95vw !important;
+      margin: 0 !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .mobile-touch-target {
+      min-height: 44px !important;
+      min-width: 44px !important;
+    }
+  }
 }
