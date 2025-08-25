@@ -1,5 +1,6 @@
 import Hero from "@/components/home/hero"
 import Services from "@/components/home/services"
+import InteractiveGallery from "@/components/home/interactive-gallery"
 import FeaturedRooms from "@/components/home/featured-rooms"
 import AmenitiesSection from "@/components/home/amenities-section"
 import Testimonials from "@/components/home/testimonials"
@@ -10,6 +11,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <Hero />
       <FeaturedRooms />
+      <InteractiveGallery />
       <AmenitiesSection />
       <Services />
       <Testimonials />

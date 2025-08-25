@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Container } from "@/components/ui/container"
-import { Star, Users, Bed, Bath, Square, IndianRupee, Wifi, Car, Coffee, ArrowRight, MapPin, Phone, Eye, X } from "lucide-react"
+import { Star, Users, Bed, Bath, Square, IndianRupee, Wifi, Car, Coffee, ArrowRight, MapPin, Phone, Eye, X, Calendar, CheckCircle } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 // Removed next/head usage for App Router compatibility
 
 interface Room {
@@ -44,20 +45,91 @@ interface HotelInfo {
 
 export default function RoomsPage() {
   const [rooms, setRooms] = useState<Room[]>([])
+  const [filteredRooms, setFilteredRooms] = useState<Room[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchParams, setSearchParams] = useState<{
+    checkIn?: string
+    checkOut?: string
+    guests?: string
+    available?: string
+  }>({})
   const { hotelInfo } = useHotel()
+  const urlSearchParams = useSearchParams()
 
   useEffect(() => {
-    fetchRooms()
-  }, [])
+    // Get search parameters from URL
+    const params = {
+      checkIn: urlSearchParams.get('checkIn') || undefined,
+      checkOut: urlSearchParams.get('checkOut') || undefined,
+      guests: urlSearchParams.get('guests') || undefined,
+      available: urlSearchParams.get('available') || undefined,
+    }
+    setSearchParams(params)
+    fetchRooms(params)
+  }, [urlSearchParams])
 
-  const fetchRooms = async () => {
+  const fetchRooms = async (params?: {
+    checkIn?: string
+    checkOut?: string
+    guests?: string
+    available?: string
+  }) => {
     try {
-      // Try to fetch from API first
+      // If we have search parameters, use the availability check API
+      if (params?.checkIn && params?.checkOut && params?.guests) {
+        const availabilityResponse = await fetch('/api/rooms/check-availability', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            checkIn: params.checkIn,
+            checkOut: params.checkOut,
+            guests: parseInt(params.guests)
+          })
+        })
+
+        if (availabilityResponse.ok) {
+          const availabilityData = await availabilityResponse.json()
+          if (availabilityData.available && availabilityData.availableRoomTypes.length > 0) {
+            // Transform the data to match our Room interface
+            const availableRooms = availabilityData.availableRoomTypes.map((roomType: any) => ({
+              id: roomType.id,
+              name: roomType.name,
+              slug: roomType.slug,
+              price: roomType.price,
+              size: roomType.size,
+              bedType: roomType.bedType,
+              bathroomCount: 1, // Default value
+              maxGuests: roomType.maxGuests,
+              totalRooms: roomType.totalRooms,
+              available: true,
+              availableRoomsCount: roomType.availableRoomsCount,
+              isSoldOut: false,
+              isPromoted: false,
+              images: roomType.images || [],
+              shortDescription: roomType.shortDescription,
+              amenities: roomType.amenities || [],
+              viewType: "Standard View"
+            }))
+            setRooms(availableRooms)
+            setFilteredRooms(availableRooms)
+            return
+          } else {
+            // No rooms available for the search criteria
+            setRooms([])
+            setFilteredRooms([])
+            return
+          }
+        }
+      }
+
+      // Fallback to regular rooms API
       const response = await fetch('/api/rooms?available=true')
       if (response.ok) {
         const apiRooms = await response.json()
         setRooms(apiRooms)
+        setFilteredRooms(apiRooms)
         return
       }
       
@@ -143,6 +215,7 @@ export default function RoomsPage() {
         }
       ]
       setRooms(mockRooms)
+      setFilteredRooms(mockRooms)
     } catch (error) {
       console.error('Error fetching rooms:', error)
     } finally {
@@ -338,7 +411,11 @@ export default function RoomsPage() {
                  <X className="ml-1 sm:ml-2 h-3 w-3" />
                </span>
              ) : (
-               <Link href={`/rooms/${room.slug}/book`}>
+               <Link href={`/rooms/${room.slug}/book${
+                 searchParams.checkIn && searchParams.checkOut && searchParams.guests 
+                   ? `?checkIn=${searchParams.checkIn}&checkOut=${searchParams.checkOut}&guests=${searchParams.guests}`
+                   : ''
+               }`}>
                  Book Now
                  <ArrowRight className="ml-1 sm:ml-2 h-3 w-3" />
                </Link>
@@ -424,38 +501,92 @@ export default function RoomsPage() {
                     Choose Your Perfect Room
                   </h1>
                   
-                                     {/* Subtitle */}
-                   <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto px-4">
-                     Experience luxury and comfort in our carefully designed accommodations, where every detail is crafted for your ultimate satisfaction
-                   </p>
+                  {/* Subtitle */}
+                  <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-8 leading-relaxed max-w-2xl mx-auto px-4">
+                    Experience luxury and comfort in our carefully designed accommodations, where every detail is crafted for your ultimate satisfaction
+                  </p>
                 </>
               ) : (
-                                 <div className="space-y-4 sm:space-y-6">
-                   <Skeleton className="h-8 sm:h-12 w-60 sm:w-80 mx-auto rounded-full" />
-                   <Skeleton className="h-12 sm:h-16 w-72 sm:w-96 mx-auto" />
-                   <Skeleton className="h-6 sm:h-8 w-80 sm:w-96 mx-auto" />
-                 </div>
+                <div className="space-y-4 sm:space-y-6">
+                  <Skeleton className="h-8 sm:h-12 w-60 sm:w-80 mx-auto rounded-full" />
+                  <Skeleton className="h-12 sm:h-16 w-72 sm:w-96 mx-auto" />
+                  <Skeleton className="h-6 sm:h-8 w-80 sm:w-96 mx-auto" />
+                </div>
               )}
             </div>
           </Container>
         </div>
+
+        {/* Search Results Banner */}
+        {searchParams.checkIn && searchParams.checkOut && searchParams.guests && (
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-b border-green-200">
+            <Container className="py-4">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle className="h-5 w-5" />
+                    <span className="font-semibold">Available Rooms Found</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>Check-in: {new Date(searchParams.checkIn).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>Check-out: {new Date(searchParams.checkOut).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      <span>{searchParams.guests} {parseInt(searchParams.guests) === 1 ? 'Guest' : 'Guests'}</span>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.href = '/rooms'}
+                  className="border-green-300 text-green-700 hover:bg-green-50"
+                >
+                  Clear Search
+                </Button>
+              </div>
+            </Container>
+          </div>
+        )}
 
         {/* Enhanced Rooms Grid */}
         <Container className="py-8 sm:py-12 md:py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {loading
               ? [...Array(6)].map((_, i) => <LoadingSkeleton key={i} />)
-              : rooms.map((room) => <RoomCard key={room.id} room={room} />)
+              : filteredRooms.map((room) => <RoomCard key={room.id} room={room} />)
             }
           </div>
           
-          {!loading && rooms.length === 0 && (
+          {!loading && filteredRooms.length === 0 && (
             <div className="text-center py-12 sm:py-16 md:py-20">
               <div className="text-6xl sm:text-8xl mb-4 sm:mb-6">🏨</div>
-              <h3 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-gray-900">No Rooms Available</h3>
+              <h3 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-gray-900">
+                {searchParams.checkIn && searchParams.checkOut && searchParams.guests 
+                  ? "No Rooms Available for Selected Dates" 
+                  : "No Rooms Available"
+                }
+              </h3>
               <p className="text-base sm:text-lg text-gray-600 max-w-md mx-auto px-4">
-                We're currently updating our room inventory. Please check back soon for our latest offerings.
+                {searchParams.checkIn && searchParams.checkOut && searchParams.guests 
+                  ? "Sorry, no rooms are available for the selected dates and guest count. Please try different dates or contact us for assistance."
+                  : "We're currently updating our room inventory. Please check back soon for our latest offerings."
+                }
               </p>
+              {searchParams.checkIn && searchParams.checkOut && searchParams.guests && (
+                <Button
+                  className="mt-4 bg-amber-600 hover:bg-amber-700"
+                  onClick={() => window.location.href = '/rooms'}
+                >
+                  View All Rooms
+                </Button>
+              )}
             </div>
           )}
         </Container>

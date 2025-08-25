@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Users, MapPin, Search, ChevronRight, Star, Award, Crown, Sparkles } from "lucide-react"
+import { Calendar, Users, MapPin, Search, ChevronRight, Star, Award, Crown, Sparkles, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { CustomDatePicker } from "@/components/ui/custom-date-picker"
+import { toast } from "@/hooks/use-toast"
 
 const Hero = () => {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -17,15 +18,18 @@ const Hero = () => {
   const { hotelInfo } = useHotel()
   const router = useRouter()
   
-     // Booking form state
-   const [bookingData, setBookingData] = useState({
-     checkIn: "",
-     checkOut: "",
-     adults: 1,
-     children: 0,
-     roomType: "all",
-     guests: 1
-   })
+  // Booking form state
+  const [bookingData, setBookingData] = useState({
+    checkIn: "",
+    checkOut: "",
+    adults: 1,
+    children: 0,
+    roomType: "all",
+    guests: 1
+  })
+
+  // Availability check state
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false)
 
   const slides = [
     {
@@ -70,17 +74,92 @@ const Hero = () => {
     return () => clearTimeout(timer)
   }, [])
 
-  const handleBookingSubmit = (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Navigate to booking page with form data
-    const params = new URLSearchParams({
-      checkIn: bookingData.checkIn,
-      checkOut: bookingData.checkOut,
-      adults: bookingData.adults.toString(),
-      children: bookingData.children.toString(),
-      guests: bookingData.guests.toString()
-    })
-    router.push(`/booking?${params.toString()}`)
+    
+    // Validate form data
+    if (!bookingData.checkIn || !bookingData.checkOut || !bookingData.guests) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      })
+      return
+    }
+
+    // Validate dates
+    const checkInDate = new Date(bookingData.checkIn)
+    const checkOutDate = new Date(bookingData.checkOut)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    if (checkInDate < today) {
+      toast({
+        title: "Invalid Date",
+        description: "Check-in date cannot be in the past",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (checkOutDate <= checkInDate) {
+      toast({
+        title: "Invalid Date",
+        description: "Check-out date must be after check-in date",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setIsCheckingAvailability(true)
+
+    try {
+      // Check room availability
+      const response = await fetch('/api/rooms/check-availability', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          checkIn: bookingData.checkIn,
+          checkOut: bookingData.checkOut,
+          guests: bookingData.guests
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to check availability')
+      }
+
+      if (data.available && data.availableRoomTypes.length > 0) {
+        // Rooms are available, redirect to rooms page with search parameters
+        const params = new URLSearchParams({
+          checkIn: bookingData.checkIn,
+          checkOut: bookingData.checkOut,
+          guests: bookingData.guests.toString(),
+          available: 'true'
+        })
+        router.push(`/rooms?${params.toString()}`)
+      } else {
+        // No rooms available
+        toast({
+          title: "No Rooms Available",
+          description: "Sorry, no rooms are available for the selected dates and guest count. Please try different dates or contact us for assistance.",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error checking availability:', error)
+      toast({
+        title: "Error",
+        description: "Failed to check room availability. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsCheckingAvailability(false)
+    }
   }
 
   const updateBookingData = (field: string, value: any) => {
@@ -255,11 +334,21 @@ const Hero = () => {
                       </Label>
                       <Button 
                         type="submit"
-                        className="w-full h-10 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white text-sm font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                        disabled={isCheckingAvailability}
+                        className="w-full h-10 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 text-white text-sm font-semibold rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Search className="h-3 w-3 mr-2" />
-                        Check Availability
-                        <ChevronRight className="h-3 w-3 ml-2" />
+                        {isCheckingAvailability ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            Checking...
+                          </>
+                        ) : (
+                          <>
+                            <Search className="h-3 w-3 mr-2" />
+                            Check Availability
+                            <ChevronRight className="h-3 w-3 ml-2" />
+                          </>
+                        )}
                       </Button>
                     </div>
                   </div>

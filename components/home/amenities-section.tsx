@@ -1,5 +1,6 @@
 import { ShieldCheck, BedDouble, BellRing, Thermometer, Ruler, Wifi, Tv2, Sparkles } from "lucide-react"
 import Image from "next/image"
+
 export default function AmenitiesSection() {
   const services = [
     {
@@ -40,14 +41,32 @@ export default function AmenitiesSection() {
         <div className="grid lg:grid-cols-2 gap-12 items-start font-inter">
           {/* Left side - Services */}
           <div>
-            <div className="mb-12">
+            <div className="mb-8 lg:mb-12 text-center sm:text-left">
               <h2 className="text-xl sm:text-3xl font-bold text-primary mb-3">Discover the Amenities We Offer</h2>
-              <p className="text-sm sm:text-md text-gray-600 ">
+              <p className="text-sm sm:text-md text-gray-600">
                 Experience thoughtful comforts and premium amenities that redefine your stay.
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-8">
+            {/* Mobile Layout - 2 columns side by side */}
+            <div className="grid grid-cols-2 gap-4 sm:hidden">
+              {services.map((service, index) => {
+                const IconComponent = service.icon
+                return (
+                  <div key={index} className="flex flex-col items-center text-center space-y-2">
+                    <div className="flex-shrink-0">
+                      <IconComponent className="w-6 h-6 text-primary" strokeWidth={1.5} />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-xs font-semibold text-gray-900 leading-tight">{service.title}</h3>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Desktop Layout - Original horizontal layout */}
+            <div className="hidden sm:grid sm:grid-cols-2 gap-8">
               {services.map((service, index) => {
                 const IconComponent = service.icon
                 return (
@@ -56,8 +75,8 @@ export default function AmenitiesSection() {
                       <IconComponent className="w-8 h-8 text-primary" strokeWidth={1.5} />
                     </div>
                     <div>
-                      <h3 className="text-md sm:text-sm font-semibold text-gray-900 mb-2">{service.title}</h3>
-                      <p className="text-gray-600 text-xs sm:text-xs leading-relaxed">{service.description}</p>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">{service.title}</h3>
+                      <p className="text-gray-600 text-xs leading-relaxed">{service.description}</p>
                     </div>
                   </div>
                 )
@@ -65,18 +84,18 @@ export default function AmenitiesSection() {
             </div>
           </div>
 
-                     {/* Right side - Image */}
-           <div className="lg:pl-8">
-             <div className="relative">
-               <Image
-                 src="/home/ameneties.png"
-                 alt="Hotel amenities visual"
-                 width={600}
-                 height={700}
-                 className="object-cover w-full h-auto rounded-lg"
-               />
-             </div>
-           </div>
+          {/* Right side - Image */}
+          <div className="lg:pl-8">
+            <div className="relative">
+              <Image
+                src="/home/ameneties.png"
+                alt="Hotel amenities visual"
+                width={600}
+                height={700}
+                className="object-cover w-full h-auto rounded-lg"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
