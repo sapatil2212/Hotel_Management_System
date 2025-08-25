@@ -7,6 +7,15 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Container } from "@/components/ui/container"
 
+// Extend Navigator interface for connection property
+interface NavigatorWithConnection extends Navigator {
+  connection?: {
+    effectiveType?: string;
+    downlink?: number;
+    rtt?: number;
+  };
+}
+
 export default function TestMobileBookingPage() {
   const [testResult, setTestResult] = useState<string>("")
   const [loading, setLoading] = useState(false)
@@ -81,13 +90,21 @@ Response Body: ${result}
       
       const result = await response.text()
       
+      // Safe access to navigator.connection
+      const nav = navigator as NavigatorWithConnection
+      const connectionInfo = nav.connection ? {
+        effectiveType: nav.connection.effectiveType || 'Unknown',
+        downlink: nav.connection.downlink || 'Unknown',
+        rtt: nav.connection.rtt || 'Unknown'
+      } : null
+      
       setTestResult(`
 Network Test Results:
 Response Time: ${endTime - startTime}ms
 Status: ${response.status}
 Response: ${result}
 User Agent: ${navigator.userAgent}
-Connection: ${navigator.connection ? navigator.connection.effectiveType : 'Unknown'}
+Connection: ${connectionInfo ? `${connectionInfo.effectiveType} (${connectionInfo.downlink}Mbps, ${connectionInfo.rtt}ms RTT)` : 'Not supported'}
       `)
       
     } catch (error) {
@@ -95,6 +112,15 @@ Connection: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
     } finally {
       setLoading(false)
     }
+  }
+
+  // Safe access to navigator.connection for display
+  const getConnectionInfo = () => {
+    const nav = navigator as NavigatorWithConnection
+    if (nav.connection) {
+      return `${nav.connection.effectiveType || 'Unknown'} (${nav.connection.downlink || 'Unknown'}Mbps)`
+    }
+    return 'Not supported'
   }
 
   return (
@@ -129,7 +155,7 @@ Connection: ${navigator.connection ? navigator.connection.effectiveType : 'Unkno
                 <div>
                   <Label>Connection Type</Label>
                   <div className="text-sm bg-gray-100 p-2 rounded mt-1">
-                    {navigator.connection ? navigator.connection.effectiveType : 'Unknown'}
+                    {getConnectionInfo()}
                   </div>
                 </div>
                 
