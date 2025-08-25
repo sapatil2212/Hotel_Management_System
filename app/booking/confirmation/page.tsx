@@ -18,7 +18,11 @@ import {
   Share,
   Home,
   Clock,
-  Loader
+  Loader,
+  Building2,
+  CreditCard,
+  FileText,
+  ArrowLeft
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "@/hooks/use-toast"
@@ -36,8 +40,14 @@ interface BookingDetails {
   totalAmount: number
   originalAmount?: number
   discountAmount?: number
+  baseAmount?: number
+  gstAmount?: number
+  serviceTaxAmount?: number
+  otherTaxAmount?: number
+  totalTaxAmount?: number
   specialRequests?: string
   status: string
+  paymentMethod?: string
   room: {
     roomNumber: string
     floorNumber?: number
@@ -48,6 +58,7 @@ interface BookingDetails {
       maxGuests: number
       amenities: any[]
       features: any[]
+      price: number
     }
   }
   promoCode?: {
@@ -72,6 +83,7 @@ export default function BookingConfirmationPage() {
   const [hotelInfo, setHotelInfo] = useState<HotelInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [downloading, setDownloading] = useState(false)
+  const [downloadSuccess, setDownloadSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -94,6 +106,12 @@ export default function BookingConfirmationPage() {
       if (response.ok) {
         const data = await response.json()
         console.log('Booking data received:', data);
+        console.log('Tax amounts:', {
+          gstAmount: data.gstAmount,
+          serviceTaxAmount: data.serviceTaxAmount,
+          otherTaxAmount: data.otherTaxAmount
+        });
+        console.log('Full booking data:', JSON.stringify(data, null, 2));
         setBookingDetails(data)
         setError(null)
         
@@ -188,6 +206,7 @@ export default function BookingConfirmationPage() {
     if (!bookingDetails) return
     
     setDownloading(true)
+    setDownloadSuccess(false)
     try {
       const response = await fetch(`/api/bookings/${bookingDetails.id}/pdf`)
       if (response.ok) {
@@ -201,10 +220,16 @@ export default function BookingConfirmationPage() {
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
         
+        setDownloadSuccess(true)
         toast({
           title: "Success",
           description: "Invoice downloaded successfully"
         })
+        
+        // Reset success state after 3 seconds
+        setTimeout(() => {
+          setDownloadSuccess(false)
+        }, 3000)
       } else {
         throw new Error('Failed to download PDF')
       }
@@ -225,6 +250,17 @@ export default function BookingConfirmationPage() {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
+    })
+  }
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     })
   }
 
@@ -269,301 +305,338 @@ export default function BookingConfirmationPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Container className="py-12">
-        <div className="max-w-2xl mx-auto">
-          {/* Success Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-              <Check className="h-8 w-8 text-green-600" />
-            </div>
-            <h1 className="text-3xl font-bold text-green-600 mb-2">Booking Confirmed!</h1>
-            <p className="text-muted-foreground">
-              Thank you for choosing {hotelInfo?.name || 'our hotel'}. Your reservation has been confirmed and Room {bookingDetails.room.roomNumber} has been allocated to you.
-            </p>
-          </div>
-
-          {/* Booking Details */}
-          <Card className="mb-6">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Booking Details</CardTitle>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  {bookingDetails.status.charAt(0).toUpperCase() + bookingDetails.status.slice(1)}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Booking ID</Label>
-                  <div className="font-mono font-semibold">{bookingDetails.id}</div>
-                </div>
-                <div>
-                  <Label>Room Allocated</Label>
-                  <div className="font-medium">
-                    Room {bookingDetails.room.roomNumber}
-                    {bookingDetails.room.floorNumber && ` (Floor ${bookingDetails.room.floorNumber})`}
-                  </div>
-                  <div className="text-sm text-muted-foreground">{bookingDetails.room.roomType.name}</div>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm text-muted-foreground">Check-in</div>
-                    <div className="font-medium">{formatDate(bookingDetails.checkIn)}</div>
-                    <div className="text-xs text-muted-foreground">3:00 PM onwards</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm text-muted-foreground">Check-out</div>
-                    <div className="font-medium">{formatDate(bookingDetails.checkOut)}</div>
-                    <div className="text-xs text-muted-foreground">11:00 AM</div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm text-muted-foreground">Duration</div>
-                    <div className="font-medium">{bookingDetails.nights} night{bookingDetails.nights > 1 ? 's' : ''}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <div className="text-sm text-muted-foreground">Guests</div>
-                    <div className="font-medium">
-                      {bookingDetails.adults} Adult{bookingDetails.adults > 1 ? 's' : ''}
-                      {bookingDetails.children > 0 && `, ${bookingDetails.children} Child${bookingDetails.children > 1 ? 'ren' : ''}`}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Guest Information */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Guest Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label>Primary Guest</Label>
-                <div className="font-medium">{bookingDetails.guestName}</div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Email</Label>
-                  <div className="font-medium">{bookingDetails.guestEmail}</div>
-                </div>
-                <div>
-                  <Label>Phone</Label>
-                  <div className="font-medium">{bookingDetails.guestPhone}</div>
-                </div>
-              </div>
-              {bookingDetails.specialRequests && (
-                <div>
-                  <Label>Special Requests</Label>
-                  <div className="font-medium">{bookingDetails.specialRequests}</div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Room Information */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Room Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label>Room Size</Label>
-                  <div className="font-medium">{bookingDetails.room.roomType.size}</div>
-                </div>
-                <div>
-                  <Label>Bed Type</Label>
-                  <div className="font-medium">{bookingDetails.room.roomType.bedType}</div>
-                </div>
-              </div>
-              <div>
-                <Label>Amenities</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {bookingDetails.room.roomType.amenities?.map((amenity: string, index: number) => (
-                    <Badge key={index} variant="outline">{amenity}</Badge>
-                  ))}
-                </div>
-              </div>
-              {bookingDetails.room.roomType.features && bookingDetails.room.roomType.features.length > 0 && (
-                <div>
-                  <Label>Features</Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {bookingDetails.room.roomType.features?.map((feature: string, index: number) => (
-                      <Badge key={index} variant="secondary">{feature}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Payment Summary */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Payment Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {bookingDetails.originalAmount && bookingDetails.discountAmount && bookingDetails.discountAmount > 0 ? (
-                <>
-                  <div className="flex justify-between">
-                    <span>Original Amount:</span>
-                    <span>{formatCurrency(bookingDetails.originalAmount)}</span>
-                  </div>
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount {bookingDetails.promoCode ? `(${bookingDetails.promoCode.code})` : ''}:</span>
-                    <span>-{formatCurrency(bookingDetails.discountAmount)}</span>
-                  </div>
-                  <Separator />
-                </>
-              ) : null}
-              <div className="flex justify-between items-center text-lg font-semibold">
-                <span>Total Amount Paid</span>
-                <span>{formatCurrency(bookingDetails.totalAmount)}</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-2">
-                Payment confirmation has been sent to your email address.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Hotel Information */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Hotel Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-                <div>
-                  <div className="font-medium">{hotelInfo?.name || 'Hotel Management System'}</div>
-                  {hotelInfo?.address && (
-                    <div className="text-sm text-muted-foreground">{hotelInfo.address}</div>
-                  )}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {hotelInfo?.primaryPhone && (
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="text-sm text-muted-foreground">Phone</div>
-                      <div className="font-medium">{hotelInfo.primaryPhone}</div>
-                    </div>
-                  </div>
-                )}
-                {hotelInfo?.primaryEmail && (
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-5 w-5 text-muted-foreground" />
-                    <div>
-                      <div className="text-sm text-muted-foreground">Email</div>
-                      <div className="font-medium">{hotelInfo.primaryEmail}</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Important Information */}
-          <Card className="mb-8 border-amber-200 bg-amber-50">
-            <CardContent className="pt-6">
-              <h3 className="font-semibold mb-3 flex items-center gap-2 text-amber-800">
-                <Clock className="h-4 w-4" />
-                Important Information
-              </h3>
-              <ul className="space-y-2 text-sm text-amber-700">
-                <li>• Please bring a valid photo ID for check-in</li>
-                <li>• Early check-in and late check-out are subject to availability</li>
-                <li>• Free cancellation available until 24 hours before check-in</li>
-                <li>• Contact the hotel directly for any special requests or modifications</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+      <Container className="py-8">
+        <div className="max-w-4xl mx-auto bg-white rounded-2xl border border-gray-200 p-6 relative">
+          {/* Back to Home Button - Upper Left Corner */}
+          <div className="absolute top-4 left-4">
             <Button 
-              className="flex-1" 
               variant="outline" 
-              onClick={handleDownloadPDF}
-              disabled={downloading}
+              size="sm"
+              className="bg-white hover:bg-gray-50"
+              asChild
             >
-              <Download className="mr-2 h-4 w-4" />
-              {downloading ? 'Generating PDF...' : 'Download Invoice'}
-            </Button>
-            <Button className="flex-1" variant="outline" onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: `Booking Confirmation - ${bookingDetails.id}`,
-                  text: `My booking at ${hotelInfo?.name || 'hotel'} is confirmed! Room ${bookingDetails.room.roomNumber} from ${formatDate(bookingDetails.checkIn)} to ${formatDate(bookingDetails.checkOut)}`,
-                  url: window.location.href
-                })
-              } else {
-                navigator.clipboard.writeText(window.location.href)
-                toast({
-                  title: "Link Copied",
-                  description: "Booking link copied to clipboard"
-                })
-              }
-            }}>
-              <Share className="mr-2 h-4 w-4" />
-              Share Booking
-            </Button>
-            <Button className="flex-1 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700" asChild>
               <Link href="/">
-                <Home className="mr-2 h-4 w-4" />
+                <ArrowLeft className="h-4 w-4 mr-1" />
                 Back to Home
               </Link>
             </Button>
           </div>
 
-          {/* Contact Support */}
-          <div className="text-center mt-8 p-6 bg-white rounded-lg border">
-            <h3 className="font-semibold mb-2">Need Help?</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Our customer service team is available 24/7 to assist you.
+          {/* Action Buttons - Upper Right Corner */}
+          <div className="absolute top-4 right-4 flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleDownloadPDF}
+              disabled={downloading}
+              className="bg-white hover:bg-gray-50 p-2"
+              title={downloading ? 'Generating PDF...' : downloadSuccess ? 'Downloaded Successfully' : 'Download Invoice'}
+            >
+              {downloading ? (
+                <Loader className="h-4 w-4 animate-spin" />
+              ) : downloadSuccess ? (
+                <Check className="h-4 w-4 text-green-600 animate-pulse" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: `Booking Confirmation - ${bookingDetails.id}`,
+                    text: `My booking at ${hotelInfo?.name || 'hotel'} is confirmed! Room ${bookingDetails.room.roomNumber} from ${formatDate(bookingDetails.checkIn)} to ${formatDate(bookingDetails.checkOut)}`,
+                    url: window.location.href
+                  })
+                } else {
+                  navigator.clipboard.writeText(window.location.href)
+                  toast({
+                    title: "Link Copied",
+                    description: "Booking link copied to clipboard"
+                  })
+                }
+              }}
+              className="bg-white hover:bg-gray-50 p-2"
+              title="Share Booking"
+            >
+              <Share className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Success Header */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-3">
+              <Check className="h-8 w-8 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold text-green-600 mb-2">Booking Confirmed!</h1>
+            <p className="text-sm text-muted-foreground">
+              Thank you for choosing {hotelInfo?.name || 'our hotel'}. Your reservation has been confirmed and Room {bookingDetails.room.roomNumber} has been allocated to you.
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
-              {hotelInfo?.primaryPhone && (
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`tel:${hotelInfo.primaryPhone}`}>
-                    <Phone className="mr-2 h-4 w-4" />
-                    Call Support
-                  </a>
-                </Button>
-              )}
-              {hotelInfo?.primaryEmail && (
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`mailto:${hotelInfo.primaryEmail}?subject=Booking Support - ${bookingDetails.id}`}>
-                    <Mail className="mr-2 h-4 w-4" />
-                    Email Support
-                  </a>
-                </Button>
-              )}
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Left Column */}
+            <div className="space-y-4">
+              {/* Booking Reference */}
+              <Card className="bg-gray-50 border-gray-200">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Booking Reference
+                    </CardTitle>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 text-xs">
+                      {bookingDetails.status.charAt(0).toUpperCase() + bookingDetails.status.slice(1)}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="font-mono font-semibold text-base">{bookingDetails.id}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Booking Date & Time: {formatDateTime(bookingDetails.createdAt)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Guest Information */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Guest Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div>
+                    <Label>Full Name</Label>
+                    <div className="font-medium text-sm">{bookingDetails.guestName}</div>
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <div className="font-medium text-sm">{bookingDetails.guestEmail}</div>
+                  </div>
+                  <div>
+                    <Label>Phone</Label>
+                    <div className="font-medium text-sm">{bookingDetails.guestPhone}</div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Stay Details */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Stay Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Check-in</Label>
+                      <div className="font-medium text-sm">{formatDate(bookingDetails.checkIn)}</div>
+                    </div>
+                    <div>
+                      <Label>Check-out</Label>
+                      <div className="font-medium text-sm">{formatDate(bookingDetails.checkOut)}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Duration</Label>
+                      <div className="font-medium text-sm">{bookingDetails.nights} night{bookingDetails.nights > 1 ? 's' : ''}</div>
+                    </div>
+                    <div>
+                      <Label>Guests</Label>
+                      <div className="font-medium text-sm">
+                        {bookingDetails.adults} adult{bookingDetails.adults > 1 ? 's' : ''}
+                        {bookingDetails.children > 0 && `, ${bookingDetails.children} children`}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Room Details */}
+              <Card className="bg-amber-50 border-amber-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Room Details
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Room Type</Label>
+                      <div className="font-medium text-sm">{bookingDetails.room.roomType.name}</div>
+                    </div>
+                    <div>
+                      <Label>Room Number</Label>
+                      <div className="font-medium text-sm">{bookingDetails.room.roomNumber}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Floor</Label>
+                      <div className="font-medium text-sm">{bookingDetails.room.floorNumber || 'N/A'}</div>
+                    </div>
+                    <div>
+                      <Label>Room Size</Label>
+                      <div className="font-medium text-sm">{bookingDetails.room.roomType.size}</div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label>Bed Type</Label>
+                      <div className="font-medium text-sm">{bookingDetails.room.roomType.bedType}</div>
+                    </div>
+                    <div>
+                      <Label>Max Guests</Label>
+                      <div className="font-medium text-sm">{bookingDetails.room.roomType.maxGuests}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+                        {/* Right Column */}
+            <div className="space-y-4">
+              {/* Payment Summary */}
+              <Card className="bg-green-50 border-green-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Payment Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {/* Base Amount */}
+                  <div className="flex justify-between text-sm">
+                    <span>Room Rate ({bookingDetails.nights} nights × {formatCurrency(bookingDetails.room.roomType.price)}):</span>
+                    <span>{formatCurrency(bookingDetails.room.roomType.price * bookingDetails.nights)}</span>
+                  </div>
+                  
+                  {/* GST Charges */}
+                  {bookingDetails.gstAmount && bookingDetails.gstAmount > 0 ? (
+                    <div className="flex justify-between text-sm">
+                      <span>GST Charges:</span>
+                      <span>{formatCurrency(bookingDetails.gstAmount)}</span>
+                    </div>
+                  ) : null}
+                  
+                  {/* Service Tax */}
+                  {bookingDetails.serviceTaxAmount && bookingDetails.serviceTaxAmount > 0 ? (
+                    <div className="flex justify-between text-sm">
+                      <span>Service Tax:</span>
+                      <span>{formatCurrency(bookingDetails.serviceTaxAmount)}</span>
+                    </div>
+                  ) : null}
+                  
+                  {/* Other Taxes */}
+                  {bookingDetails.otherTaxAmount && bookingDetails.otherTaxAmount > 0 ? (
+                    <div className="flex justify-between text-sm">
+                      <span>Other Taxes:</span>
+                      <span>{formatCurrency(bookingDetails.otherTaxAmount)}</span>
+                    </div>
+                  ) : null}
+                  
+                  {/* Promo Code / Discount */}
+                  {bookingDetails.discountAmount && bookingDetails.discountAmount > 0 ? (
+                    <div className="flex justify-between text-red-600 text-sm">
+                      <span>Discount {bookingDetails.promoCode ? `(${bookingDetails.promoCode.code})` : ''}:</span>
+                      <span>-{formatCurrency(bookingDetails.discountAmount)}</span>
+                    </div>
+                  ) : null}
+                  
+                  <Separator />
+                  
+                  {/* Total Amount */}
+                  <div className="flex justify-between items-center text-base font-semibold">
+                    <span>Total Amount</span>
+                    <span>{formatCurrency(bookingDetails.totalAmount)}</span>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground">
+                    Payment Method: {bookingDetails.paymentMethod ? bookingDetails.paymentMethod.replace(/_/g, ' ') : 'Pay at Hotel'}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Terms and Conditions */}
+              <Card className="bg-red-50 border-red-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Terms and Conditions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-xs space-y-1">
+                    <p><strong>Standard Terms:</strong></p>
+                    <ul className="list-disc list-inside space-y-1 text-xs">
+                      <li>All bookings are subject to room availability at the time of check-in.</li>
+                      <li>Room numbers are allocated but may be changed at the time of check-in based on operational requirements.</li>
+                      <li>Check-in time: 3:00 PM | Check-out time: 11:00 AM</li>
+                      <li>Early check-in and late check-out are subject to availability and may incur additional charges.</li>
+                      <li>Valid government-issued photo ID is required at check-in.</li>
+                      <li>Payment is due as per the selected payment method.</li>
+                      <li>Cancellation policies apply as per hotel terms.</li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Footer */}
+              <Card className="bg-gray-50 border-gray-200">
+                <CardContent className="pt-4 text-center">
+                  <p className="font-semibold mb-1 text-sm">Thank you for choosing us! We look forward to your stay.</p>
+                  <p className="text-xs text-muted-foreground mb-1">This is a computer-generated confirmation. No signature required.</p>
+                  <p className="text-xs text-muted-foreground mb-1">For any queries, please contact us using the information below.</p>
+                  <p className="text-xs text-muted-foreground">Generated on {formatDate(new Date().toISOString())}</p>
+                </CardContent>
+              </Card>
             </div>
           </div>
+
+
+
         </div>
       </Container>
+
+      {/* Contact Support - Outside Main Container */}
+      <div className="bg-gray-50 pb-8">
+        <Container>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center bg-white rounded-lg border p-6">
+              <h3 className="font-semibold mb-3 text-lg">Need Help?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Our customer service team is available 24/7 to assist you.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                {hotelInfo?.primaryPhone && (
+                  <Button variant="outline" asChild>
+                    <a href={`tel:${hotelInfo.primaryPhone}`}>
+                      <Phone className="mr-2 h-4 w-4" />
+                      Call Support
+                    </a>
+                  </Button>
+                )}
+                {hotelInfo?.primaryEmail && (
+                  <Button variant="outline" asChild>
+                    <a href={`mailto:${hotelInfo.primaryEmail}?subject=Booking Support - ${bookingDetails.id}`}>
+                      <Mail className="mr-2 h-4 w-4" />
+                      Email Support
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </Container>
+      </div>
     </div>
   )
 }

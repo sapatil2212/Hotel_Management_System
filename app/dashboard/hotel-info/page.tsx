@@ -71,6 +71,7 @@ interface HotelInfo {
   smokingPolicy: string
   privacyPolicy?: string
   termsOfService?: string
+  bookingConfirmationTerms?: string
   guestPolicies?: string
   bookingPartners: Array<{name: string, url: string, commission?: number}>
   partnerLogos: string[]
@@ -1162,6 +1163,30 @@ export default function HotelInfoPage() {
                       />
                       <p className="mt-1 text-xs text-slate-500">These terms govern the use of your hotel services and website.</p>
                        </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="bookingConfirmationTerms" className="text-xs font-medium text-slate-700 mb-1 block">
+                        Booking Confirmation Terms & Conditions
+                      </Label>
+                      <Textarea
+                        id="bookingConfirmationTerms"
+                        rows={6}
+                        value={hotelInfo.bookingConfirmationTerms || ""}
+                        onChange={(e) => updateHotelField('bookingConfirmationTerms', e.target.value)}
+                        placeholder="Enter terms and conditions that will appear on booking confirmation PDFs..."
+                        className="border-slate-300 focus:border-rose-500 focus:ring-rose-500 rounded-lg resize-y text-sm"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">These terms will be displayed on booking confirmation PDFs and invoices. Use bullet points (•) for better formatting.</p>
+                      <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                        <p className="text-xs text-blue-800 font-medium mb-1">Formatting Tips:</p>
+                        <ul className="text-xs text-blue-700 space-y-1">
+                          <li>• Use "•" for bullet points (e.g., "• All bookings are subject to availability")</li>
+                          <li>• Start with "Standard Terms:" for the heading</li>
+                          <li>• Each line will be formatted automatically in the PDF</li>
+                          <li>• Leave empty lines for better spacing</li>
+                        </ul>
+                      </div>
                     </div>
                     
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

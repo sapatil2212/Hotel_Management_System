@@ -30,6 +30,7 @@ async function main() {
       guestPolicies: "We strive to provide a comfortable and safe environment for all our guests. Please respect other guests and hotel property during your stay.",
       privacyPolicy: "Your privacy is important to us. We collect and use your personal information only for the purposes of providing our services and improving your experience. We do not share your information with third parties without your consent.",
       termsOfService: "By using our services, you agree to these terms and conditions. We reserve the right to modify these terms at any time. Please review them regularly.",
+      bookingConfirmationTerms: "Standard Terms:\n• All bookings are subject to room availability at the time of check-in.\n• Room numbers are allocated but may be changed at the time of check-in based on operational requirements.\n• Check-in time: 3:00 PM | Check-out time: 11:00 AM\n• Early check-in and late check-out are subject to availability and may incur additional charges.\n• Valid government-issued photo ID is required at check-in.\n• Payment is due as per the selected payment method.\n• Cancellation policies apply as per hotel terms.",
       faqs: [
         {
           question: "What time is check-in and check-out?",

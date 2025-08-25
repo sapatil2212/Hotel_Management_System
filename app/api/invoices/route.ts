@@ -79,13 +79,34 @@ export async function POST(request: NextRequest) {
     const invoice = await prisma.$transaction(async (tx) => {
       // Create the main invoice (excluding invoiceItems from body to avoid Prisma error)
       const { invoiceItems, ...invoiceData } = body;
+      
+      // Ensure required fields are present
+      const invoiceCreateData = {
+        ...invoiceData,
+        invoiceNumber,
+        qrCode,
+        dueDate: new Date(body.dueDate || Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+        guestName: body.guestName || 'Guest',
+        guestEmail: body.guestEmail || 'guest@example.com',
+        guestPhone: body.guestPhone || 'N/A',
+        checkIn: body.checkIn || new Date(),
+        checkOut: body.checkOut || new Date(),
+        nights: body.nights || 1,
+        adults: body.adults || 1,
+        children: body.children || 0,
+        roomTypeName: body.roomTypeName || 'Room',
+        roomNumber: body.roomNumber || 'N/A',
+        baseAmount: body.baseAmount || 0,
+        discountAmount: body.discountAmount || 0,
+        gstAmount: body.gstAmount || 0,
+        serviceTaxAmount: body.serviceTaxAmount || 0,
+        otherTaxAmount: body.otherTaxAmount || 0,
+        totalTaxAmount: body.totalTaxAmount || 0,
+        totalAmount: body.totalAmount || 0,
+      };
+      
       const createdInvoice = await tx.invoice.create({
-        data: {
-          ...invoiceData,
-          invoiceNumber,
-          qrCode,
-          dueDate: new Date(body.dueDate || Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-        },
+        data: invoiceCreateData,
       });
 
       // Calculate room-specific amounts (body.baseAmount now contains only room base amount)

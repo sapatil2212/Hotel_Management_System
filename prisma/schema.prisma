@@ -193,6 +193,7 @@ model hotelinfo {
   faqs                  Json?
   privacyPolicy         String?  @db.Text
   termsOfService        String?  @db.Text
+  bookingConfirmationTerms String?  @db.Text
   logo                  String?  @db.Text
   logoDisplayType       String?  @default("image") // "image" or "text"
   brandText             String?  @db.Text

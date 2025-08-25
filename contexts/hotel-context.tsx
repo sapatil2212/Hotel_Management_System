@@ -33,6 +33,7 @@ interface HotelInfo {
   smokingPolicy: string
   privacyPolicy?: string
   termsOfService?: string
+  bookingConfirmationTerms?: string
   guestPolicies?: string
   bookingPartners: Array<{name: string, url: string, commission?: number}>
   partnerLogos: string[]
