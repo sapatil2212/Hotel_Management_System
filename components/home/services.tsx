@@ -43,15 +43,15 @@ const Services = () => {
       <Container>
         {/* Section Header */}
         <div className="text-center mb-16">
-          <Badge className="mb-4 bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200">
+          <Badge className="mb-4 bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900 dark:text-blue-200 text-xs md:text-sm">
             World-Class Amenities
           </Badge>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
               Exceptional Services
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Experience unmatched luxury with our comprehensive range of premium services and amenities
           </p>
         </div>

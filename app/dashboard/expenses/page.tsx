@@ -28,7 +28,8 @@ import {
   Settings,
   Eye,
   DollarSign,
-  Loader
+  Loader,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -296,24 +297,22 @@ export default function ExpensesPage() {
   }
 
   return (
-    <div className="flex-1 space-y-3 sm:space-y-4 p-2 sm:p-4 md:p-8 pt-3 sm:pt-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-        <h2 className="text-lg sm:text-3xl font-bold tracking-tight">Expense Management</h2>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={loadExpenses} className="h-8 sm:h-9 text-xs sm:text-sm">
-            <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-            Refresh
-          </Button>
-        </div>
+    <div className="p-2 sm:p-6 space-y-3 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <h2 className="text-lg sm:text-3xl font-bold">Expense Management</h2>
+        <Button variant="outline" size="sm" onClick={loadExpenses} className="h-8 sm:h-9 text-xs sm:text-sm">
+          <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+          Refresh
+        </Button>
       </div>
 
-      <Tabs defaultValue="expenses" className="space-y-3 sm:space-y-4">
+      <Tabs defaultValue="expenses" className="space-y-3 sm:space-y-6">
         <TabsList className="h-8 sm:h-9">
           <TabsTrigger value="expenses" className="text-xs sm:text-sm">Expenses</TabsTrigger>
           {canManageExpenseTypes && <TabsTrigger value="expense-types" className="text-xs sm:text-sm">Expense Types</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="expenses" className="space-y-3 sm:space-y-4">
+        <TabsContent value="expenses" className="space-y-3 sm:space-y-6">
           {/* Filters */}
           <Card className="rounded-lg">
             <CardHeader className="pb-3 sm:pb-4">
@@ -399,18 +398,18 @@ export default function ExpensesPage() {
                         Add Expense
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle className="text-base">Add New Expense</DialogTitle>
+                    <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg max-h-[90vh] overflow-y-auto">
+                      <DialogHeader className="mb-3 sm:mb-6">
+                        <DialogTitle className="text-base sm:text-xl">Add New Expense</DialogTitle>
                       </DialogHeader>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                         <div>
-                          <Label className="text-xs">Expense Type</Label>
+                          <Label className="text-[10px] sm:text-xs">Expense Type</Label>
                           <Select 
                             value={newExpense.expenseTypeId} 
                             onValueChange={(value) => setNewExpense(prev => ({ ...prev, expenseTypeId: value }))}
                           >
-                            <SelectTrigger className="h-8 text-sm">
+                            <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                               <SelectValue placeholder="Select expense type" />
                             </SelectTrigger>
                             <SelectContent>
@@ -424,33 +423,33 @@ export default function ExpensesPage() {
                         </div>
 
                         <div>
-                          <Label className="text-xs">Amount (₹)</Label>
+                          <Label className="text-[10px] sm:text-xs">Amount (₹)</Label>
                           <Input
                             type="number"
                             value={newExpense.amount}
                             onChange={(e) => setNewExpense(prev => ({ ...prev, amount: e.target.value }))}
                             placeholder="0.00"
-                            className="h-8 text-sm"
+                            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs">Description</Label>
+                          <Label className="text-[10px] sm:text-xs">Description</Label>
                           <Input
                             value={newExpense.description}
                             onChange={(e) => setNewExpense(prev => ({ ...prev, description: e.target.value }))}
                             placeholder="Enter description"
-                            className="h-8 text-sm"
+                            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs">Payment Method</Label>
+                          <Label className="text-[10px] sm:text-xs">Payment Method</Label>
                           <Select 
                             value={newExpense.paymentMethod} 
                             onValueChange={(value) => setNewExpense(prev => ({ ...prev, paymentMethod: value }))}
                           >
-                            <SelectTrigger className="h-8 text-sm">
+                            <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                               <SelectValue placeholder="Select payment method" />
                             </SelectTrigger>
                             <SelectContent>
@@ -467,12 +466,12 @@ export default function ExpensesPage() {
 
                         {canExpenseFromAnyAccount && (
                           <div>
-                            <Label className="text-xs">Deduct from User Account</Label>
+                            <Label className="text-[10px] sm:text-xs">Deduct from User Account</Label>
                             <Select 
                               value={newExpense.deductFromUserId} 
                               onValueChange={(value) => setNewExpense(prev => ({ ...prev, deductFromUserId: value }))}
                             >
-                              <SelectTrigger className="h-8 text-sm">
+                              <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                                 <SelectValue placeholder="Select user (default: your account)" />
                               </SelectTrigger>
                               <SelectContent>
@@ -488,10 +487,10 @@ export default function ExpensesPage() {
                         )}
 
                         <div>
-                          <Label className="text-xs">Expense Date</Label>
+                          <Label className="text-[10px] sm:text-xs">Expense Date</Label>
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" className="h-8 text-sm w-full justify-start text-left font-normal">
+                              <Button variant="outline" className="h-8 sm:h-9 text-xs sm:text-sm w-full justify-start text-left font-normal rounded-md">
                                 <CalendarIcon className="mr-2 h-3 w-3" />
                                 {format(newExpense.expenseDate, 'PPP')}
                               </Button>
@@ -508,35 +507,42 @@ export default function ExpensesPage() {
                         </div>
 
                         <div>
-                          <Label className="text-xs">Reference Number (Optional)</Label>
+                          <Label className="text-[10px] sm:text-xs">Reference Number (Optional)</Label>
                           <Input
                             value={newExpense.referenceNumber}
                             onChange={(e) => setNewExpense(prev => ({ ...prev, referenceNumber: e.target.value }))}
                             placeholder="Receipt/Bill reference"
-                            className="h-8 text-sm"
+                            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                           />
                         </div>
 
                         <div>
-                          <Label className="text-xs">Notes (Optional)</Label>
+                          <Label className="text-[10px] sm:text-xs">Notes (Optional)</Label>
                           <Input
                             value={newExpense.notes}
                             onChange={(e) => setNewExpense(prev => ({ ...prev, notes: e.target.value }))}
                             placeholder="Additional notes"
-                            className="h-8 text-sm"
+                            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                           />
                         </div>
 
-                        <div className="md:col-span-2 flex justify-end">
+                        <div className="md:col-span-2 flex gap-2 pt-3 border-t">
+                          <Button 
+                            variant="outline"
+                            onClick={() => setShowAddExpense(false)} 
+                            className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                          >
+                            <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Cancel
+                          </Button>
                           <Button 
                             onClick={handleCreateExpense} 
-                            className="min-w-[160px]"
-                            size="sm"
+                            className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
                             disabled={isCreatingExpense || !newExpense.expenseTypeId || !newExpense.amount || !newExpense.description}
                           >
                             {isCreatingExpense ? (
                               <span className="inline-flex items-center gap-2">
-                                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
+                                <svg className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                                 </svg>
@@ -556,10 +562,10 @@ export default function ExpensesPage() {
           </Card>
 
           {/* Expenses Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5" />
+          <Card className="rounded-lg">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <CreditCard className="h-4 w-4 sm:h-5 sm:w-5" />
                 Expenses
               </CardTitle>
             </CardHeader>
@@ -569,59 +575,60 @@ export default function ExpensesPage() {
                   <RefreshCw className="h-8 w-8 animate-spin" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Payment Method</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Date</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Type</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Description</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Amount</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">User</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Payment Method</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {expenses.map((expense) => (
                       <TableRow key={expense.id}>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           {format(new Date(expense.expenseDate), 'MMM dd, yyyy')}
                         </TableCell>
-                        <TableCell>{expense.expenseType.name}</TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">{expense.expenseType.name}</TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           <div>
                             <div className="font-medium">{expense.description}</div>
                             {expense.notes && (
-                              <div className="text-sm text-muted-foreground">{expense.notes}</div>
+                              <div className="text-[9px] sm:text-xs text-muted-foreground">{expense.notes}</div>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell className="font-medium">
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4 font-medium">
                           {formatCurrency(expense.amount)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           <div>
                             <div className="font-medium">{expense.user.name}</div>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-[9px] sm:text-xs">
                               {expense.user.role}
                             </Badge>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           {expense.paymentMethod && (
-                            <Badge variant="secondary">
+                            <Badge variant="secondary" className="text-[9px] sm:text-xs">
                               {expense.paymentMethod.replace('_', ' ').toUpperCase()}
                             </Badge>
                           )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           {expense.isApproved ? (
-                            <Badge variant="default" className="flex items-center gap-1">
+                            <Badge variant="default" className="flex items-center gap-1 text-[9px] sm:text-xs">
                               <CheckCircle className="h-3 w-3" />
                               Approved
                             </Badge>
                           ) : (
-                            <Badge variant="secondary" className="flex items-center gap-1">
+                            <Badge variant="secondary" className="flex items-center gap-1 text-[9px] sm:text-xs">
                               <Clock className="h-3 w-3" />
                               Pending
                             </Badge>
@@ -631,97 +638,113 @@ export default function ExpensesPage() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
         {canManageExpenseTypes && (
-          <TabsContent value="expense-types" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
+          <TabsContent value="expense-types" className="space-y-3 sm:space-y-6">
+            <Card className="rounded-lg">
+              <CardHeader className="pb-3 sm:pb-4">
+                <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                  <span className="flex items-center gap-2 text-sm sm:text-base">
+                    <Settings className="h-4 w-4 sm:h-5 sm:w-5" />
                     Expense Types Management
                   </span>
                   <Dialog open={showAddExpenseType} onOpenChange={setShowAddExpenseType}>
                     <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
+                      <Button className="h-8 sm:h-9 text-xs sm:text-sm">
+                        <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                         Add Expense Type
                       </Button>
                     </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Add New Expense Type</DialogTitle>
+                    <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg max-h-[90vh] overflow-y-auto">
+                      <DialogHeader className="mb-3 sm:mb-6">
+                        <DialogTitle className="text-base sm:text-xl">Add New Expense Type</DialogTitle>
                       </DialogHeader>
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         <div>
-                          <Label>Name</Label>
+                          <Label className="text-[10px] sm:text-xs">Name</Label>
                           <Input
                             value={newExpenseType.name}
                             onChange={(e) => setNewExpenseType(prev => ({ ...prev, name: e.target.value }))}
                             placeholder="e.g., Light Bill, Gas, Wi-Fi"
+                            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                           />
                         </div>
                         <div>
-                          <Label>Description (Optional)</Label>
+                          <Label className="text-[10px] sm:text-xs">Description (Optional)</Label>
                           <Textarea
                             value={newExpenseType.description}
                             onChange={(e) => setNewExpenseType(prev => ({ ...prev, description: e.target.value }))}
                             placeholder="Describe this expense type"
+                            className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                           />
                         </div>
-                        <Button 
-                          onClick={handleCreateExpenseType} 
-                          className="w-full"
-                          disabled={!newExpenseType.name}
-                        >
-                          Create Expense Type
-                        </Button>
+                        <div className="flex gap-2 pt-3 border-t">
+                          <Button 
+                            variant="outline"
+                            onClick={() => setShowAddExpenseType(false)} 
+                            className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                          >
+                            <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleCreateExpenseType} 
+                            className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                            disabled={!newExpenseType.name}
+                          >
+                            Create Expense Type
+                          </Button>
+                        </div>
                       </div>
                     </DialogContent>
                   </Dialog>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Expenses Count</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Name</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Description</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Status</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Expenses Count</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {expenseTypes.map((type) => (
                       <TableRow key={type.id}>
-                        <TableCell className="font-medium">{type.name}</TableCell>
-                        <TableCell>{type.description || '-'}</TableCell>
-                        <TableCell>
-                          <Badge variant={type.isActive ? 'default' : 'secondary'}>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4 font-medium">{type.name}</TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">{type.description || '-'}</TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
+                          <Badge variant={type.isActive ? 'default' : 'secondary'} className="text-[9px] sm:text-xs">
                             {type.isActive ? 'Active' : 'Inactive'}
                           </Badge>
                         </TableCell>
-                        <TableCell>{type._count.expenses}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">{type._count.expenses}</TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
+                          <div className="flex items-center gap-1">
                             <Button
                               variant="outline"
                               size="sm"
+                              className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               onClick={() => setEditingExpenseType(type)}
                             >
-                              <Edit className="h-4 w-4" />
+                              <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                             <Button
                               variant="outline"
                               size="sm"
+                              className="h-7 w-7 sm:h-8 sm:w-8 p-0"
                               onClick={() => handleDeleteExpenseType(type.id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           </div>
                         </TableCell>
@@ -729,6 +752,7 @@ export default function ExpensesPage() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -738,23 +762,25 @@ export default function ExpensesPage() {
       {/* Edit Expense Type Dialog */}
       {editingExpenseType && (
         <Dialog open={!!editingExpenseType} onOpenChange={() => setEditingExpenseType(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Expense Type</DialogTitle>
+          <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="mb-3 sm:mb-6">
+              <DialogTitle className="text-base sm:text-xl">Edit Expense Type</DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <div>
-                <Label>Name</Label>
+                <Label className="text-[10px] sm:text-xs">Name</Label>
                 <Input
                   value={editingExpenseType.name}
                   onChange={(e) => setEditingExpenseType(prev => prev ? { ...prev, name: e.target.value } : null)}
+                  className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                 />
               </div>
               <div>
-                <Label>Description</Label>
+                <Label className="text-[10px] sm:text-xs">Description</Label>
                 <Textarea
                   value={editingExpenseType.description || ''}
                   onChange={(e) => setEditingExpenseType(prev => prev ? { ...prev, description: e.target.value } : null)}
+                  className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                 />
               </div>
               <div className="flex items-center space-x-2">
@@ -763,11 +789,21 @@ export default function ExpensesPage() {
                   checked={editingExpenseType.isActive}
                   onChange={(e) => setEditingExpenseType(prev => prev ? { ...prev, isActive: e.target.checked } : null)}
                 />
-                <Label>Active</Label>
+                <Label className="text-[10px] sm:text-xs">Active</Label>
               </div>
-              <Button onClick={handleUpdateExpenseType} className="w-full">
-                Update Expense Type
-              </Button>
+              <div className="flex gap-2 pt-3 border-t">
+                <Button 
+                  variant="outline"
+                  onClick={() => setEditingExpenseType(null)} 
+                  className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                >
+                  <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateExpenseType} className="flex-1 h-8 sm:h-9 text-xs sm:text-sm">
+                  Update Expense Type
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>

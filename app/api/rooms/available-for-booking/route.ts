@@ -4,23 +4,23 @@ import { prisma } from "@/lib/prisma"
 // Force dynamic rendering for this API route
 export const dynamic = 'force-dynamic';
 
-// GET /api/rooms/available-for-booking - Get available rooms for booking changes
+// GET /api/rooms/available-for-booking - Get all available rooms for booking
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const roomTypeId = searchParams.get('roomTypeId')
     const currentRoomId = searchParams.get('currentRoomId')
 
-    if (!roomTypeId) {
-      return NextResponse.json({ error: "Room type ID is required" }, { status: 400 })
-    }
-
     // Build the where clause conditionally
     const whereCondition: any = {
-      roomTypeId: roomTypeId,
       OR: [
         { status: 'available' }
       ]
+    }
+
+    // Filter by room type if provided
+    if (roomTypeId) {
+      whereCondition.roomTypeId = roomTypeId
     }
 
     // Only include current room if it's provided
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       whereCondition.OR.push({ id: currentRoomId })
     }
 
-    // Get available rooms of the same type, plus the currently allocated room
+    // Get available rooms with full room type details
     const availableRooms = await prisma.rooms.findMany({
       where: whereCondition,
       select: {
@@ -38,7 +38,16 @@ export async function GET(request: NextRequest) {
         floorNumber: true,
         roomType: {
           select: {
-            name: true
+            id: true,
+            name: true,
+            description: true,
+            price: true,
+            currency: true,
+            size: true,
+            bedType: true,
+            maxGuests: true,
+            amenities: true,
+            images: true
           }
         }
       },

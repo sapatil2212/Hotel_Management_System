@@ -30,7 +30,8 @@ import {
   History,
   Plus,
   Minus,
-  Loader
+  Loader,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -290,51 +291,51 @@ export default function AccountsPage() {
   }
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight">Account Management</h2>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={loadAccounts}>
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+    <div className="p-2 sm:p-6 space-y-3 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <h2 className="text-lg sm:text-3xl font-bold">Account Management</h2>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={loadAccounts} className="h-8 w-8 sm:h-9 sm:w-auto text-xs sm:text-sm">
+            <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline ml-2">Refresh</span>
           </Button>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
+          <Button variant="outline" size="sm" className="h-8 w-8 sm:h-9 sm:w-auto text-xs sm:text-sm">
+            <Download className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline ml-2">Export</span>
           </Button>
           {canTransferFunds && (
             <>
               <Dialog open={showManualTransactionDialog} onOpenChange={setShowManualTransactionDialog}>
                 <DialogTrigger asChild>
-                  <Button variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add/Remove Funds
+                  <Button variant="outline" className="h-8 w-8 sm:h-9 sm:w-auto text-xs sm:text-sm">
+                    <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden sm:inline ml-2">Add/Remove Funds</span>
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Manual Deposit/Withdrawal</DialogTitle>
+                <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader className="mb-3 sm:mb-6">
+                    <DialogTitle className="text-base sm:text-xl">Manual Deposit/Withdrawal</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
-                      <Label>Transaction Type</Label>
+                      <Label className="text-[10px] sm:text-xs">Transaction Type</Label>
                       <Select 
                         value={manualTransactionForm.type} 
                         onValueChange={(value: 'deposit' | 'withdrawal') => setManualTransactionForm(prev => ({ ...prev, type: value }))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="deposit">
                             <div className="flex items-center gap-2">
-                              <Plus className="h-4 w-4 text-green-500" />
+                              <Plus className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
                               Deposit (Add Money)
                             </div>
                           </SelectItem>
                           <SelectItem value="withdrawal">
                             <div className="flex items-center gap-2">
-                              <Minus className="h-4 w-4 text-red-500" />
+                              <Minus className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
                               Withdrawal (Remove Money)
                             </div>
                           </SelectItem>
@@ -343,12 +344,12 @@ export default function AccountsPage() {
                     </div>
 
                     <div>
-                      <Label>Account</Label>
+                      <Label className="text-[10px] sm:text-xs">Account</Label>
                       <Select 
                         value={manualTransactionForm.accountId} 
                         onValueChange={(value) => setManualTransactionForm(prev => ({ ...prev, accountId: value }))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                           <SelectValue placeholder="Select account" />
                         </SelectTrigger>
                         <SelectContent>
@@ -362,31 +363,33 @@ export default function AccountsPage() {
                     </div>
 
                     <div>
-                      <Label>Amount (₹)</Label>
+                      <Label className="text-[10px] sm:text-xs">Amount (₹)</Label>
                       <Input
                         type="number"
                         value={manualTransactionForm.amount}
                         onChange={(e) => setManualTransactionForm(prev => ({ ...prev, amount: e.target.value }))}
                         placeholder="0.00"
+                        className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                       />
                     </div>
 
                     <div>
-                      <Label>Description</Label>
+                      <Label className="text-[10px] sm:text-xs">Description</Label>
                       <Input
                         value={manualTransactionForm.description}
                         onChange={(e) => setManualTransactionForm(prev => ({ ...prev, description: e.target.value }))}
                         placeholder="Transaction description"
+                        className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                       />
                     </div>
 
                     <div>
-                      <Label>Payment Method (Optional)</Label>
+                      <Label className="text-[10px] sm:text-xs">Payment Method (Optional)</Label>
                       <Select 
                         value={manualTransactionForm.paymentMethod} 
                         onValueChange={(value) => setManualTransactionForm(prev => ({ ...prev, paymentMethod: value }))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                           <SelectValue placeholder="Select payment method" />
                         </SelectTrigger>
                         <SelectContent>
@@ -402,44 +405,55 @@ export default function AccountsPage() {
                     </div>
 
                     <div>
-                      <Label>Notes (Optional)</Label>
+                      <Label className="text-[10px] sm:text-xs">Notes (Optional)</Label>
                       <Input
                         value={manualTransactionForm.notes}
                         onChange={(e) => setManualTransactionForm(prev => ({ ...prev, notes: e.target.value }))}
                         placeholder="Additional notes"
+                        className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                       />
                     </div>
 
-                    <Button 
-                      onClick={handleManualTransaction} 
-                      className="w-full"
-                      disabled={!manualTransactionForm.accountId || !manualTransactionForm.amount || !manualTransactionForm.description}
-                    >
-                      {manualTransactionForm.type === 'deposit' ? 'Add Funds' : 'Remove Funds'}
-                    </Button>
+                    <div className="flex gap-2 pt-3 border-t">
+                      <Button 
+                        variant="outline"
+                        onClick={() => setShowManualTransactionDialog(false)} 
+                        className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                      >
+                        <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleManualTransaction} 
+                        className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                        disabled={!manualTransactionForm.accountId || !manualTransactionForm.amount || !manualTransactionForm.description}
+                      >
+                        {manualTransactionForm.type === 'deposit' ? 'Add Funds' : 'Remove Funds'}
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>
 
               <Dialog open={showTransferDialog} onOpenChange={setShowTransferDialog}>
                 <DialogTrigger asChild>
-                  <Button>
-                    <ArrowUpDown className="h-4 w-4 mr-2" />
+                  <Button className="h-8 sm:h-9 text-xs sm:text-sm">
+                    <ArrowUpDown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Transfer Funds
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Transfer Funds Between Accounts</DialogTitle>
+                <DialogContent className="max-w-2xl sm:max-w-4xl mx-2 sm:mx-8 p-3 sm:p-6 rounded-lg max-h-[90vh] overflow-y-auto">
+                  <DialogHeader className="mb-3 sm:mb-6">
+                    <DialogTitle className="text-base sm:text-xl">Transfer Funds Between Accounts</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                   <div>
-                    <Label>From Account</Label>
+                    <Label className="text-[10px] sm:text-xs">From Account</Label>
                     <Select 
                       value={transferForm.fromAccountId} 
                       onValueChange={(value) => setTransferForm(prev => ({ ...prev, fromAccountId: value }))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                         <SelectValue placeholder="Select source account" />
                       </SelectTrigger>
                       <SelectContent>
@@ -453,12 +467,12 @@ export default function AccountsPage() {
                   </div>
 
                   <div>
-                    <Label>To Account</Label>
+                    <Label className="text-[10px] sm:text-xs">To Account</Label>
                     <Select 
                       value={transferForm.toAccountId} 
                       onValueChange={(value) => setTransferForm(prev => ({ ...prev, toAccountId: value }))}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                         <SelectValue placeholder="Select destination account" />
                       </SelectTrigger>
                       <SelectContent>
@@ -474,31 +488,43 @@ export default function AccountsPage() {
                   </div>
 
                   <div>
-                    <Label>Amount (₹)</Label>
+                    <Label className="text-[10px] sm:text-xs">Amount (₹)</Label>
                     <Input
                       type="number"
                       value={transferForm.amount}
                       onChange={(e) => setTransferForm(prev => ({ ...prev, amount: e.target.value }))}
                       placeholder="0.00"
+                      className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                     />
                   </div>
 
                   <div>
-                    <Label>Description</Label>
+                    <Label className="text-[10px] sm:text-xs">Description</Label>
                     <Input
                       value={transferForm.description}
                       onChange={(e) => setTransferForm(prev => ({ ...prev, description: e.target.value }))}
                       placeholder="Transfer description"
+                      className="h-8 sm:h-9 text-xs sm:text-sm rounded-md"
                     />
                   </div>
 
-                  <Button 
-                    onClick={handleTransfer} 
-                    className="w-full"
-                    disabled={!transferForm.fromAccountId || !transferForm.toAccountId || !transferForm.amount || !transferForm.description}
-                  >
-                    Transfer Funds
-                  </Button>
+                  <div className="flex gap-2 pt-3 border-t">
+                    <Button 
+                      variant="outline"
+                      onClick={() => setShowTransferDialog(false)} 
+                      className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                    >
+                      <X className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleTransfer} 
+                      className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                      disabled={!transferForm.fromAccountId || !transferForm.toAccountId || !transferForm.amount || !transferForm.description}
+                    >
+                      Transfer Funds
+                    </Button>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>
@@ -508,104 +534,104 @@ export default function AccountsPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Balance</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">Total Balance</CardTitle>
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(getTotalBalance())}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-sm sm:text-2xl font-bold">{formatCurrency(getTotalBalance())}</div>
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               All accounts combined
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Main Account</CardTitle>
-            <Building className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">Main Account</CardTitle>
+            <Building className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(getMainAccountBalance())}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-sm sm:text-2xl font-bold">{formatCurrency(getMainAccountBalance())}</div>
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               Hotel main account
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">User Accounts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">User Accounts</CardTitle>
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(getUserAccountsBalance())}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-sm sm:text-2xl font-bold">{formatCurrency(getUserAccountsBalance())}</div>
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               All user accounts combined
             </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Accounts</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
+        <Card className="rounded-lg">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 sm:pb-2">
+            <CardTitle className="text-[8px] sm:text-sm font-medium">Active Accounts</CardTitle>
+            <CreditCard className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{accounts.filter(a => a.isActive).length}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-sm sm:text-2xl font-bold">{accounts.filter(a => a.isActive).length}</div>
+            <p className="text-[9px] sm:text-xs text-muted-foreground">
               {accounts.length} total accounts
             </p>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="accounts" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="accounts">Account Balances</TabsTrigger>
-          <TabsTrigger value="transactions">Transaction History</TabsTrigger>
+      <Tabs defaultValue="accounts" className="space-y-3 sm:space-y-6">
+        <TabsList className="h-8 sm:h-9">
+          <TabsTrigger value="accounts" className="text-xs sm:text-sm">Account Balances</TabsTrigger>
+          <TabsTrigger value="transactions" className="text-xs sm:text-sm">Transaction History</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="accounts" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Banknote className="h-5 w-5" />
+        <TabsContent value="accounts" className="space-y-3 sm:space-y-6">
+          <Card className="rounded-lg">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Banknote className="h-4 w-4 sm:h-5 sm:w-5" />
                 Account Balances
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {accounts.map((account) => (
                   <Card key={account.accountId} className={cn(
-                    "p-4",
+                    "p-3 sm:p-4 rounded-lg",
                     account.isMainAccount ? "border-amber-200 bg-amber-50" : ""
                   )}>
                     <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">{account.accountName}</div>
-                      <div className="flex items-center space-x-2">
+                      <div className="font-medium text-[10px] sm:text-sm">{account.accountName}</div>
+                      <div className="flex items-center gap-1">
                         {account.isMainAccount && (
-                          <Badge variant="default">Main</Badge>
+                          <Badge variant="default" className="text-[9px] sm:text-xs">Main</Badge>
                         )}
-                        <Badge variant={account.isActive ? 'outline' : 'secondary'}>
+                        <Badge variant={account.isActive ? 'outline' : 'secondary'} className="text-[9px] sm:text-xs">
                           {account.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </div>
                     </div>
                     
                     {account.userName && (
-                      <div className="text-sm text-muted-foreground mb-2">
+                      <div className="text-[9px] sm:text-xs text-muted-foreground mb-2">
                         User: {account.userName}
                       </div>
                     )}
                     
-                    <div className="text-2xl font-bold mb-1">
+                    <div className="text-sm sm:text-2xl font-bold mb-1">
                       {formatCurrency(account.balance)}
                     </div>
                     
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-[9px] sm:text-xs text-muted-foreground">
                       Account Type: {account.accountType.replace('_', ' ').toUpperCase()}
                     </div>
                   </Card>
@@ -615,24 +641,24 @@ export default function AccountsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="transactions" className="space-y-4">
+        <TabsContent value="transactions" className="space-y-3 sm:space-y-6">
           {/* Transaction Filters */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
+          <Card className="rounded-lg">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Filter className="h-4 w-4 sm:h-5 sm:w-5" />
                 Transaction Filters
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                 <div>
-                  <Label>Account</Label>
+                  <Label className="text-[10px] sm:text-xs">Account</Label>
                   <Select 
                     value={filters.accountId} 
                     onValueChange={(value) => setFilters(prev => ({ ...prev, accountId: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue placeholder="All accounts" />
                     </SelectTrigger>
                     <SelectContent>
@@ -647,12 +673,12 @@ export default function AccountsPage() {
                 </div>
 
                 <div>
-                  <Label>Transaction Type</Label>
+                  <Label className="text-[10px] sm:text-xs">Transaction Type</Label>
                   <Select 
                     value={filters.type} 
                     onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue placeholder="All types" />
                     </SelectTrigger>
                     <SelectContent>
@@ -664,12 +690,12 @@ export default function AccountsPage() {
                 </div>
 
                 <div>
-                  <Label>Category</Label>
+                  <Label className="text-[10px] sm:text-xs">Category</Label>
                   <Select 
                     value={filters.category} 
                     onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm rounded-md">
                       <SelectValue placeholder="All categories" />
                     </SelectTrigger>
                     <SelectContent>
@@ -684,8 +710,8 @@ export default function AccountsPage() {
                 </div>
 
                 <div className="flex items-end">
-                  <Button className="w-full" onClick={loadTransactions}>
-                    <Eye className="h-4 w-4 mr-2" />
+                  <Button className="w-full h-8 sm:h-9 text-xs sm:text-sm" onClick={loadTransactions}>
+                    <Eye className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Apply Filters
                   </Button>
                 </div>
@@ -694,10 +720,10 @@ export default function AccountsPage() {
           </Card>
 
           {/* Transactions Table */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5" />
+          <Card className="rounded-lg">
+            <CardHeader className="pb-3 sm:pb-4">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <History className="h-4 w-4 sm:h-5 sm:w-5" />
                 Transaction History
               </CardTitle>
             </CardHeader>
@@ -707,25 +733,26 @@ export default function AccountsPage() {
                   <RefreshCw className="h-8 w-8 animate-spin" />
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Account</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Date</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Type</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Account</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Description</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Category</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Amount</TableHead>
+                        <TableHead className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
                   <TableBody>
                     {transactions.map((transaction) => (
                       <TableRow key={transaction.id}>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           {format(new Date(transaction.transactionDate), 'MMM dd, yyyy HH:mm')}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           <div className="flex items-center gap-2">
                             {getTransactionIcon(transaction)}
                             <span className={cn(
@@ -736,46 +763,47 @@ export default function AccountsPage() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           <div>
                             <div className="font-medium">{transaction.account.accountName}</div>
                             {transaction.account.user && (
-                              <div className="text-sm text-muted-foreground">
+                              <div className="text-[9px] sm:text-xs text-muted-foreground">
                                 {transaction.account.user.name}
                               </div>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           <div>
                             <div className="font-medium">{transaction.description}</div>
                             {transaction.notes && (
-                              <div className="text-sm text-muted-foreground">{transaction.notes}</div>
+                              <div className="text-[9px] sm:text-xs text-muted-foreground">{transaction.notes}</div>
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
+                          <Badge variant="outline" className="text-[9px] sm:text-xs">
                             {transaction.category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </Badge>
                         </TableCell>
                         <TableCell className={cn(
-                          "font-medium",
+                          "text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4 font-medium",
                           transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
                         )}>
                           {transaction.type === 'credit' ? '+' : '-'}{formatCurrency(transaction.amount)}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-[10px] sm:text-xs px-2 sm:px-3 py-3 sm:py-4">
                           {transaction.isModification ? (
-                            <Badge variant="destructive">Modified</Badge>
+                            <Badge variant="destructive" className="text-[9px] sm:text-xs">Modified</Badge>
                           ) : (
-                            <Badge variant="default">Completed</Badge>
+                            <Badge variant="default" className="text-[9px] sm:text-xs">Completed</Badge>
                           )}
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               )}
             </CardContent>
           </Card>

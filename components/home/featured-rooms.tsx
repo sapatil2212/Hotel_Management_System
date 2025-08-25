@@ -128,7 +128,7 @@ const FeaturedRooms = () => {
   }
 
   const RoomCard = ({ room }: { room: Room }) => (
-    <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm hover:bg-white hover:scale-[1.02] relative">
+    <Card className="group overflow-hidden hover:shadow-2xl transition-all duration-500 border border-gray-200 bg-white hover:bg-white hover:scale-[1.02] relative">
       {/* Premium overlay for promoted rooms */}
       {room.isPromoted && (
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 z-10" />
@@ -233,7 +233,7 @@ const FeaturedRooms = () => {
         
         {/* Enhanced room details grid */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
+          <div className="flex items-center gap-2 p-2 bg-white border border-gray-100 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
             <div className="p-1.5 bg-white rounded-md shadow-sm">
               <Square className="h-3 w-3 text-amber-600" />
             </div>
@@ -243,7 +243,7 @@ const FeaturedRooms = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
+          <div className="flex items-center gap-2 p-2 bg-white border border-gray-100 rounded-lg group-hover:bg-amber-50 transition-colors duration-300">
             <div className="p-1.5 bg-white rounded-md shadow-sm">
               <Bed className="h-3 w-3 text-amber-600" />
             </div>
@@ -321,18 +321,18 @@ const FeaturedRooms = () => {
 
   if (loading) {
     return (
-      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-50">
-        <Container>
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
+      <section className="bg-white">
+        <Container className="bg-white">
+          <div className="text-center mb-8 md:mb-16">
+            <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100 text-xs md:text-sm">
               Featured Accommodations
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4">
               <span className="bg-gradient-to-r from-gray-900 via-amber-800 to-gray-900 bg-clip-text text-transparent">
                 Our Finest Rooms
               </span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto">
               Discover our most popular accommodations, designed for your ultimate comfort and luxury
             </p>
           </div>
@@ -355,19 +355,19 @@ const FeaturedRooms = () => {
   }
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-gray-50">
-      <Container>
+    <section className="bg-white -mt-4 md:-mt-8">
+      <Container className="bg-white">
         {/* Section Header */}
-        <div className="text-center mb-16">
-          <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100">
+        <div className="text-center mb-6 md:mb-12 pt-4 md:pt-8">
+          <Badge className="mb-4 bg-amber-100 text-amber-800 hover:bg-amber-100 text-xs md:text-sm">
             Featured Accommodations
           </Badge>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-4">
             <span className="bg-gradient-to-r from-gray-900 via-amber-800 to-gray-900 bg-clip-text text-transparent">
               Our Finest Rooms
             </span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-base md:text-xl text-muted-foreground max-w-2xl mx-auto">
             Discover our most popular accommodations, designed for your ultimate comfort and luxury
           </p>
         </div>
